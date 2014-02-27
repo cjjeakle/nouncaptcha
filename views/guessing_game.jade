@@ -4,4 +4,10 @@ block append content
 	div(style = 'display: inline-block; text-align: center;')
 		h1 The Guessing Game
 		h3 Guess a Noun your Partner is Thinking of
-
+		script(src='/socket.io/socket.io.js')
+		script(type='text/javascript').
+			var socket = io.connect('http://localhost');
+			socket.on('news', function (data) {
+				console.log(data);
+				socket.emit('my other event', { my: 'data' });
+			});
