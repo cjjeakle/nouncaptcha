@@ -1,0 +1,1 @@
+-- Procedure to clear the db setup
