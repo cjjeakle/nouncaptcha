@@ -28,7 +28,9 @@
     "jade": "~1.0.0",
     "pg": "~2.10.0",
     "request": "~2.31.0",
-    "socket.io": "~0.9.16"
+    "socket.io": "~0.9.16",
+    "cookie": "~0.1.1",
+    "connect": "~2.14.1"
   },
   "engines": {
     "node": "0.10.x"
