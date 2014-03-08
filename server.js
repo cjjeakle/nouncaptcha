@@ -100,17 +100,11 @@ io.set('authorization', function (handshakeData, accept) {
 });
 
 io.sockets.on('connection', function (socket) {
-	setInterval(function() {
-		socket.emit('time', bucket_time)
-	}, 1000);
+	socket.emit('time', bucket_time)
 	
 	setInterval(function() {
 		socket.emit('wait complete', {});
 	}, bucket_time * 1000);
-	
-	socket.on('my other event', function (data) {
-		console.log(data);
-	});
 
 	socket.on('disconnect', function() {
 		// removed closed connections from the list

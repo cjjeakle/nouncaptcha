@@ -1,22 +1,28 @@
 extends layout
 
 block append content
-	div(style = 'display: inline-block; text-align: center;')
+	div(style='text-align: center;').row.jumbotron
 		h1 The Guessing Game
-		h3 Please wait to connect with a partner.
-		|Next game in:
-		div(id='time', style = 'display: inline-block; text-align: center;')
-		|  seconds
+		|Please wait to connect with a partner.
+		br
+		|The next game starts in:
+		div(id='time', style = 'display: inline-block;')
+		|  seconds.
 		script(src='/socket.io/socket.io.js')
 		script(type='text/javascript').
 			var socket = io.connect('');
+			var time;
 			
 			socket.on('connect', function() {
 				console.log('check', socket.socket.connected);
 			});
 			
 			socket.on('time', function (data) {
-				document.getElementById('time').innerHTML = data;
+				time = data;
+				setInterval(function() {
+					time--;
+					document.getElementById('time').innerHTML = time;
+				}, 1000);
 			});
 			
 			socket.on('wait complete', function (data) {
