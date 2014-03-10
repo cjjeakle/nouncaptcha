@@ -1,14 +1,39 @@
 extends layout
 
 block append content
-	div(style = 'text-align: center;').jumbotron
-		h2 The Guessing Game
-		|Guess a Noun your Partner is Thinking of
+	script(src='/socket.io/socket.io.js')
+	script(src='/scripts/guessing_game.js')
 
-		script(src='/socket.io/socket.io.js')
-		script(type='text/javascript').
-			var socket = io.connect('');
-			
-			socket.on('connect', function() {
-				console.log('check', socket.socket.connected);
-			});
+	div(style = 'text-align: center;').jumbotron.game
+		h2 The Guessing Game
+		|Guess a <font color = 'red'>Noun</font> your Partner is Thinking of
+		br
+		|(a <font color = 'red'>Noun</font> is a person, place, or thing)
+		br
+		br
+		.row
+		div.col-md-2.col-sm-12
+			h4 Time Remaining: 
+				div(style = 'display:inline-block', id = 'timer')
+				|  seconds
+			|------
+			h4 Score:
+				div(style = 'display:inline-block', id = 'score') 0
+			br
+		div.col-md-6.col-sm-12
+			img(src = '', id = 'pic').img-responsive
+			br
+			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess')
+			br
+			a(href = 'javascript:send_guess();').btn.btn-sm.btn-success
+				| Submit
+			|      
+			a(href = 'javascript:request_skip();', id = 'skip_btn').btn.btn-sm.btn-success
+				| Skip
+			br
+			div(id = 'notifications')
+		div(id = 'guesses').col-md-2.col-sm-6
+			h3 Guesses:
+		div(id = 'taboo').col-md-2.col-sm-6
+			h3 Off-Limits:
+		.row

@@ -1,6 +1,8 @@
 extends layout
 
 block append content
+	script(src='/socket.io/socket.io.js')
+	script(src='/scripts/get_partners.js')
 	div(style='text-align: center;').row.jumbotron
 		h1 The Guessing Game
 		|Please wait to connect with a partner.
@@ -8,24 +10,4 @@ block append content
 		|The next game starts in:
 		div(id='time', style = 'display: inline-block;')
 		|  seconds.
-		script(src='/socket.io/socket.io.js')
-		script(type='text/javascript').
-			var socket = io.connect('');
-			var time;
-			
-			socket.on('connect', function() {
-				console.log('check', socket.socket.connected);
-			});
-			
-			socket.on('time', function (data) {
-				time = data;
-				setInterval(function() {
-					time--;
-					document.getElementById('time').innerHTML = time;
-				}, 1000);
-			});
-			
-			socket.on('wait complete', function (data) {
-				window.location.href = '/game';
-			});
 			
