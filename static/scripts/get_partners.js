@@ -5,6 +5,8 @@ socket.emit('waiting', {});
 
 socket.on('wait time', function (data) {
 	time = data;
+	document.getElementById('loading').style.display = 'none';
+	document.getElementById('time').innerHTML = time;
 	setInterval(function() {
 		if(time > 0) {
 			time--;

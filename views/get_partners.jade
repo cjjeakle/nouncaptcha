@@ -3,6 +3,8 @@ extends layout
 block append content
 	script(src='/socket.io/socket.io.js')
 	script(src='/scripts/get_partners.js')
+	div(id = 'loading').loading
+		img(src = '/images/loading.gif')
 	div(style='text-align: center;').row.jumbotron
 		h1 The Guessing Game
 		|Please wait to connect with a partner.

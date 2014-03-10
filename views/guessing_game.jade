@@ -3,7 +3,8 @@ extends layout
 block append content
 	script(src='/socket.io/socket.io.js')
 	script(src='/scripts/guessing_game.js')
-
+	div(id = 'loading').loading
+		img(src = '/images/loading.gif')
 	div(style = 'text-align: center;').jumbotron.game
 		h2 The Guessing Game
 		|Guess a <font color = 'red'>Noun</font> your Partner is Thinking of

@@ -2,12 +2,13 @@ var socket = io.connect('');
 var wants_skip = false;
 var score = 0;
 
-
 ///// Socket Handlers /////
 socket.emit('start game', {});
 
 socket.on('game time', function(data) {
 	time = data.time;
+	document.getElementById('loading').style.display = 'none';
+	document.getElementById('timer').innerHTML = time;
 	setInterval(function() {
 		if(time > 0) {
 			time--;
