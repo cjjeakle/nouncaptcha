@@ -8,6 +8,15 @@ return function(req, res) {
 };
 };
 
+exports.game = function(pg) {
+return function(req, res) {
+	res.render('guessing_game', {
+		continue_message: 'Press okay to play again.',
+		link: '/game_survey'
+	});
+};
+};
+
 exports.trial_partner_up = function(pg) {
 return function(req, res) {
 	res.render('get_partners', {link: '/trial_game'});
@@ -16,7 +25,10 @@ return function(req, res) {
 
 exports.trial_game = function(pg) {
 return function(req, res) {
-	res.render('guessing_game', {trial_mode: true});
+	res.render('guessing_game', {
+		continue_message: 'Please press okay to take a quick survey.',
+		link: '/game_survey'
+	});
 };
 };
 

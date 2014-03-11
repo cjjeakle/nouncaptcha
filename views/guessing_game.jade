@@ -1,6 +1,9 @@
 extends layout
 
 block append content
+	script.
+		var link = '#{link}';
+		var continue_message = '#{continue_message}';
 	script(src='/socket.io/socket.io.js')
 	script(src='/scripts/guessing_game.js')
 	div(id = 'loading').loading
@@ -41,5 +44,3 @@ block append content
 			h3 Off-Limits:
 			div(style = 'display:inline-block', id = 'taboo')
 		.row
-	script.
-		var trial_mode = '#{trial_mode}';

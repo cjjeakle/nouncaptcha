@@ -4,7 +4,6 @@ var game_over = false;
 var taboo_list = [];
 var guesses = [];
 var score = 0;
-var link = '/game_survey';
 
 ///// Socket Handlers /////
 socket.emit('start game', {});
@@ -90,7 +89,7 @@ function game_error(msg) {
 	document.getElementById('guess').disabled = true;
 	alert(msg + 
 		'\nYour final score is: ' + score + ' points.' +
-		'\n\nPlease press okay to take a quick survey.');
+		'\n\n' + continue_message);
 	window.location.href = link;
 }
 
@@ -105,7 +104,7 @@ function end_game() {
 	}
 	alert(greeting + 
 		'Your final score is: ' + score + ' points' + punctuation +
-		'\n\nPress okay to take a quick survey.');
+		'\n\n' + continue_message);
 	window.location.href = link;
 }
 
