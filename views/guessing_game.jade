@@ -24,7 +24,7 @@ block append content
 		div.col-md-6.col-sm-12
 			img(src = '', id = 'pic').img-responsive
 			br
-			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess', autofocus = 'autofocus')
+			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess', autocapitalize='off', autocorrect='on')
 			br
 			a(href = 'javascript:send_guess();', id = 'submit_btn').btn.btn-sm.btn-success
 				| Submit
@@ -43,7 +43,3 @@ block append content
 		.row
 	script.
 		var trial_mode = '#{trial_mode}';
-		//autorun js
-		$(document).ready(function(){
-			window.scroll(0,300);
-		});

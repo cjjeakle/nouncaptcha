@@ -26,7 +26,6 @@ app.use(express.urlencoded());
 app.use(express.methodOverride());
 app.use(express.bodyParser());
 app.use(express.cookieParser());
-// TODO: Secret will be made an env var later
 app.use(express.session({secret: process.env.SECRET || 'secret', key: 'express.sid'}));
 app.use(app.router);
 app.use(express.static(__dirname + '/static'));
@@ -57,10 +56,10 @@ app.configure('development', function(){
 
 // Get requests
 app.get('/', function(req, res) {res.redirect('/trial_partner_up');})
-app.get('/trail_consent', function(){});
+app.get('/trail_consent', function(req, res){res.redirect('/')});
 app.get('/trial_partner_up', routes.trial_partner_up(pg));
 app.get('/trial_game', routes.trial_game(pg));
-app.get('/game_survey', function(){res.write('test')});
+app.get('/game_survey', function(req, res){res.redirect('/')});
 
 // Post requests
 app.post('/submit_game_survey', function(){});
@@ -116,109 +115,182 @@ io.set('authorization', function (handshakeData, accept) {
 	accept(null, true);
 });
 
-io.sockets.on('connection', function (socket) {
-	var waiting = false;
-	var in_game = false;
+
+io.sockets.on('connection', function (_socket) {
+	var context = {
+		socket: _socket,
+		sid: _socket.handshake.sessionID,
+		waiting: false,
+		in_game: false
+	};
 	
-	///// Partnering Handler /////
-	socket.on('waiting', function() {
-		// If already in game, do not allow user to attempt another pairing
-		if(user_data[socket.handshake.sessionID]) {
-			socket.emit('already partnered', {});
-			return;
-		}
+	_socket.on('waiting', partner_handler(context));
 
-		// Add user to waiting list if not present
-		if(waiters.indexOf(socket.handshake.sessionID) != -1) {
-			return;
-		}
-		waiting = true;
-		waiters.push(socket.handshake.sessionID);
-
-		// Save user socket for later wake-up
-		player_sockets[socket.handshake.sessionID] = socket;
-
-		// Let the waiting user know their approx. wait time
-		socket.emit('wait time', bucket_time);
-	});
+	_socket.on('start game', start_game(context));
 	
+	_socket.on('guess', guess_handler(context));
 
-
-	///// Game Handlers ///// 
-	socket.on('start game', function() {
-		if(!user_data[socket.handshake.sessionID]) {
-			socket.emit('not partnered', {});
-			return;
-		}
-		in_game = true;
-		player_sockets[socket.handshake.sessionID] = socket;
-
-		socket.emit('game time', {time: 150});
-
-		var game = game_data[user_data[socket.handshake.sessionID].gameID];
-
-		socket.emit('new image', 
-			{image: game.images[game.cur_image],
-			taboo: game.taboo[game.cur_image]}
-		);
-	});
-	
-	socket.on('guess', function(data) {
-		var user = user_data[socket.handshake.sessionID];
-		var game = game_data[user.gameID];
-		var partner = user.partner ? user_data[user.partner].guesses : user.ai_guesses[game.cur_image];
-
-		user.guesses.push(data.guess);
-
-		// confirm guess if saved
-		socket.emit('guess received', {guess: data.guess});
-
-		if(partner.indexOf(data.guess) == -1) {
-			console.log(JSON.stringify(partner));
-			// This guess was not in the partner's guesses
-			return;
-		}
-		
-		// TODO: save both player guess arrays with timing to db
-		// TODO: save word match to db
-
-		var partner_socket = user.partner ? player_sockets[user.partner] : null;
-		update_scores(socket, partner_socket, game);
-		
-		game.cur_image++;
-		if(game.cur_image < game.images.length) {
-			next_image(socket, partner_socket, game);
-		} else {
-			end_game(socket, partner_socket);
-		}
-	});
-
-	//socket.on('pass')
-
-
+	_socket.on('request skip', skip_handler(context));
 
 
 	///// Close Connections /////
-	socket.on('disconnect', function() {
-		if(in_game) {
-			// TODO: Notify partner of disconnect
-			if(game_data[user_data[socket.handshake.sessionID].gameID]) {
-				delete game_data[user_data[socket.handshake.sessionID].gameID];
+	_socket.on('disconnect', function() {
+		if(context.in_game) {
+			if(game_data[user_data[context.sid].gameID]) {
+				delete game_data[user_data[context.sid].gameID];
 			}
-			delete user_data[socket.handshake.sessionID];
-		} else if (waiting) {
-			var index = waiters.indexOf(socket.handshake.sessionID);
+			delete user_data[context.sid];
+		} else if (context.waiting) {
+			var index = waiters.indexOf(context.sid);
 			waiters.splice(index, 1);
 		} else {
 			// no cleanup needed
 			return;
 		}
-		delete player_sockets[socket.handshake.sessionID];
+		delete player_sockets[context.sid];
 	});
 });
 
 
-/////////////////////////// Socket Helper Functions ////////////////////////////
+////////////////////////// Socket Handler Functions ////////////////////////////
+
+///// Partnering Handler /////
+function partner_handler(context) {
+return function(data) {
+	// If already in game, do not allow user to attempt another pairing
+	if(user_data[context.sid]) {
+		context.socket.emit('already partnered', {});
+		return;
+	}
+
+	// Add user to waiting list if not present
+	if(waiters.indexOf(context.sid) != -1) {
+		return;
+	}
+	context.waiting = true;
+	waiters.push(context.sid);
+
+	// Save user socket for wake-up when partnered
+	player_sockets[context.sid] = context.socket;
+
+	// Let the waiting user know their approx. wait time
+	context.socket.emit('wait time', {time: bucket_time});
+}
+}
+
+function start_game(context) {
+return function(data) {
+	if(!user_data[context.sid]) {
+		context.socket.emit('not partnered', {});
+		return;
+	}
+	context.in_game = true;
+	player_sockets[context.sid] = context.socket;
+
+	context.socket.emit('game time', {time: 150});
+
+	var game = game_data[user_data[context.sid].gameID];
+	context.socket.emit('new image', {
+		image: game.images[game.cur_image],
+		taboo: game.taboo[game.cur_image]
+	});
+}
+}
+
+function guess_handler(context) {
+return function(data) {
+	var user = user_data[context.sid];
+	var game = game_data[user.gameID];
+	var partner = user.partner ? user_data[user.partner].guesses : user.ai_guesses[game.cur_image];
+
+	user.guesses.push(data.guess);
+
+	// confirm guess if saved
+	context.socket.emit('guess received', {guess: data.guess});
+
+	if(partner.indexOf(data.guess) == -1) {
+		// This guess was not in the partner's guesses
+		return;
+	}
+	
+	// TODO: save both player guess arrays to db (if non-empty)
+	// TODO: save word match to db
+
+	var partner_socket = user.partner ? player_sockets[user.partner] : null;
+	broadcast_message(context.sid, 'add points');
+	
+	game.cur_image++;
+	if(game.cur_image < game.images.length) {
+		send_cur_image(context.sid, game);
+	} else {
+		end_game(context.socket, partner_socket);
+	}
+}
+}
+
+function skip_handler(context) {
+return function(data) {
+	var user = user_data[context.sid];
+	var game = game_data[user.gameID];
+	user.pass_requested = true;
+
+	if(!user.partner || user_data[user.partner].pass_requested) {
+		user.pass_requested = false;
+		if(user.partner) {
+			user_data[user.partner].pass_requested = false;
+		}
+
+		game.cur_image++;
+		if(game.cur_image < game.images.length) {
+			send_cur_image(context.sid, game);
+			broadcast_message(context.sid, 'image skipped');
+		} else {
+			broadcast_message(context.sid, 'image skipped');
+			end_game(context.sid);
+		}
+
+		// TODO: mark image as skipped in DB
+	}
+}
+}
+
+////////////////////////// Socket Helper Functions /////////////////////////////
+
+function broadcast_message (player_id, msg) {
+	var player = player_sockets[player_id];
+	partner_id = user_data[player_id].partner;
+	var partner = partner_id ? player_sockets[partner_id] : null;
+	player.emit(msg, {});
+	if(partner) {
+		partner.emit(msg, {});
+	}
+}
+
+function send_cur_image (player_id, game) {
+	var player = player_sockets[player_id];
+	partner_id = user_data[player_id].partner;
+	var partner = partner_id ? player_sockets[partner_id] : null;
+	player.emit('new image', {
+		image: game.images[game.cur_image],
+		taboo: game.taboo[game.cur_image]
+	});
+	if(partner) {
+		partner.emit('new image', {
+			image: game.images[game.cur_image],
+			taboo: game.taboo[game.cur_image]
+		});
+	}
+}
+
+function end_game (player_id) {
+	var player = player_sockets[player_id];
+	partner_id = user_data[player_id].partner;
+	var partner = partner_id ? player_sockets[partner_id] : null;
+	player.emit('game over', {});
+	if(partner) {
+		partner.emit('game over', {});
+	}
+}
 
 
 function partner_up(players) {
@@ -251,6 +323,7 @@ function partner_up(players) {
 		user_data[player1].partner = player2;
 
 		// TODO: set up game for players (query data for game_data object)
+		// TODO: set up ai player's guesses array
 		user_data[player1].ai_guesses = [
 			['car', 'tire'],
 			['filler']
@@ -274,32 +347,4 @@ function partner_up(players) {
 	}
 }
 
-function next_image (player, partner, game) {
-	player.emit('new image', {
-		image: game.images[game.cur_image],
-		taboo: game.taboo[game.cur_image]
-	});
-	if(partner) {
-		partner.emit('new image', {
-			image: game.images[game.cur_image],
-			taboo: game.taboo[game.cur_image]
-		});
-	}
-}
 
-function update_scores (player, partner, game) {
-	points = 500;
-	player.emit('update score', {value: points});
-	if(partner) {
-		partner.emit('update score', {value: points});
-	}
-}
-
-function end_game (player, partner) {
-	player.emit('game over', {});
-	if(partner) {
-		partner.emit('game over', {});
-	}
-}
-
-// When users agree on an image tag, save the user's submission array to db and reset

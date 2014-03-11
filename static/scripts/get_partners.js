@@ -4,7 +4,7 @@ var time;
 socket.emit('waiting', {});
 
 socket.on('wait time', function (data) {
-	time = data;
+	time = data.time;
 	document.getElementById('loading').style.display = 'none';
 	document.getElementById('time').innerHTML = time;
 	setInterval(function() {

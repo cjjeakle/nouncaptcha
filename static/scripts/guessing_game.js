@@ -27,8 +27,8 @@ socket.on('guess received', function(data) {
 	add_data('guesses', data.guess);
 });
 
-socket.on('update score', function(data) {
-	score += data.value;
+socket.on('add points', function(data) {
+	score += 500;
 	document.getElementById('score').innerHTML = score;
 	display_message('Nice work, you guessed your partner\'s thoughts!');
 })
@@ -48,6 +48,12 @@ socket.on('new image', function(data) {
 
 socket.on('partner skip', function(data) {
 	display_message('Your partner is out of ideas and wants to skip.');
+});
+
+socket.on('image skipped', function(data) {
+	score -= 250;
+	document.getElementById('score').innerHTML = score;
+	display_message('Your team has skipped an image, -250 points.');
 });
 
 socket.on('game over', function() {
@@ -82,11 +88,11 @@ function send_guess() {
 	if(game_over) {
 		return;
 	}
+	var user_guess = document.getElementById('guess').value;
 	if(user_guess == '') {
 		display_message('Please write something before submitting.');
 		return;
 	}
-	var user_guess = document.getElementById('guess').value;
 	if(taboo.indexOf(user_guess) != -1) {
 		display_message('You guessed an off-limits word!');
 		var user_guess = document.getElementById('guess').value = '';
@@ -111,8 +117,8 @@ function request_skip() {
 		return;
 	}
 	wants_skip = true;
-	display_message('skip requested.');
-	socket.emit('skip requested');
+	display_message('Your partner has been told you would like to skip.');
+	socket.emit('request skip');
 }
 
 function display_message(msg) {
