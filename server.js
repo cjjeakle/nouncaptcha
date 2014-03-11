@@ -70,11 +70,11 @@ app.post('/submit_game_survey', function(){});
 // list of UIDs waiting to be paired
 var waiters = [];
 
-// map user UID -> partner UID, game UID, and array of guesses
-var user_data = {};
-
 // map user UID -> user socket
 var player_sockets = {};
+
+// map user UID -> partner UID, game UID, and array of guesses
+var user_data = {};
 
 // map of a user UID to an array of images and taboo words. 
 // (also contains a list of guesses and timings in single player)
@@ -134,12 +134,11 @@ io.sockets.on('connection', function (_socket) {
 	///// Close Connections /////
 	_socket.on('disconnect', function() {
 		if(context.in_game) {
-			if(game_data[user_data[context.sid].gameID]) {
+			var game = game_data[user_data[context.sid].gameID];
+			if(game && user_data[context.sid].partner) {
+				var partner_socket = player_sockets[user_data[context.sid].partner];
+				partner_socket.emit('partner disconnect', {});
 				delete game_data[user_data[context.sid].gameID];
-			}
-			if(user_data[context.sid].partner) {
-				var partner = player_sockets[user_data[context.sid].partner];
-				partner.emit('partner disconnect', {});
 			}
 			delete user_data[context.sid];
 		} else if (context.waiting) {
@@ -265,7 +264,7 @@ function broadcast_message (player_id, msg) {
 function send_cur_image (player_id, game) {
 	var player_socket = player_sockets[player_id];
 	var player_data = user_data[player_id];
-	var partner_id = user_data.partner;
+	var partner_id = player_data.partner;
 	var partner_scoket = partner_id ? player_sockets[partner_id] : null;
 	var partner_data = partner_id ? user_data[partner_id] : null;
 
@@ -298,6 +297,7 @@ function end_game (player_id) {
 	if(partner) {
 		partner.emit('game over', {});
 	}
+	delete game_data[user_data[player_id].gameID];
 }
 
 // players is a list of player UIDs
@@ -330,7 +330,7 @@ function partner_up(players) {
 
 		user_data[player1].partner = player2;
 
-		// TODO: set up game for players (query data for game_data object)
+		// TODO: set up game for players (query images and taboo list)
 		// TODO: set up ai player's guesses array
 		user_data[player1].ai_guesses = [
 			['car', 'tire'],
