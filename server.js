@@ -158,7 +158,7 @@ io.sockets.on('connection', function (_socket) {
 
 ///// Partnering Handler /////
 function partner_handler(context) {
-return function(data) {
+return function() {
 	// If already in game, do not allow user to attempt another pairing
 	if(user_data[context.sid] || waiters.indexOf(context.sid) != -1) {
 		context.socket.emit('already connected', {});
@@ -177,7 +177,7 @@ return function(data) {
 }
 
 function start_game(context) {
-return function(data) {
+return function() {
 	if(!user_data[context.sid]) {
 		context.socket.emit('not partnered', {});
 		return;
@@ -227,7 +227,7 @@ return function(data) {
 }
 
 function skip_handler(context) {
-return function(data) {
+return function() {
 	var user = user_data[context.sid];
 	var game = game_data[user.gameID];
 	user.pass_requested = true;

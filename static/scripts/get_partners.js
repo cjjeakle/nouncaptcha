@@ -1,6 +1,10 @@
 var socket = io.connect('');
 var time;
 
+alert('In the game, be sure to only respond with nouns.'
+	+ '\n(nouns are people, places, and things.)' +
+	'\n\n eg: car or tire, not driving (verb) or fast (adjective).');
+
 socket.emit('waiting', {});
 
 socket.on('wait time', function (data) {
