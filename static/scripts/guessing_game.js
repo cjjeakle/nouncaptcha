@@ -48,7 +48,7 @@ socket.on('new image', function(data) {
 });
 
 socket.on('skip requested', function(data) {
-	alert_message('Your partner is out of ideas and wants to skip.');
+	alert_message('Your partner would like to skip.');
 });
 
 socket.on('image skipped', function(data) {
@@ -67,6 +67,9 @@ socket.on('not partnered', function() {
 });
 
 socket.on('partner disconnect', function() {
+	if(game_over) {
+		return;
+	}
 	game_error('An error occurred!\n' + 
 		'Your partner\'s connection was lost.\n');
 });

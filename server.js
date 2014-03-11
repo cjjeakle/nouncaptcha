@@ -83,8 +83,6 @@ var game_data = {};
 // time between buckets
 var bucket_time = 30;
 
-
-
 // Timer to pair players in 30 second buckets
 setInterval(function() {
 	if(bucket_time == 0) {
@@ -166,7 +164,7 @@ return function(data) {
 		context.socket.emit('already connected', {});
 		return;
 	}
-	
+
 	context.waiting = true;
 	waiters.push(context.sid);
 
@@ -235,10 +233,8 @@ return function(data) {
 	user.pass_requested = true;
 
 	if(!user.partner || user_data[user.partner].pass_requested) {
-		user.pass_requested = false;
-		if(user.partner) {
-			user_data[user.partner].pass_requested = false;
-		}
+
+		// TODO: mark image as skipped in DB
 
 		game.cur_image++;
 		if(game.cur_image < game.images.length) {
@@ -248,8 +244,6 @@ return function(data) {
 			broadcast_message(context.sid, 'image skipped');
 			end_game(context.sid);
 		}
-
-		// TODO: mark image as skipped in DB
 	} else {
 		player_sockets[user.partner].emit('skip requested', {});
 	}
@@ -269,15 +263,27 @@ function broadcast_message (player_id, msg) {
 }
 
 function send_cur_image (player_id, game) {
-	var player = player_sockets[player_id];
-	partner_id = user_data[player_id].partner;
-	var partner = partner_id ? player_sockets[partner_id] : null;
-	player.emit('new image', {
+	var player_socket = player_sockets[player_id];
+	var player_data = user_data[player_id];
+	var partner_id = user_data.partner;
+	var partner_scoket = partner_id ? player_sockets[partner_id] : null;
+	var partner_data = partner_id ? user_data[partner_id] : null;
+
+	// reset skip flags and guess arrays
+	player_data.pass_requested = false;
+	player_data.guesses = [];
+	if(partner_data) {
+		partner_data.pass_requested = false;
+		partner_data.guesses = [];
+	}
+
+	// broadcast next image and its taboo list
+	player_socket.emit('new image', {
 		image: game.images[game.cur_image],
 		taboo: game.taboo[game.cur_image]
 	});
-	if(partner) {
-		partner.emit('new image', {
+	if(partner_scoket) {
+		partner_scoket.emit('new image', {
 			image: game.images[game.cur_image],
 			taboo: game.taboo[game.cur_image]
 		});
