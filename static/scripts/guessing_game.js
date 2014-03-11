@@ -1,5 +1,8 @@
 var socket = io.connect('');
 var wants_skip = false;
+var game_over = false;
+var taboo_list = [];
+var guesses = [];
 var score = 0;
 
 ///// Socket Handlers /////
@@ -14,7 +17,7 @@ socket.on('game time', function(data) {
 			time--;
 		} else {
 			socket.emit('game over', {});
-
+			end_game();
 		}
 		document.getElementById('timer').innerHTML = time;
 	}, 1000);
@@ -24,8 +27,21 @@ socket.on('guess received', function(data) {
 	add_data('guesses', data.guess);
 });
 
+socket.on('update score', function(data) {
+	score += data.value;
+	document.getElementById('score').innerHTML = score;
+})
+
 socket.on('new image', function(data) {
 	update_image(data.image);
+	clear_data('guesses');
+	clear_data('taboo');
+	for (var i = 0; i < data.taboo.length; ++i) {
+		add_data('taboo', data.taboo[i]);
+	}
+	taboo = data.taboo;
+	guesses = [];
+
 	wants_skip = false;
 	display_message('');
 });
@@ -33,6 +49,10 @@ socket.on('new image', function(data) {
 socket.on('partner skip', function(data) {
 	display_message('Your partner is out of ideas and wants to skip.');
 });
+
+socket.on('game over', function() {
+	end_game();
+})
 
 
 
@@ -46,19 +66,47 @@ function update_score(points) {
 	document.getElementById('score').innerHTML = score;
 }
 
+function end_game() {
+	game_over = true;
+	document.getElementById('guess').disabled = true;
+	alert('Great job!' + 
+		'\nYour final score is: ' + score + ' points!' +
+		'\n\nPress okay to continue to a one page survey about your experience.');
+	window.location.href = '/survey';
+}
+
 
 
 ///// In-Document Helper Functions /////
 function send_guess() {
-	var user_guess = document.getElementById('guess').value;
-	if(user_guess == '') {
+	if(game_over) {
 		return;
 	}
+	if(user_guess == '') {
+		display_message('Please write something before submitting.');
+		return;
+	}
+	var user_guess = document.getElementById('guess').value;
+	if(taboo.indexOf(user_guess) != -1) {
+		display_message('You guessed an off-limits word!');
+		var user_guess = document.getElementById('guess').value = '';
+		return;
+	}
+	if(guesses.indexOf(user_guess) != -1) {
+		display_message('This word has already been submitted.');
+		var user_guess = document.getElementById('guess').value = '';
+		return;
+	}
+	display_message('');
+	guesses.push(user_guess);
 	socket.emit('guess', {guess: user_guess});
 	var user_guess = document.getElementById('guess').value = '';
 }
 
 function request_skip() {
+	if(game_over) {
+		return;
+	}
 	if(wants_skip) {
 		return;
 	}
@@ -73,8 +121,13 @@ function display_message(msg) {
 }
 
 function add_data (id, msg) {
-	var notes = document.getElementById(id)
-	notes.innerHTML += '<br/>' + msg;
+	var elt = document.getElementById(id)
+	elt.innerHTML += '<br/>' + msg;
+}
+
+function clear_data (id) {
+	var elt = document.getElementById(id)
+	elt.innerHTML = '';
 }
 
 function check_enter(e)

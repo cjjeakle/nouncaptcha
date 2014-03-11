@@ -26,15 +26,17 @@ block append content
 			br
 			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess')
 			br
-			a(href = 'javascript:send_guess();').btn.btn-sm.btn-success
+			a(href = 'javascript:send_guess();', id = 'submit_btn').btn.btn-sm.btn-success
 				| Submit
 			|      
-			a(href = 'javascript:request_skip();', id = 'skip_btn').btn.btn-sm.btn-success
+			a(href = 'javascript:request_skip();', id = 'skip_btn', title = '-250 points').btn.btn-sm.btn-success
 				| Skip
 			br
 			div(id = 'notifications')
-		div(id = 'guesses').col-md-2.col-sm-6
+		div.col-md-2.col-sm-6
 			h3 Guesses:
-		div(id = 'taboo').col-md-2.col-sm-6
+			div(style = 'display:inline-block', id = 'guesses')
+		div.col-md-2.col-sm-6
 			h3 Off-Limits:
+			div(style = 'display:inline-block', id = 'taboo')
 		.row

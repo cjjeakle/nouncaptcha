@@ -16,7 +16,6 @@ var logfmt = require('logfmt');
 var routes = require('./routes');
 var path = require('path');
 var pg = require('pg').native;
-var request = require('request');
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -28,7 +27,7 @@ app.use(express.methodOverride());
 app.use(express.bodyParser());
 app.use(express.cookieParser());
 // TODO: Secret will be made an env var later
-app.use(express.session({secret: 'secret', key: 'express.sid'}));
+app.use(express.session({secret: process.env.SECRET || 'secret', key: 'express.sid'}));
 app.use(app.router);
 app.use(express.static(__dirname + '/static'));
 
@@ -98,7 +97,7 @@ io.set('authorization', function (handshakeData, accept) {
 	if (handshakeData.headers.cookie) {
 		handshakeData.cookie = cookie.parse(handshakeData.headers.cookie);
 		handshakeData.sessionID = connect.utils.parseSignedCookie(
-			handshakeData.cookie['express.sid'], 'secret'
+			handshakeData.cookie['express.sid'], process.env.SECRET || 'secret'
 		);
 		
 		if (handshakeData.cookie['express.sid'] == handshakeData.sessionID) {
@@ -113,9 +112,10 @@ io.set('authorization', function (handshakeData, accept) {
 
 io.sockets.on('connection', function (socket) {
 	var waiting = false;
+	var in_game = false;
 	
+	///// Partnering Handler /////
 	socket.on('waiting', function() {
-		waiting = true;
 		// If already in game, do not allow user to attempt another pairing
 		if(user_data[socket.handshake.sessionID]) {
 			socket.emit('already partnered', {});
@@ -123,55 +123,89 @@ io.sockets.on('connection', function (socket) {
 		}
 
 		// Add user to waiting list if not present
-		// Save user socket for later wake-up
-		if(waiters.indexOf(socket.handshake.sessionID) == -1) {
-			waiters.push(socket.handshake.sessionID);
-			player_sockets[socket.handshake.sessionID] = socket;
-		} else {
+		if(waiters.indexOf(socket.handshake.sessionID) != -1) {
 			return;
 		}
+		waiting = true;
+		waiters.push(socket.handshake.sessionID);
 
-		// Wait an additional 2 seconds after bucket is emptied for
-		// the pairing process to complete
-		adjusted_bucket_time = bucket_time + 2;
+		// Save user socket for later wake-up
+		player_sockets[socket.handshake.sessionID] = socket;
 
 		// Let the waiting user know their approx. wait time
-		socket.emit('wait time', adjusted_bucket_time);
+		socket.emit('wait time', bucket_time);
 	});
 	
+
+
+	///// Game Handlers ///// 
 	socket.on('start game', function() {
 		if(!user_data[socket.handshake.sessionID]) {
 			socket.emit('not partnered', {});
 			return;
-		} else {
-			player_sockets[socket.handshake.sessionID] = socket;
 		}
+		in_game = true;
+		player_sockets[socket.handshake.sessionID] = socket;
 
 		socket.emit('game time', {time: 150});
 
-		// TODO: present first game image
-		socket.emit('new image', {image: 'http://77wallpaper.com/wp-content/uploads/2013/11/Cool-Car-Pictures-49.jpg'});
+		var game = game_data[user_data[socket.handshake.sessionID].gameID];
+
+		socket.emit('new image', 
+			{image: game.images[game.cur_image],
+			taboo: game.taboo[game.cur_image]}
+		);
 	});
 	
 	socket.on('guess', function(data) {
-		// TODO: save to guess array if unique for user
+		var user = user_data[socket.handshake.sessionID];
+		var game = game_data[user.gameID];
+		var partner = user.partner ? user_data[user.partner] : user.ai_guesses[game.cur_image];
+
+		user.guesses.push(data.guess);
 
 		// confirm guess if saved
-		socket.emit('guess received', {guess: data.guess})
-		// otherwise, emit new image
+		socket.emit('guess received', {guess: data.guess});
 
-		// TODO: send user points for image match, scale by something?
+		if(partner.indexOf(data.guess) == -1) {
+			console.log(JSON.stringify(partner));
+			// This guess was not in the partner's guesses
+			return;
+		}
+		
+		// TODO: save both player guess arrays with timing to db
+		// TODO: save word match to db
+
+		var partner_socket = user.partner ? null : player_sockets[user.partner];
+		update_scores(socket, partner_socket, game);
+		
+		game.cur_image++;
+		if(game.cur_image < game.images.length) {
+			next_image(socket, partner_socket, game);
+		} else {
+			socket.emit('game over', {})
+		}
 	});
 
+	//socket.on('pass')
+
+
+
+
+	///// Close Connections /////
 	socket.on('disconnect', function() {
-		if(waiting) {
-			// removed closed connections from the waiting lists
+		if(in_game) {
+			// TODO: Notify partner of disconnect
+			if(game_data[user_data[socket.handshake.sessionID].gameID]) {
+				delete game_data[user_data[socket.handshake.sessionID].gameID];
+			}
+			delete user_data[socket.handshake.sessionID];
+		} else if (waiting) {
 			var index = waiters.indexOf(socket.handshake.sessionID);
 			waiters.splice(index, 1);
 		} else {
-			// TODO: Disconnect the partner, or notify them somehow
-			// clean up hanging connection data
-			// Perhaps run a set interval loop and check partner's socket.connected property
+			// no cleanup needed
+			return;
 		}
 		delete player_sockets[socket.handshake.sessionID];
 	});
@@ -190,24 +224,41 @@ function partner_up(players) {
 		user_data[player1] = {};
 		user_data[player1].gameID = player1;
 		user_data[player1].guesses = [];
-		game_data[player1] = {};
+		game_data[player1] = {cur_image: 0};
 
 		var player2 = null;
 
 		if(players.length) {
 			index = Math.floor(Math.random() * players.length);
 			player2 = players[index];
+
 			players.splice(index, 1);
 
 			user_data[player2] = {};
 			user_data[player2].gameID = player1;
 			user_data[player2].guesses = [];
 			user_data[player2].partner = player1;
+		} else {
+			user_data[player1].ai_guesses = [];
 		}
 
 		user_data[player1].partner = player2;
 
 		// TODO: set up game for players (query data for game_data object)
+		user_data[player1].ai_guesses = [
+			['car', 'tire'],
+			['filler']
+		]
+
+		game_data[player1].images = [
+			'http://77wallpaper.com/wp-content/uploads/2013/11/Cool-Car-Pictures-49.jpg',
+			'http://imgs.xkcd.com/comics/filler_art.png'
+		];
+
+		game_data[player1].taboo = [
+			['test', 'other'],
+			['another test', 'words']
+		];
 
 		// Put the paired players in game
 		player_sockets[player1].emit('wait complete', {});
@@ -216,3 +267,27 @@ function partner_up(players) {
 		}
 	}
 }
+
+function next_image (player, partner, game) {
+	player.emit('new image', {
+		image: game.images[game.cur_image],
+		taboo: game.taboo[game.cur_image]
+	});
+	if(partner) {
+		partner.emit('new image', {
+			image: game.images[game.cur_image],
+			taboo: game.taboo[game.cur_image]
+		});
+	}
+}
+
+function update_scores (player, partner, game) {
+	points = 500;
+	player.emit('update score', {value: points});
+	if(partner) {
+		partner.emit('update score', {value: points});
+	}
+}
+
+
+// When users agree on an image tag, save the user's submission array to db and reset
