@@ -67,7 +67,7 @@ app.post('/submit_game_survey', function(){});
 
 //////////////////////////////// Socket Handlers ///////////////////////////////
 
-// list of users waiting to be paired
+// list of UIDs waiting to be paired
 var waiters = [];
 
 // map user UID -> partner UID, game UID, and array of guesses
@@ -139,6 +139,10 @@ io.sockets.on('connection', function (_socket) {
 			if(game_data[user_data[context.sid].gameID]) {
 				delete game_data[user_data[context.sid].gameID];
 			}
+			if(user_data[context.sid].partner) {
+				var partner = player_sockets[user_data[context.sid].partner];
+				partner.emit('partner disconnect', {});
+			}
 			delete user_data[context.sid];
 		} else if (context.waiting) {
 			var index = waiters.indexOf(context.sid);
@@ -158,15 +162,11 @@ io.sockets.on('connection', function (_socket) {
 function partner_handler(context) {
 return function(data) {
 	// If already in game, do not allow user to attempt another pairing
-	if(user_data[context.sid]) {
-		context.socket.emit('already partnered', {});
+	if(user_data[context.sid] || waiters.indexOf(context.sid) != -1) {
+		context.socket.emit('already connected', {});
 		return;
 	}
-
-	// Add user to waiting list if not present
-	if(waiters.indexOf(context.sid) != -1) {
-		return;
-	}
+	
 	context.waiting = true;
 	waiters.push(context.sid);
 
@@ -223,7 +223,7 @@ return function(data) {
 	if(game.cur_image < game.images.length) {
 		send_cur_image(context.sid, game);
 	} else {
-		end_game(context.socket, partner_socket);
+		end_game(context.sid);
 	}
 }
 }
@@ -250,6 +250,8 @@ return function(data) {
 		}
 
 		// TODO: mark image as skipped in DB
+	} else {
+		player_sockets[user.partner].emit('skip requested', {});
 	}
 }
 }
@@ -292,7 +294,7 @@ function end_game (player_id) {
 	}
 }
 
-
+// players is a list of player UIDs
 function partner_up(players) {
 	while(players.length) {
 		var index = Math.floor(Math.random() * players.length);

@@ -18,3 +18,9 @@ socket.on('wait time', function (data) {
 socket.on('wait complete', function (data) {
 	window.location.href = link;
 });
+
+socket.on('already connected', function() {
+	alert('You are already in a game or being paired. Please close this window.' +
+		'\n\nIf you got this message in error, refresh the page.' +
+		'\n\n(You may need to clear your cookies or restart the browser.)');
+});

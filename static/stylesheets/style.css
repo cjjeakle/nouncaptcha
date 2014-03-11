@@ -36,3 +36,14 @@
 	margin-top:0; 
 	margin-bottom:0;
 }
+
+.btn {
+	margin: 10px 5px 10px 5px;
+}
+
+.callout {
+	margin: 15px;
+	padding: 0px;
+	border-left: 5px solid #dFb5b4;
+	background-color: #fcf2f2;
+}

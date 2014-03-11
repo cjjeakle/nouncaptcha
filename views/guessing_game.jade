@@ -24,7 +24,7 @@ block append content
 		div.col-md-6.col-sm-12
 			img(src = '', id = 'pic').img-responsive
 			br
-			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess', autocapitalize='off', autocorrect='on')
+			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess', autocapitalize='off', autocorrect='on', autofocus='autofocus')
 			br
 			a(href = 'javascript:send_guess();', id = 'submit_btn').btn.btn-sm.btn-success
 				| Submit
@@ -32,7 +32,7 @@ block append content
 			a(href = 'javascript:request_skip();', id = 'skip_btn', title = '-250 points').btn.btn-sm.btn-success
 				| Skip
 			br
-			div(id = 'notifications')
+			div(id = 'notifications', style = 'display: none;').callout
 				br
 		div.col-md-2.col-sm-6
 			h3 Guesses:
