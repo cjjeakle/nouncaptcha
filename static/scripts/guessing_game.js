@@ -30,6 +30,7 @@ socket.on('guess received', function(data) {
 socket.on('update score', function(data) {
 	score += data.value;
 	document.getElementById('score').innerHTML = score;
+	display_message('Nice work, you guessed your partner\'s thoughts!');
 })
 
 socket.on('new image', function(data) {
@@ -43,7 +44,6 @@ socket.on('new image', function(data) {
 	guesses = [];
 
 	wants_skip = false;
-	display_message('');
 });
 
 socket.on('partner skip', function(data) {
@@ -71,8 +71,8 @@ function end_game() {
 	document.getElementById('guess').disabled = true;
 	alert('Great job!' + 
 		'\nYour final score is: ' + score + ' points!' +
-		'\n\nPress okay to continue to a one page survey about your experience.');
-	window.location.href = '/survey';
+		'\n\nPress okay to take a quick survey.');
+	window.location.href = '/game_survey';
 }
 
 
@@ -117,12 +117,16 @@ function request_skip() {
 
 function display_message(msg) {
 	var notes = document.getElementById('notifications')
-	notes.innerHTML = '<br/>' + msg;
+	if(msg.length) {
+		notes.innerHTML = '<br/>' + msg + '<br/><br/>';
+	} else {
+		notes.innerHTML = '<br/>';
+	}
 }
 
 function add_data (id, msg) {
 	var elt = document.getElementById(id)
-	elt.innerHTML += '<br/>' + msg;
+	elt.innerHTML += msg + '<br/>';
 }
 
 function clear_data (id) {
@@ -141,4 +145,5 @@ function check_enter(e)
 		send_guess();
 	}
 }
+
 

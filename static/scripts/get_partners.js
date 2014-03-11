@@ -16,5 +16,5 @@ socket.on('wait time', function (data) {
 });
 
 socket.on('wait complete', function (data) {
-	window.location.href = '/game';
+	window.location.href = link;
 });

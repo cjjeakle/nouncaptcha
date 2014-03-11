@@ -24,7 +24,7 @@ block append content
 		div.col-md-6.col-sm-12
 			img(src = '', id = 'pic').img-responsive
 			br
-			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess')
+			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess', autofocus = 'autofocus')
 			br
 			a(href = 'javascript:send_guess();', id = 'submit_btn').btn.btn-sm.btn-success
 				| Submit
@@ -33,6 +33,7 @@ block append content
 				| Skip
 			br
 			div(id = 'notifications')
+				br
 		div.col-md-2.col-sm-6
 			h3 Guesses:
 			div(style = 'display:inline-block', id = 'guesses')
@@ -40,3 +41,9 @@ block append content
 			h3 Off-Limits:
 			div(style = 'display:inline-block', id = 'taboo')
 		.row
+	script.
+		var trial_mode = '#{trial_mode}';
+		//autorun js
+		$(document).ready(function(){
+			window.scroll(0,300);
+		});

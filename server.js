@@ -56,8 +56,14 @@ app.configure('development', function(){
 
 
 // Get requests
-app.get('/', routes.partner_up(pg));
-app.get('/game', routes.game(pg));
+app.get('/', function(req, res) {res.redirect('/trial_partner_up');})
+app.get('/trail_consent', function(){});
+app.get('/trial_partner_up', routes.trial_partner_up(pg));
+app.get('/trial_game', routes.trial_game(pg));
+app.get('/game_survey', function(){res.write('test')});
+
+// Post requests
+app.post('/submit_game_survey', function(){});
 
 
 //////////////////////////////// Socket Handlers ///////////////////////////////
@@ -176,14 +182,14 @@ io.sockets.on('connection', function (socket) {
 		// TODO: save both player guess arrays with timing to db
 		// TODO: save word match to db
 
-		var partner_socket = user.partner ? null : player_sockets[user.partner];
+		var partner_socket = user.partner ? player_sockets[user.partner] : null;
 		update_scores(socket, partner_socket, game);
 		
 		game.cur_image++;
 		if(game.cur_image < game.images.length) {
 			next_image(socket, partner_socket, game);
 		} else {
-			socket.emit('game over', {})
+			end_game(socket, partner_socket);
 		}
 	});
 
@@ -289,5 +295,11 @@ function update_scores (player, partner, game) {
 	}
 }
 
+function end_game (player, partner) {
+	player.emit('game over', {});
+	if(partner) {
+		partner.emit('game over', {});
+	}
+}
 
 // When users agree on an image tag, save the user's submission array to db and reset
