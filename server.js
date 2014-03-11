@@ -160,7 +160,7 @@ io.sockets.on('connection', function (socket) {
 	socket.on('guess', function(data) {
 		var user = user_data[socket.handshake.sessionID];
 		var game = game_data[user.gameID];
-		var partner = user.partner ? user_data[user.partner] : user.ai_guesses[game.cur_image];
+		var partner = user.partner ? user_data[user.partner].guesses : user.ai_guesses[game.cur_image];
 
 		user.guesses.push(data.guess);
 
