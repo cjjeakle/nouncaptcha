@@ -20,7 +20,10 @@ var pg = require('pg').native;
 var Flickr = require("flickrapi");
 var flickrOptions = {
 	api_key: process.env.FLICKRKEY,
-	secret: process.env.FLICKRSECRET
+	secret: process.env.FLICKRSECRET,
+	user_ud: process.env.FLICKR_USER_ID,
+	access_token: process.env.FLICKR_ACCESS_TOKEN,
+	access_token_secret: process.env.FLICKR_ACCESS_TOKEN_SECRET
 };
 
 app.set('views', path.join(__dirname, 'views'));
@@ -69,6 +72,8 @@ app.get('/game_survey', function(req, res){res.redirect('/')});
 
 // Post requests
 app.post('/submit_game_survey', function(){});
+
+get_new_images();
 
 //////////////////////////////// Socket Handlers ///////////////////////////////
 
@@ -527,7 +532,7 @@ function get_new_images() {
 		flickr.photos.getRecent({
 			user_id: flickr.options.user_id,
 			page: 1,
-			per_page: 25
+			per_page: 5
 		}, function(err, result) {
 			if(err) {
 				console.log('error: ', err);
