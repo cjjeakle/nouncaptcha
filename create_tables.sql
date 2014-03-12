@@ -2,7 +2,7 @@
 
 CREATE TABLE images (
 img_id SERIAL,
-url VARCHAR UNIQUE,
+url TEXT UNIQUE,
 PRIMARY KEY (img_id)
 );
 
@@ -21,35 +21,28 @@ FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE
 );
 
 CREATE TABLE image_guesses (
+guess_id SERIAL,
 img_id INT,
-guesses JSON,
 taboo JSON,
-PRIMARY KEY (img_id),
+guesses JSON,
+PRIMARY KEY (guess_id),
 FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE
 );
 
-CREATE TABLE nouns (
-noun_id SERIAL,
-noun VARCHAR,
-PRIMARY KEY (noun_id)
-);
-
 /* A sufficent count promotes a frequent tag to a taboo tag */
-CREATE TABLE frequent_tags (
+CREATE TABLE tags (
 img_id INT,
-noun_id INT,
+noun TEXT,
 count INT,
-PRIMARY KEY (img_id, noun_id),
-FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE,
-FOREIGN KEY (noun_id) REFERENCES nouns ON DELETE CASCADE
+PRIMARY KEY (img_id, noun),
+FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE
 );
 
 CREATE TABLE taboo_tags (
 img_id INT,
-noun_id INT,
-PRIMARY KEY (img_id, noun_id),
-FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE,
-FOREIGN KEY (noun_id) REFERENCES nouns ON DELETE CASCADE
+noun TEXT,
+PRIMARY KEY (img_id, noun),
+FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE
 );
 
 /* TODO: Implement survey response table */

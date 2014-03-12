@@ -387,16 +387,12 @@ function prepare_game (player1, player2) {
 			var images = game.image_ids;
 			if(player2) {
 
-				query = 'SELECT n.noun, t.img_id FROM nouns n'
-				+ ' INNER JOIN taboo_tags t'
-				+ ' ON n.noun_id = t.noun_id'
-				+ ' WHERE t.img_id = ' + images[0] 
+				query = 'SELECT t.noun, t.img_id FROM taboo_tags t'
+				+ ' WHERE t.img_id = ' + images[0];
 				
 				for(var i = 1; i < images.length; i++) {
-					query += ' UNION SELECT n.noun, t.img_id FROM nouns n'
-					+ ' INNER JOIN taboo_tags t'
-					+ ' ON n.noun_id = t.noun_id'
-					+ ' WHERE t.img_id = ' + images[i] 
+					query += ' UNION SELECT t.noun, t.img_id FROM taboo_tags t'
+					+ ' WHERE t.img_id = ' + images[i];
 				}
 			} else {
 				query = 'SELECT * FROM (' 
@@ -416,7 +412,6 @@ function prepare_game (player1, player2) {
 			query += ';';
 
 			client.query(query, function(err, data) {
-				// Free our connection
 				done();
 
 				if (err) {
@@ -448,15 +443,55 @@ function prepare_game (player1, player2) {
 }
 
 function save_user_input(player_guesses, partner_guesses, taboo_list, match, image_id) {
+	// Save the matched word
+	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+		if (err) {
+			return console.error('Error establishing connection to client', err);
+		}
+
+		// Insert the tag if it doesn't exist with count = 0
+		var query = 'INSERT INTO tags (img_id, noun, count)'
+					+ ' SELECT $1, $2, 0'
+					+ ' WHERE NOT EXISTS'
+					+ ' (select 1 from tags WHERE img_id = $1 AND noun = $2);'
+		var inputs = [image_id, match.toString()];
+		
+		client.query(query, inputs, function(err, data) {
+			if (err) {
+				return console.error('error running query', err);
+			}
+
+			// Increment count of either the inserted tag or the existing one
+			query = 'UPDATE tags'
+					+ ' SET count = count + 1'
+					+ ' WHERE img_id = $1 AND noun = $2;';
+			
+			client.query(query, inputs, function(err, data) {
+				done();
+				if (err) {
+					return console.error('error running query', err);
+				}
+			});
+		});
+	});
+
+	// Save the guess arrays
 	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}
 
 		// TODO: Implement this and whatnot
-		var query = '';
+		var query = 'INSERT INTO image_guesses (img_id, taboo, guesses) VALUES ($1, $2, $3)';
+		var inputs = [image_id, JSON.stringify(taboo_list), JSON.stringify(player_guesses)];
+		if(partner_guesses) {
+			query += ' ,($1, $2, $4)';
+			inputs.push(JSON.stringify(partner_guesses));
+		}
+		query += ';';
 
-		client.query(query, function(err, data) {
+		client.query(query, inputs, function(err, data) {
+			done();
 			if (err) {
 				return console.error('error running query', err);
 			}
@@ -472,11 +507,10 @@ function image_skipped (image_id) {
 
 		var query = 'UPDATE images_in_use'
 		+ ' SET skip_count = skip_count + 1'
-		+ ' WHERE img_id = ' + image_id + ';';
+		+ ' WHERE img_id = $1;';
 
-		console.log('\n\n\n' + query + '\n\n\n')
-
-		client.query(query, function(err, data) {
+		client.query(query, [image_id], function(err, data) {
+			done();
 			if (err) {
 				return console.error('error running query', err);
 			}
