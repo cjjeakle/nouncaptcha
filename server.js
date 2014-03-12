@@ -57,8 +57,8 @@ app.configure('development', function(){
 // Get requests
 app.get('/', function(req, res) {res.redirect('/trial_partner_up');})
 app.get('/trail_consent', function(req, res){res.redirect('/')});
-app.get('/trial_partner_up', routes.trial_partner_up(pg));
-app.get('/trial_game', routes.trial_game(pg));
+app.get('/trial_partner_up', routes.trial_partner_up);
+app.get('/trial_game', routes.trial_game);
 app.get('/game_survey', function(req, res){res.redirect('/')});
 
 // Post requests
@@ -170,8 +170,8 @@ return function() {
 	// Save user socket for wake-up when partnered
 	player_sockets[context.sid] = context.socket;
 
-	// Let the waiting user know their approx. wait time
-	context.socket.emit('wait time', {time: bucket_time});
+	// Let the waiting user know their approx. wait time (~2 sec added for pairing)
+	context.socket.emit('wait time', {time: bucket_time + 2});
 }
 }
 
@@ -330,7 +330,76 @@ function partner_up(players) {
 
 		user_data[player1].partner = player2;
 
-		// TODO: set up game for players (query images and taboo list)
+
+		pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+			if (err) {
+				broadcast_message(player1, 'database error');
+				return console.error('Error establishing connection to client', err);
+			}
+
+			var query = ''	
+			if(player2) {
+				query = 'SELECT url FROM images ORDER BY RANDOM() LIMIT 15;'
+			} else {
+				query = 'SELECT i.img_id, i.url FROM images i'
+				+ ' INNER JOIN image_guesses g'
+				+ ' ON i.img_id = g.img_id'
+				+ ' ORDER BY RANDOM() LIMIT 15;'
+			}	
+
+			game_data[player1].images = [];
+			game_data[player1].image_ids = [];
+			user_data[player1].ai_guesses = [];
+			game_data[player1].taboo = [[]];
+
+			client.query(query, function(err, data) {
+				if (err) {
+					broadcast_message(player1, 'database error');
+					return console.error('error running query', err);
+				}
+
+				data.rows.forEach(function(row){
+					game_data[player1].images.push(row.url);
+					game_data[player1].image_ids.push(row.img_id);
+				});
+
+				var images = game_data[player1].image_ids.join(',');
+				if(player2) {
+					query = 'SELECT * FROM images;'
+				} else {
+					query = 'SELECT * FROM images;'
+				}
+
+				client.query(query, function(err, data) {
+					// Free our connection
+					done();
+
+					if (err) {
+						broadcast_message(player1, 'database error');
+						return console.error('error running query', err);
+					}
+					/*
+					if(player2) {
+						// Player has a human partner
+						game_data[player1].taboo = [];
+					} else {
+						// Single player mode
+						user_data[player1].ai_guesses = [];
+						game_data[player1].taboo = [];
+
+					}	
+
+					*/
+					
+					// Put the paired players in game
+					broadcast_message(player1, 'wait complete');
+				});
+			});
+		});
+
+
+
+
 		// TODO: set up ai player's guesses array
 		user_data[player1].ai_guesses = [
 			['car', 'tire'],
@@ -338,7 +407,7 @@ function partner_up(players) {
 		]
 
 		game_data[player1].images = [
-			'http://77wallpaper.com/wp-content/uploads/2013/11/Cool-Car-Pictures-49.jpg',
+			,
 			'http://imgs.xkcd.com/comics/filler_art.png'
 		];
 
@@ -346,12 +415,6 @@ function partner_up(players) {
 			['test', 'other'],
 			['another test', 'words']
 		];
-
-		// Put the paired players in game
-		player_sockets[player1].emit('wait complete', {});
-		if(player2) {
-			player_sockets[player2].emit('wait complete', {})
-		}
 	}
 }
 

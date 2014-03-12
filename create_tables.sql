@@ -2,7 +2,7 @@
 
 CREATE TABLE images (
 img_id SERIAL,
-ulr VARCHAR UNIQUE,
+url VARCHAR UNIQUE,
 PRIMARY KEY (img_id)
 );
 
@@ -24,6 +24,7 @@ CREATE TABLE image_guesses (
 guess_id SERIAL,
 img_id INT,
 guesses JSON,
+taboo JSON,
 PRIMARY KEY (guess_id),
 FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE
 );

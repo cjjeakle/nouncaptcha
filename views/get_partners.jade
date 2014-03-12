@@ -1,6 +1,8 @@
 extends layout
 
 block append content
+	script.
+		var link = '#{link}';
 	script(src='/socket.io/socket.io.js')
 	script(src='/scripts/get_partners.js')
 	div(id = 'loading').loading
@@ -12,6 +14,4 @@ block append content
 		|The next game starts in:
 		div(id='time', style = 'display: inline-block;')
 		|  seconds.
-	script.
-		var link = '#{link}';
 			
