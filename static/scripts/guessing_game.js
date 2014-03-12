@@ -98,7 +98,7 @@ function end_game() {
 	document.getElementById('guess').disabled = true;
 	var greeting = ''
 	var punctuation = '.';
-	if(score > 500) {
+	if(score >= 500) {
 		greeting = 'Great job!\n';
 		punctuation = '!';
 	}

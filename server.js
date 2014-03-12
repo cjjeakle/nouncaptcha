@@ -198,21 +198,36 @@ function guess_handler(context) {
 return function(data) {
 	var user = user_data[context.sid];
 	var game = game_data[user.gameID];
-	var partner = user.partner ? user_data[user.partner].guesses : user.ai_guesses[game.cur_image];
+	var partner_guesses = user.partner ? user_data[user.partner].guesses : user.ai_guesses[game.cur_image];
 
 	user.guesses.push(data.guess);
 
 	// confirm guess if saved
 	context.socket.emit('guess received', {guess: data.guess});
 
-	if(partner.indexOf(data.guess) == -1) {
+	if(partner_guesses.indexOf(data.guess) == -1) {
 		// This guess was not in the partner's guesses
 		return;
 	}
 	
-	// TODO: save both player guess arrays to db (if non-empty)
-	// TODO: save word match to db
-
+	if(user.partner) {
+		save_user_input(
+			user.guesses, 
+			partner_guesses, 
+			game.taboo[game.cur_image], 
+			data.guess, 
+			game.image_ids[game.cur_image]
+		);
+	} else {
+		save_user_input(
+			user.guesses, 
+			null, 
+			game.taboo[game.cur_image], 
+			data.guess, 
+			game.image_ids[game.cur_image]
+		);
+	}
+	
 	var partner_socket = user.partner ? player_sockets[user.partner] : null;
 	broadcast_message(context.sid, 'add points');
 	
@@ -233,7 +248,7 @@ return function() {
 
 	if(!user.partner || user_data[user.partner].pass_requested) {
 
-		// TODO: mark image as skipped in DB
+		image_skipped(game.image_ids[game.cur_image]);
 
 		game.cur_image++;
 		if(game.cur_image < game.images.length) {
@@ -330,92 +345,141 @@ function partner_up(players) {
 
 		user_data[player1].partner = player2;
 
+		prepare_game(player1, player2);
+	}
+}
 
-		pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+function prepare_game (player1, player2) {
+	game = game_data[player1];
+	user = user_data[player1];
+	var timer = new Date();
+	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+		if (err) {
+			broadcast_message(player1, 'database error');
+			return console.error('Error establishing connection to client', err);
+		}
+
+		var query = 'SELECT i.url, i.img_id FROM images i'
+			+ ' INNER JOIN images_in_use use'
+			+ ' on i.img_id = use.img_id';	
+		if(!player2) {
+			query += ' INNER JOIN image_guesses g'
+			+ ' ON i.img_id = g.img_id';
+		}
+		query += ' ORDER BY RANDOM() LIMIT 15;'
+
+		user.ai_guesses = [];
+		game.images = [];
+		game.image_ids = [];
+		game.taboo = [];
+
+		client.query(query, function(err, data) {
 			if (err) {
 				broadcast_message(player1, 'database error');
-				return console.error('Error establishing connection to client', err);
+				return console.error('error running query', err);
 			}
 
-			var query = ''	
-			if(player2) {
-				query = 'SELECT url FROM images ORDER BY RANDOM() LIMIT 15;'
-			} else {
-				query = 'SELECT i.img_id, i.url FROM images i'
-				+ ' INNER JOIN image_guesses g'
-				+ ' ON i.img_id = g.img_id'
-				+ ' ORDER BY RANDOM() LIMIT 15;'
-			}	
+			data.rows.forEach(function(row){
+				game.images.push(row.url);
+				game.image_ids.push(row.img_id);
+			});
 
-			game_data[player1].images = [];
-			game_data[player1].image_ids = [];
-			user_data[player1].ai_guesses = [];
-			game_data[player1].taboo = [[]];
+			var images = game.image_ids;
+			if(player2) {
+
+				query = 'SELECT n.noun, t.img_id FROM nouns n'
+				+ ' INNER JOIN taboo_tags t'
+				+ ' ON n.noun_id = t.noun_id'
+				+ ' WHERE t.img_id = ' + images[0] 
+				
+				for(var i = 1; i < images.length; i++) {
+					query += ' UNION SELECT n.noun, t.img_id FROM nouns n'
+					+ ' INNER JOIN taboo_tags t'
+					+ ' ON n.noun_id = t.noun_id'
+					+ ' WHERE t.img_id = ' + images[i] 
+				}
+			} else {
+				query = 'SELECT * FROM (' 
+				+ ' SELECT * FROM image_guesses g'
+				+ ' where g.img_id = ' + images[0] 
+				+ ' ORDER BY RANDOM() LIMIT 1'
+				+ ' ) as temp';
+				
+				for(var i = 1; i < images.length; i++) {
+					query += ' UNION ALL SELECT * FROM (' 
+					+ ' SELECT * FROM image_guesses g'
+					+ ' where g.img_id = ' + images[0] 
+					+ ' ORDER BY RANDOM() LIMIT 1'
+					+ ' ) as temp';
+				}
+			}
+			query += ';';
 
 			client.query(query, function(err, data) {
+				// Free our connection
+				done();
+
 				if (err) {
 					broadcast_message(player1, 'database error');
 					return console.error('error running query', err);
 				}
 
-				data.rows.forEach(function(row){
-					game_data[player1].images.push(row.url);
-					game_data[player1].image_ids.push(row.img_id);
-				});
-
-				var images = game_data[player1].image_ids.join(',');
 				if(player2) {
-					query = 'SELECT * FROM images;'
-				} else {
-					query = 'SELECT * FROM images;'
-				}
-
-				client.query(query, function(err, data) {
-					// Free our connection
-					done();
-
-					if (err) {
-						broadcast_message(player1, 'database error');
-						return console.error('error running query', err);
+					// Player has a human partner
+					for(var i = 0; i < images.length; i++) {
+						game.taboo.push([]);
 					}
-					/*
-					if(player2) {
-						// Player has a human partner
-						game_data[player1].taboo = [];
-					} else {
-						// Single player mode
-						user_data[player1].ai_guesses = [];
-						game_data[player1].taboo = [];
-
-					}	
-
-					*/
-					
-					// Put the paired players in game
-					broadcast_message(player1, 'wait complete');
-				});
+					data.rows.forEach(function(row){
+						game.taboo[images.indexOf(row.img_id)].push(row.noun);
+					});
+				} else {
+					// Single player mode
+					data.rows.forEach(function(row){
+						user.ai_guesses.push(row.guesses);
+						game.taboo.push(row.taboo);
+					});
+				}
+				console.log(new Date - timer);
+				// Put the paired players in game
+				broadcast_message(player1, 'wait complete');
 			});
 		});
-
-
-
-
-		// TODO: set up ai player's guesses array
-		user_data[player1].ai_guesses = [
-			['car', 'tire'],
-			['filler']
-		]
-
-		game_data[player1].images = [
-			,
-			'http://imgs.xkcd.com/comics/filler_art.png'
-		];
-
-		game_data[player1].taboo = [
-			['test', 'other'],
-			['another test', 'words']
-		];
-	}
+	});
 }
 
+function save_user_input(player_guesses, partner_guesses, taboo_list, match, image_id) {
+	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+		if (err) {
+			return console.error('Error establishing connection to client', err);
+		}
 
+		// TODO: Implement this and whatnot
+		var query = '';
+
+		client.query(query, function(err, data) {
+			if (err) {
+				return console.error('error running query', err);
+			}
+		});
+	});
+}
+
+function image_skipped (image_id) {
+	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+		if (err) {
+			return console.error('Error establishing connection to client', err);
+		}
+
+		var query = 'UPDATE images_in_use'
+		+ ' SET skip_count = skip_count + 1'
+		+ ' WHERE img_id = ' + image_id + ';';
+
+		console.log('\n\n\n' + query + '\n\n\n')
+
+		client.query(query, function(err, data) {
+			if (err) {
+				return console.error('error running query', err);
+			}
+		});
+	});
+}

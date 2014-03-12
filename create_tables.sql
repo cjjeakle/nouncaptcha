@@ -21,11 +21,10 @@ FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE
 );
 
 CREATE TABLE image_guesses (
-guess_id SERIAL,
 img_id INT,
 guesses JSON,
 taboo JSON,
-PRIMARY KEY (guess_id),
+PRIMARY KEY (img_id),
 FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE
 );
 
