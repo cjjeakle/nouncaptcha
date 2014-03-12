@@ -23,10 +23,6 @@ socket.on('game time', function(data) {
 	}, 1000);
 });
 
-socket.on('guess received', function(data) {
-	add_data('guesses', data.guess);
-});
-
 socket.on('add points', function(data) {
 	score += 500;
 	document.getElementById('score').innerHTML = score;
@@ -115,7 +111,9 @@ function send_guess() {
 	if(game_over) {
 		return;
 	}
+
 	var user_guess = document.getElementById('guess').value;
+	
 	if(user_guess == '') {
 		alert_message('Please write something before submitting.');
 		return;
@@ -130,9 +128,12 @@ function send_guess() {
 		var user_guess = document.getElementById('guess').value = '';
 		return;
 	}
+
 	display_message('');
 	guesses.push(user_guess);
+	add_data('guesses', user_guess);
 	socket.emit('guess', {guess: user_guess});
+	
 	var user_guess = document.getElementById('guess').value = '';
 }
 

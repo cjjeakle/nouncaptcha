@@ -28,3 +28,8 @@ socket.on('already connected', function() {
 		'\n\nIf you got this message in error, refresh the page.' +
 		'\n\n(You may need to clear your cookies or restart the browser.)');
 });
+
+socket.on('database error', function() {
+	alert('There has been a database error. Press okay to retry connection.');
+	window.location.href = window.location.href;
+});

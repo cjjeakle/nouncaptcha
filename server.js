@@ -17,11 +17,17 @@ var routes = require('./routes');
 var path = require('path');
 var pg = require('pg').native;
 
+var Flickr = require("flickrapi");
+var flickrOptions = {
+	api_key: process.env.FLICKRKEY,
+	secret: process.env.FLICKRSECRET
+};
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-app.use(express.favicon());
 app.use(logfmt.requestLogger());
+app.use(express.favicon());
 app.use(express.urlencoded());
 app.use(express.methodOverride());
 app.use(express.bodyParser());
@@ -30,7 +36,7 @@ app.use(express.session({secret: process.env.SECRET || 'secret', key: 'express.s
 app.use(app.router);
 app.use(express.static(__dirname + '/static'));
 
-// Only serve content from the /public/... directory
+// Only serve static content from the /public/... directory
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Listen on the environment's desired port or at 5000
@@ -63,7 +69,6 @@ app.get('/game_survey', function(req, res){res.redirect('/')});
 
 // Post requests
 app.post('/submit_game_survey', function(){});
-
 
 //////////////////////////////// Socket Handlers ///////////////////////////////
 
@@ -202,16 +207,13 @@ return function(data) {
 
 	user.guesses.push(data.guess);
 
-	// confirm guess if saved
-	context.socket.emit('guess received', {guess: data.guess});
-
 	if(partner_guesses.indexOf(data.guess) == -1) {
 		// This guess was not in the partner's guesses
 		return;
 	}
 	
 	if(user.partner) {
-		save_user_input(
+		save_match(
 			user.guesses, 
 			partner_guesses, 
 			game.taboo[game.cur_image], 
@@ -219,7 +221,7 @@ return function(data) {
 			game.image_ids[game.cur_image]
 		);
 	} else {
-		save_user_input(
+		save_match(
 			user.guesses, 
 			null, 
 			game.taboo[game.cur_image], 
@@ -248,7 +250,7 @@ return function() {
 
 	if(!user.partner || user_data[user.partner].pass_requested) {
 
-		image_skipped(game.image_ids[game.cur_image]);
+		image_skipped(user.guesses, game.image_ids[game.cur_image]);
 
 		game.cur_image++;
 		if(game.cur_image < game.images.length) {
@@ -352,21 +354,20 @@ function partner_up(players) {
 function prepare_game (player1, player2) {
 	game = game_data[player1];
 	user = user_data[player1];
-	var timer = new Date();
 	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
 		if (err) {
 			broadcast_message(player1, 'database error');
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'SELECT i.url, i.img_id FROM images i'
+		var query = 'SELECT * FROM (SELECT DISTINCT i.url, i.img_id FROM images i'
 			+ ' INNER JOIN images_in_use use'
 			+ ' on i.img_id = use.img_id';	
 		if(!player2) {
 			query += ' INNER JOIN image_guesses g'
 			+ ' ON i.img_id = g.img_id';
 		}
-		query += ' ORDER BY RANDOM() LIMIT 15;'
+		query += ') AS temp ORDER BY RANDOM() LIMIT 15;'
 
 		user.ai_guesses = [];
 		game.images = [];
@@ -399,14 +400,14 @@ function prepare_game (player1, player2) {
 				+ ' SELECT * FROM image_guesses g'
 				+ ' where g.img_id = ' + images[0] 
 				+ ' ORDER BY RANDOM() LIMIT 1'
-				+ ' ) as temp';
+				+ ' ) AS temp';
 				
 				for(var i = 1; i < images.length; i++) {
 					query += ' UNION ALL SELECT * FROM (' 
 					+ ' SELECT * FROM image_guesses g'
-					+ ' where g.img_id = ' + images[0] 
+					+ ' where g.img_id = ' + images[i] 
 					+ ' ORDER BY RANDOM() LIMIT 1'
-					+ ' ) as temp';
+					+ ' ) AS temp';
 				}
 			}
 			query += ';';
@@ -434,7 +435,7 @@ function prepare_game (player1, player2) {
 						game.taboo.push(row.taboo);
 					});
 				}
-				console.log(new Date - timer);
+
 				// Put the paired players in game
 				broadcast_message(player1, 'wait complete');
 			});
@@ -442,7 +443,7 @@ function prepare_game (player1, player2) {
 	});
 }
 
-function save_user_input(player_guesses, partner_guesses, taboo_list, match, image_id) {
+function save_match (player_guesses, partner_guesses, taboo_list, match, image_id) {
 	// Save the matched word
 	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
 		if (err) {
@@ -475,13 +476,34 @@ function save_user_input(player_guesses, partner_guesses, taboo_list, match, ima
 		});
 	});
 
-	// Save the guess arrays
+	save_guesses (player_guesses, partner_guesses, taboo_list, image_id);
+}
+
+function image_skipped (player_guesses, partner_guesses, taboo_list, image_id) {
 	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		// TODO: Implement this and whatnot
+		var query = 'UPDATE images_in_use'
+		+ ' SET skip_count = skip_count + 1'
+		+ ' WHERE img_id = $1;';
+
+		client.query(query, [image_id], function(err, data) {
+			done();
+			if (err) {
+				return console.error('error running query', err);
+			}
+		});
+	});
+}
+
+function save_guesses (player_guesses, partner_guesses, taboo_list, image_id) {
+	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+		if (err) {
+			return console.error('Error establishing connection to client', err);
+		}
+
 		var query = 'INSERT INTO image_guesses (img_id, taboo, guesses) VALUES ($1, $2, $3)';
 		var inputs = [image_id, JSON.stringify(taboo_list), JSON.stringify(player_guesses)];
 		if(partner_guesses) {
@@ -499,17 +521,36 @@ function save_user_input(player_guesses, partner_guesses, taboo_list, match, ima
 	});
 }
 
-function image_skipped (image_id) {
+function get_new_images() {
+
+	Flickr.authenticate(flickrOptions, function(error, flickr) {
+		flickr.photos.getRecent({
+			user_id: flickr.options.user_id,
+			page: 1,
+			per_page: 25
+		}, function(err, result) {
+			if(err) {
+				console.log('error: ', err);
+				return;
+			}
+			console.log(JSON.stringify(result));
+		});
+	});
+	
+	return;
+
+	var images = [];
+
 	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'UPDATE images_in_use'
-		+ ' SET skip_count = skip_count + 1'
-		+ ' WHERE img_id = $1;';
+		var query = '';
+		var inputs = [];
+		query += ';';
 
-		client.query(query, [image_id], function(err, data) {
+		client.query(query, inputs, function(err, data) {
 			done();
 			if (err) {
 				return console.error('error running query', err);

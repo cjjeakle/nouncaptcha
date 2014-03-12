@@ -2,7 +2,8 @@
 
 INSERT INTO images (url) 
 VALUES ('http://77wallpaper.com/wp-content/uploads/2013/11/Cool-Car-Pictures-49.jpg'),
-	('http://static.ddmcdn.com/gif/airplanes-work-1.jpg');
+	('http://static.ddmcdn.com/gif/airplanes-work-1.jpg'),
+	('');
 
 INSERT INTO images_in_use (img_id, skip_count)
 VALUES (1, 0), (2, 0);
