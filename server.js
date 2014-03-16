@@ -9,8 +9,7 @@ var app = express();
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 
-var cookie = require('cookie')
-var connect = require('connect');
+var uuid = require('node-uuid');
 
 var logfmt = require('logfmt');
 var routes = require('./routes');
@@ -64,101 +63,59 @@ app.configure('development', function(){
 
 
 // Get requests
-app.get('/', function(req, res) {res.redirect('/trial_partner_up');})
+app.get('/', function(req, res) {res.redirect('/trial_game');})
 app.get('/trail_consent', function(req, res){res.redirect('/')});
-app.get('/trial_partner_up', routes.trial_partner_up);
 app.get('/trial_game', routes.trial_game);
 app.get('/game_survey', function(req, res){res.redirect('/')});
 
 // Post requests
 app.post('/submit_game_survey', function(){});
 
-get_new_images();
-
 //////////////////////////////// Socket Handlers ///////////////////////////////
 
-// list of UIDs waiting to be paired
-var waiters = [];
+// list of sockets waiting to be paired
+var waiter = {};
 
-// map user UID -> user socket
-var player_sockets = {};
-
-// map user UID -> partner UID, game UID, and array of guesses
-var user_data = {};
+// A map of ip addresses currently in game
+var connected_ips = {};
 
 // map of a user UID to an array of images and taboo words. 
 // (also contains a list of guesses and timings in single player)
 var game_data = {};
 
-// time between buckets
-var bucket_time = 30;
+io.sockets.on('connection', function (socket) {
+	socket.uuid = uuid.v4();
 
-// Timer to pair players in 30 second buckets
-setInterval(function() {
-	if(bucket_time == 0) {
-		var waiters_temp = waiters;
-		waiters = [];
-		partner_up(waiters_temp);
-		bucket_time = 31;
-	}
-	bucket_time -= 1;
-}, 1000);
-
-
-io.set('authorization', function (handshakeData, accept) {
-	// Parse passed cookie to get user's express sid
-	if (handshakeData.headers.cookie) {
-		handshakeData.cookie = cookie.parse(handshakeData.headers.cookie);
-		handshakeData.sessionID = connect.utils.parseSignedCookie(
-			handshakeData.cookie['express.sid'], process.env.SECRET || 'secret'
-		);
-		
-		if (handshakeData.cookie['express.sid'] == handshakeData.sessionID) {
-			return accept('Cookie is invalid.', false);
-		}
-	} else {
-		return accept('No cookie transmitted.', false);
-	}
+	console.log('user: ' + socket.uuid + ' has connected.\n');
 	
-	accept(null, true);
-});
+	socket.on('waiting', partner_handler(socket));
 
-
-io.sockets.on('connection', function (_socket) {
-	var context = {
-		socket: _socket,
-		sid: _socket.handshake.sessionID,
-		waiting: false,
-		in_game: false
-	};
+	socket.on('start single player', start_single_player(socket));
 	
-	_socket.on('waiting', partner_handler(context));
+	socket.on('guess', guess_handler(socket));
 
-	_socket.on('start game', start_game(context));
-	
-	_socket.on('guess', guess_handler(context));
-
-	_socket.on('request skip', skip_handler(context));
+	socket.on('request skip', skip_handler(socket));
 
 
 	///// Close Connections /////
-	_socket.on('disconnect', function() {
-		if(context.in_game) {
-			var game = game_data[user_data[context.sid].gameID];
-			if(game && user_data[context.sid].partner) {
-				var partner_socket = player_sockets[user_data[context.sid].partner];
-				partner_socket.emit('partner disconnect', {});
-				delete game_data[user_data[context.sid].gameID];
-			}
-			delete user_data[context.sid];
-		} else if (context.waiting) {
-			var index = waiters.indexOf(context.sid);
-			waiters.splice(index, 1);
+	socket.on('disconnect', function() {
+		// erase from connected ips if this is their game connection
+		if(socket.first_connection) {
+			delete connected_ips[socket.handshake.address];
 		} else {
-			// no cleanup needed
 			return;
 		}
-		delete player_sockets[context.sid];
+
+		// delete waiter if this user is waiting
+		if(waiter.uuid == socket.uuid) {
+			waiter = {};
+		}
+
+		// If user is in a game, and not partnered or partner has disconnected, 
+		// delete the game
+		if(socket.game_id && (!socket.partner || !socket.partner.manager.connected)) {
+			delete game_data[socket.game_id];
+		}
 	});
 });
 
@@ -166,60 +123,52 @@ io.sockets.on('connection', function (_socket) {
 ////////////////////////// Socket Handler Functions ////////////////////////////
 
 ///// Partnering Handler /////
-function partner_handler(context) {
+function partner_handler(socket) {
 return function() {
-	// If already in game, do not allow user to attempt another pairing
-	if(user_data[context.sid] || waiters.indexOf(context.sid) != -1) {
-		context.socket.emit('already connected', {});
+	if(connected_ips[socket.handshake.address] && !socket.linked) {
+		socket.emit('already connected', {});
 		return;
+	} else {
+		connected_ips[socket.handshake.address] = true;
+	}
+	socket.first_connection = true;
+
+	if(waiter.uuid) {
+		partner_up(socket, waiter);
+		waiter = {};
+	} else {
+		waiter = socket;
 	}
 
-	context.waiting = true;
-	waiters.push(context.sid);
-
-	// Save user socket for wake-up when partnered
-	player_sockets[context.sid] = context.socket;
+	// TODO: Implement more elegant waiting
 
 	// Let the waiting user know their approx. wait time (~2 sec added for pairing)
-	context.socket.emit('wait time', {time: bucket_time + 2});
+	socket.emit('wait time', {time: 150 });
 }
 }
 
-function start_game(context) {
+function start_single_player(socket) {
 return function() {
-	if(!user_data[context.sid]) {
-		context.socket.emit('not partnered', {});
-		return;
-	}
-	context.in_game = true;
-	player_sockets[context.sid] = context.socket;
-
-	context.socket.emit('game time', {time: 150});
-
-	var game = game_data[user_data[context.sid].gameID];
-	context.socket.emit('new image', {
-		image: game.images[game.cur_image],
-		taboo: game.taboo[game.cur_image]
-	});
+	waiter = {};
+	partner_up(socket, null);
 }
 }
 
-function guess_handler(context) {
+function guess_handler(socket) {
 return function(data) {
-	var user = user_data[context.sid];
-	var game = game_data[user.gameID];
-	var partner_guesses = user.partner ? user_data[user.partner].guesses : user.ai_guesses[game.cur_image];
+	var game = game_data[socket.game_id];
+	var partner_guesses = socket.partner ? socket.partner.guesses : game.ai_guesses[game.cur_image];
 
-	user.guesses.push(data.guess);
+	socket.guesses.push(data.guess);
 
 	if(partner_guesses.indexOf(data.guess) == -1) {
 		// This guess was not in the partner's guesses
 		return;
 	}
 	
-	if(user.partner) {
+	if(socket.partner) {
 		save_match(
-			user.guesses, 
+			socket.guesses, 
 			partner_guesses, 
 			game.taboo[game.cur_image], 
 			data.guess, 
@@ -227,157 +176,142 @@ return function(data) {
 		);
 	} else {
 		save_match(
-			user.guesses, 
+			socket.guesses, 
 			null, 
 			game.taboo[game.cur_image], 
 			data.guess, 
 			game.image_ids[game.cur_image]
 		);
 	}
+
+	// TODO: Log the time, gameID, guesses, match, taboo list and image_id
 	
-	var partner_socket = user.partner ? player_sockets[user.partner] : null;
-	broadcast_message(context.sid, 'add points');
+	broadcast_message(socket, 'add points');
 	
 	game.cur_image++;
 	if(game.cur_image < game.images.length) {
-		send_cur_image(context.sid, game);
+		send_cur_image(socket, game);
 	} else {
-		end_game(context.sid);
+		end_game(socket);
 	}
 }
 }
 
-function skip_handler(context) {
+function skip_handler(socket) {
 return function() {
-	var user = user_data[context.sid];
-	var game = game_data[user.gameID];
-	user.pass_requested = true;
+	var game = game_data[socket.game_id];
+	socket.pass_requested = true;
 
-	if(!user.partner || user_data[user.partner].pass_requested) {
+	if(!socket.partner || socket.partner.pass_requested) {
 
-		image_skipped(user.guesses, game.image_ids[game.cur_image]);
+		image_skipped(game.image_ids[game.cur_image]);
+
+		// TODO: Log the time, gameID, guesses, taboo list, skip, and image_id
 
 		game.cur_image++;
 		if(game.cur_image < game.images.length) {
-			send_cur_image(context.sid, game);
-			broadcast_message(context.sid, 'image skipped');
+			send_cur_image(socket, game);
+			broadcast_message(socket, 'image skipped');
 		} else {
-			broadcast_message(context.sid, 'image skipped');
-			end_game(context.sid);
+			broadcast_message(socket, 'image skipped');
+			end_game(socket);
 		}
 	} else {
-		player_sockets[user.partner].emit('skip requested', {});
+		player_sockets[socket.partner].emit('skip requested', {});
 	}
 }
 }
 
 ////////////////////////// Socket Helper Functions /////////////////////////////
 
-function broadcast_message (player_id, msg) {
-	var player = player_sockets[player_id];
-	partner_id = user_data[player_id].partner;
-	var partner = partner_id ? player_sockets[partner_id] : null;
-	player.emit(msg, {});
-	if(partner) {
-		partner.emit(msg, {});
+function broadcast_message (socket, msg) {
+	if(socket.manager.connected){
+		socket.emit(msg, {});
+	}
+	if(socket.partner && socket.partner.manager.connected) {
+		socket.emit(msg, {});
 	}
 }
 
-function send_cur_image (player_id, game) {
-	var player_socket = player_sockets[player_id];
-	var player_data = user_data[player_id];
-	var partner_id = player_data.partner;
-	var partner_scoket = partner_id ? player_sockets[partner_id] : null;
-	var partner_data = partner_id ? user_data[partner_id] : null;
+function send_cur_image (socket, game) {
+	var partner = socket.partner ? socket.partner : null;
 
 	// reset skip flags and guess arrays
-	player_data.pass_requested = false;
-	player_data.guesses = [];
-	if(partner_data) {
-		partner_data.pass_requested = false;
-		partner_data.guesses = [];
+	socket.pass_requested = false;
+	socket.guesses = [];
+	if(partner) {
+		partner.pass_requested = false;
+		partner.guesses = [];
 	}
 
 	// broadcast next image and its taboo list
-	player_socket.emit('new image', {
+	socket.emit('new image', {
 		image: game.images[game.cur_image],
 		taboo: game.taboo[game.cur_image]
 	});
-	if(partner_scoket) {
-		partner_scoket.emit('new image', {
+	if(partner) {
+		partner.emit('new image', {
 			image: game.images[game.cur_image],
 			taboo: game.taboo[game.cur_image]
 		});
 	}
 }
 
-function end_game (player_id) {
-	var player = player_sockets[player_id];
-	partner_id = user_data[player_id].partner;
-	var partner = partner_id ? player_sockets[partner_id] : null;
-	player.emit('game over', {});
-	if(partner) {
-		partner.emit('game over', {});
+function end_game (socket) {
+	game = game_data[socket.game_id];
+	game.over = true;
+	socket.emit('game over', {});
+	if(socket.partner) {
+		socket.partner.emit('game over', {});
 	}
-	delete game_data[user_data[player_id].gameID];
 }
 
 // players is a list of player UIDs
-function partner_up(players) {
-	while(players.length) {
-		var index = Math.floor(Math.random() * players.length);
-		var player1 = players[index];
-		players.splice(index, 1);
+function partner_up(socket1, socket2) {
+	var game_id = uuid.v4();
+	socket1.game_id = game_id;
+	socket1.guesses = [];
+	socket1.pass_requested = false;
+	socket1.partner = null;
+	
+	game_data[game_id] = {
+		cur_image: 0,
+		images: [],
+		image_ids: [],
+		taboo: [],
+		over: false,
+		num_players: 1
+	};
+	var game = game_data[game_id];
 
-		user_data[player1] = {};
-		user_data[player1].gameID = player1;
-		user_data[player1].guesses = [];
-		game_data[player1] = {cur_image: 0};
-
-		var player2 = null;
-
-		if(players.length) {
-			index = Math.floor(Math.random() * players.length);
-			player2 = players[index];
-
-			players.splice(index, 1);
-
-			user_data[player2] = {};
-			user_data[player2].gameID = player1;
-			user_data[player2].guesses = [];
-			user_data[player2].partner = player1;
-		} else {
-			user_data[player1].ai_guesses = [];
-		}
-
-		user_data[player1].partner = player2;
-
-		prepare_game(player1, player2);
+	if(socket2) {
+		socket1.partner = socket2;
+		socket2.game_id = game_id;
+		socket2.guesses = [];
+		socket2.partner = socket1;
+		socket2.pass_requested = false;
+		game.num_players++;
+	} else {
+		game.ai_guesses = [];
 	}
+
+	prepare_game(socket1, socket2, game);
 }
 
-function prepare_game (player1, player2) {
-	game = game_data[player1];
-	user = user_data[player1];
+function prepare_game (player1, player2, game) {
 	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
 		if (err) {
 			broadcast_message(player1, 'database error');
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'SELECT * FROM (SELECT DISTINCT i.url, i.img_id FROM images i'
-			+ ' INNER JOIN images_in_use use'
-			+ ' on i.img_id = use.img_id';	
+		var query = 'SELECT * FROM (SELECT DISTINCT i.url, i.img_id FROM images i';
+
 		if(!player2) {
 			query += ' INNER JOIN image_guesses g'
 			+ ' ON i.img_id = g.img_id';
 		}
-		query += ') AS temp ORDER BY RANDOM() LIMIT 15;'
-
-		user.ai_guesses = [];
-		game.images = [];
-		game.image_ids = [];
-		game.taboo = [];
+		query += ' where i.skip_count < 5) AS temp ORDER BY RANDOM() LIMIT 15;'
 
 		client.query(query, function(err, data) {
 			if (err) {
@@ -393,12 +327,12 @@ function prepare_game (player1, player2) {
 			var images = game.image_ids;
 			if(player2) {
 
-				query = 'SELECT t.noun, t.img_id FROM taboo_tags t'
-				+ ' WHERE t.img_id = ' + images[0];
+				query = 'SELECT t.noun, t.img_id FROM tags t'
+				+ ' WHERE t.img_id = ' + images[0] + ' AND t.count >= 5';
 				
 				for(var i = 1; i < images.length; i++) {
-					query += ' UNION SELECT t.noun, t.img_id FROM taboo_tags t'
-					+ ' WHERE t.img_id = ' + images[i];
+					query += ' UNION SELECT t.noun, t.img_id FROM tags t'
+					+ ' WHERE t.img_id = ' + images[i] + ' AND t.count >= 5';
 				}
 			} else {
 				query = 'SELECT * FROM (' 
@@ -416,7 +350,7 @@ function prepare_game (player1, player2) {
 				}
 			}
 			query += ';';
-
+			
 			client.query(query, function(err, data) {
 				done();
 
@@ -436,13 +370,26 @@ function prepare_game (player1, player2) {
 				} else {
 					// Single player mode
 					data.rows.forEach(function(row){
-						user.ai_guesses.push(row.guesses);
+						game.ai_guesses.push(row.guesses);
 						game.taboo.push(row.taboo);
 					});
 				}
 
+				console.log(JSON.stringify(game));
+
 				// Put the paired players in game
-				broadcast_message(player1, 'wait complete');
+				player1.emit('start game', {time: 150});
+				player1.emit('new image', {
+					image: game.images[game.cur_image],
+					taboo: game.taboo[game.cur_image]
+				});
+				if(player2) {
+					player2.emit('start game', {time: 150});
+					player2.emit('new image', {
+						image: game.images[game.cur_image],
+						taboo: game.taboo[game.cur_image]
+					});
+				}
 			});
 		});
 	});
@@ -484,13 +431,13 @@ function save_match (player_guesses, partner_guesses, taboo_list, match, image_i
 	save_guesses (player_guesses, partner_guesses, taboo_list, image_id);
 }
 
-function image_skipped (player_guesses, partner_guesses, taboo_list, image_id) {
+function image_skipped (image_id) {
 	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'UPDATE images_in_use'
+		var query = 'UPDATE images'
 		+ ' SET skip_count = skip_count + 1'
 		+ ' WHERE img_id = $1;';
 
@@ -527,7 +474,6 @@ function save_guesses (player_guesses, partner_guesses, taboo_list, image_id) {
 }
 
 function get_new_images() {
-
 	Flickr.authenticate(flickrOptions, function(error, flickr) {
 		flickr.photos.getRecent({
 			user_id: flickr.options.user_id,

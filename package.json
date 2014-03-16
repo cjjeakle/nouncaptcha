@@ -30,7 +30,8 @@
     "socket.io": "~0.9.16",
     "cookie": "~0.1.1",
     "connect": "~2.14.2",
-    "flickrapi": "~0.3.13"
+    "flickrapi": "~0.3.13",
+    "node-uuid": "~1.4.1"
   },
   "engines": {
     "node": "0.10.x"

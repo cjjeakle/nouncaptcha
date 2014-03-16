@@ -1,17 +1,43 @@
 var socket = io.connect('');
 var wants_skip = false;
-var game_over = false;
+var playing = false;
 var taboo_list = [];
 var guesses = [];
 var score = 0;
 
 ///// Socket Handlers /////
-socket.emit('start game', {});
 
-socket.on('game time', function(data) {
-	time = data.time;
-	document.getElementById('loading').style.display = 'none';
-	document.getElementById('timer').innerHTML = time;
+alert('In this game, be sure to only respond with nouns.'
+	+ '\n(nouns are people, places, and things.)' +
+	'\n\n eg: car or tire, not driving (verb) or fast (adjective).');
+
+socket.emit('waiting', {});
+
+socket.on('already connected', function() {
+	alert('This IP address is already in a game or are being paired. Please close this window.' +
+		'\n\nIf you got this message in error, refresh the page.' +
+		'\n\n(You may need to clear your cookies or restart the browser.)');
+});
+
+socket.on('wait time', function (data) {
+	var time = data.time;
+	document.getElementById('time').innerHTML = seconds_to_clock(time);
+	setInterval(function() {
+		if(time > 0) {
+			time--;
+		} else if (!playing) {
+			socket.emit('start single player', {});
+		}
+		document.getElementById('time').innerHTML = seconds_to_clock(time);
+	}, 1000);
+});
+
+socket.on('start game', function(data) {
+	playing = true;
+	document.getElementById('partner_up').style.display = 'none';
+
+	var time = data.time;
+	document.getElementById('timer').innerHTML = seconds_to_clock(time);
 	setInterval(function() {
 		if(time > 0) {
 			time--;
@@ -19,7 +45,7 @@ socket.on('game time', function(data) {
 			socket.emit('game over', {});
 			end_game();
 		}
-		document.getElementById('timer').innerHTML = time;
+		document.getElementById('timer').innerHTML = seconds_to_clock(time);
 	}, 1000);
 });
 
@@ -56,17 +82,17 @@ socket.on('game over', function() {
 	end_game();
 });
 
-socket.on('not partnered', function() {
-	alert('You do not have a partner to play with.' +
-		'\nPlease return to the partner assignment stage.');
-});
-
 socket.on('partner disconnect', function() {
-	if(game_over) {
+	if(!playing) {
 		return;
 	}
 	game_error('An error occurred!\n' + 
 		'Your partner\'s connection was lost.\n');
+});
+
+socket.on('database error', function() {
+	alert('There has been a database error. Press okay to try a new game.');
+	window.location.href = window.location.href;
 });
 
 
@@ -81,7 +107,7 @@ function update_score(points) {
 }
 
 function game_error(msg) {
-	game_over = true;
+	playing = false;
 	document.getElementById('guess').disabled = true;
 	alert(msg + 
 		'\nYour final score is: ' + score + ' points.' +
@@ -90,7 +116,7 @@ function game_error(msg) {
 }
 
 function end_game() {
-	game_over = true;
+	playing = false;
 	document.getElementById('guess').disabled = true;
 	var greeting = ''
 	var punctuation = '.';
@@ -108,7 +134,7 @@ function end_game() {
 
 ///// In-Document Helper Functions /////
 function send_guess() {
-	if(game_over) {
+	if(!playing) {
 		return;
 	}
 
@@ -138,7 +164,7 @@ function send_guess() {
 }
 
 function request_skip() {
-	if(game_over) {
+	if(!playing) {
 		return;
 	}
 	if(wants_skip) {
@@ -184,6 +210,14 @@ function check_enter(e)
 	{
 		send_guess();
 	}
+}
+
+function seconds_to_clock(seconds_) {
+	var minutes = Math.floor(seconds_ / 60);
+	var seconds = seconds_ % 60;
+
+	var time = minutes + ':' + seconds;
+	return time;
 }
 
 

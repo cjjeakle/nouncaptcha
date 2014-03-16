@@ -6,8 +6,16 @@ block append content
 		var continue_message = '#{continue_message}';
 	script(src='/socket.io/socket.io.js')
 	script(src='/scripts/guessing_game.js')
-	div(id = 'loading').loading
-		img(src = '/images/loading.gif')
+	div(id = 'partner_up').partner_up
+		h3
+			|nouncaptcha
+		div(style='text-align: center;').row.jumbotron
+			h1 The Guessing Game
+			|Please wait to connect with a partner.
+			br
+			|The approximate wait is:
+			div(id='time', style = 'display: inline-block;')
+			|.
 	div(style = 'text-align: center;').jumbotron.game
 		h2 The Guessing Game
 		|Guess a <font color = 'red'>Noun</font> your Partner is Thinking of
@@ -19,7 +27,7 @@ block append content
 		div.col-md-2.col-sm-12
 			h4 Time Remaining: 
 				div(style = 'display:inline-block', id = 'timer')
-				|  seconds
+				|.
 			|------
 			h4 Score:
 				div(style = 'display:inline-block', id = 'score') 0
