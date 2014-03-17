@@ -216,6 +216,10 @@ function seconds_to_clock(seconds_) {
 	var minutes = Math.floor(seconds_ / 60);
 	var seconds = seconds_ % 60;
 
+	if(seconds < 10) {
+		seconds *= 10;
+	}
+
 	var time = minutes + ':' + seconds;
 	return time;
 }

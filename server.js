@@ -85,9 +85,8 @@ var game_data = {};
 
 io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
+	socket.ip_address = socket.manager.handshaken[socket.id].address.address;
 
-	console.log('user: ' + socket.uuid + ' has connected.\n');
-	
 	socket.on('waiting', partner_handler(socket));
 
 	socket.on('start single player', start_single_player(socket));
@@ -101,7 +100,7 @@ io.sockets.on('connection', function (socket) {
 	socket.on('disconnect', function() {
 		// erase from connected ips if this is their game connection
 		if(socket.first_connection) {
-			delete connected_ips[socket.handshake.address];
+			delete connected_ips[socket.ip_address];
 		} else {
 			return;
 		}
@@ -125,11 +124,11 @@ io.sockets.on('connection', function (socket) {
 ///// Partnering Handler /////
 function partner_handler(socket) {
 return function() {
-	if(connected_ips[socket.handshake.address] && !socket.linked) {
+	if(connected_ips[socket.ip_address] && !socket.linked) {
 		socket.emit('already connected', {});
 		return;
 	} else {
-		connected_ips[socket.handshake.address] = true;
+		connected_ips[socket.ip_address] = true;
 	}
 	socket.first_connection = true;
 
@@ -140,7 +139,7 @@ return function() {
 		waiter = socket;
 	}
 
-	// TODO: Implement more elegant waiting
+	// TODO: Log that user connected and is waiting
 
 	// Let the waiting user know their approx. wait time (~2 sec added for pairing)
 	socket.emit('wait time', {time: 150 });
@@ -184,7 +183,7 @@ return function(data) {
 		);
 	}
 
-	// TODO: Log the time, gameID, guesses, match, taboo list and image_id
+	// TODO: Log the match with time, gameID, guesses, image_id
 	
 	broadcast_message(socket, 'add points');
 	
@@ -206,7 +205,7 @@ return function() {
 
 		image_skipped(game.image_ids[game.cur_image]);
 
-		// TODO: Log the time, gameID, guesses, taboo list, skip, and image_id
+		// TODO: Log the skip with time, gameID, guesses, and image_id
 
 		game.cur_image++;
 		if(game.cur_image < game.images.length) {
@@ -217,7 +216,7 @@ return function() {
 			end_game(socket);
 		}
 	} else {
-		player_sockets[socket.partner].emit('skip requested', {});
+		socket.partner.emit('skip requested', {});
 	}
 }
 }
@@ -225,10 +224,10 @@ return function() {
 ////////////////////////// Socket Helper Functions /////////////////////////////
 
 function broadcast_message (socket, msg) {
-	if(socket.manager.connected){
+	if(socket){
 		socket.emit(msg, {});
 	}
-	if(socket.partner && socket.partner.manager.connected) {
+	if(socket.partner) {
 		socket.emit(msg, {});
 	}
 }
@@ -299,6 +298,9 @@ function partner_up(socket1, socket2) {
 }
 
 function prepare_game (player1, player2, game) {
+
+	// TODO: Log that the game is starting, and the game's taboo list
+
 	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
 		if (err) {
 			broadcast_message(player1, 'database error');
@@ -374,8 +376,6 @@ function prepare_game (player1, player2, game) {
 						game.taboo.push(row.taboo);
 					});
 				}
-
-				console.log(JSON.stringify(game));
 
 				// Put the paired players in game
 				player1.emit('start game', {time: 150});
@@ -474,6 +474,7 @@ function save_guesses (player_guesses, partner_guesses, taboo_list, image_id) {
 }
 
 function get_new_images() {
+	// TODO: Implement image adding
 	Flickr.authenticate(flickrOptions, function(error, flickr) {
 		flickr.photos.getRecent({
 			user_id: flickr.options.user_id,
