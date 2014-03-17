@@ -8,9 +8,15 @@ script(src='http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js')
 script(src='//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js')
 meta(name='viewport', content='width=device-width, initial-scale=1')
 div.container
-	h3.text-muted
+	h3.text-muted.title
 		|nouncaptcha
 	block content
+	br
+	div(style='text-align:center;').row
+		|Please contact
+		a(href='mailto:nouncaptcha@umich.edu')
+			|  nouncaptcha@umich.edu
+		|  for help, or with any questions or comments.
 	br
 	br
 	br

@@ -1,3 +1,11 @@
+h1, h2, h3 .briefing {
+	text-align: center;
+}
+
+.centered {
+	text-align: center;
+}
+
 .partner_up {
 	z-index: 1;
 	position: absolute;

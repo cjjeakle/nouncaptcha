@@ -1,0 +1,89 @@
+extends layout
+
+block append content	
+	.jumbotron.briefing
+		h1 The Guessing Game
+		.centered
+			|Welcome to the "guessing game"!
+		br
+		.row
+		div.col-lg-4.col-lg-offset-1
+			br
+			h3 Procedure:
+			br
+			li
+				|On the next page, you will be asked to wait a maximum of 5 minutes to partner
+				|  with another player. The game will alert you when a partner has been found.
+			br
+			li
+				|You will then be presented with the game. You will see an image, 
+				|  a list of off-limits words, and an answers box.
+			br
+			li
+				|Your goal is to guess a 
+				b 
+					|  noun 
+				|  your partner is thinking of that is not off limits.
+			br
+			li
+				|You will play the game for the lesser of 2.5 minutes or tagging 15 images.
+				|  Afterward you will be presented with a short survey on your experience.
+			br
+			li
+				|Total expected time commitment: 8 minutes.
+			br
+		div.col-lg-4.col-lg-offset-2
+			br
+			h3 Survey Info:
+			br
+			li
+				|Please note that this game and the survey that follows it are
+				|  part of an IRB exempt study by a University of Michigan student.
+			br
+			li
+				|You may end your participation at any time if you wish to do so,
+				|  and may refuse to answer any survey question you feel the need to.
+			br
+			li
+				|If you have any questions, 
+				|  or if you need help solving a technical difficulty, please contact:
+				a(href='mailto:nouncaptcha@umich.edu')
+					|  nouncaptcha@umich.edu
+				|.
+			br
+		.row
+		div.col-lg-4.col-lg-offset-1
+			br
+			h3 User Requirements:
+			br
+			li
+				|You must be 18 years or older to participate in this study. 
+			br
+			li
+				|You must have cookies enabled.
+			br
+			li
+				|You must have Javascript enabled.
+			br
+		div.col-lg-4.col-lg-offset-2
+			br
+			h3 Game Background:
+			br
+			li
+				|This game is based off of 
+				a(href = 'http://en.wikipedia.org/wiki/ESP_game', target = '_blank')
+					|  the "ESP game"
+				|, which was originally developed by Luis von Ahn.
+			br
+			li
+				|The goal is to use the noun tags from this game to feed 
+				a(href = 'http://en.wikipedia.org/wiki/CAPTCHA', target = '_blank')
+					|  a CAPTCHA.
+			br
+		.row
+	.row
+	.centered
+		|Press the button below to continue:
+		br
+		a(href = '/game_test').btn.btn-success
+			|Continue to Game

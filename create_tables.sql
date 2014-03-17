@@ -42,3 +42,9 @@ time TIMESTAMP,
 PRIMARY KEY (response_id)
 );
 
+CREATE TABLE game_tokens (
+key TEXT,
+token TEXT,
+PRIMARY KEY (key)
+);
+

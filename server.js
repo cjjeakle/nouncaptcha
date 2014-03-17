@@ -63,12 +63,12 @@ app.configure('development', function(){
 
 
 // Get requests
-app.get('/', function(req, res) {res.redirect('/game');});
+app.get('/', function(req, res) {res.redirect('/game_info');});
 app.get('/game', routes.game);
-app.get('/trail_info', function(req, res){res.redirect('/')});
-app.get('/trial_game', routes.trial_game);
-app.get('/game_survey', function(req, res){res.redirect('/')});
-app.get('/game_debreif', function(req, res){res.redirect('/')});
+app.get('/game_info', routes.game_info);
+app.get('/game_test', routes.game_test);
+app.get('/game_survey', routes.game_survey);
+app.get('/game_debrief', routes.game_debrief);
 
 // Post requests
 app.post('/submit_game_survey', function(){});
@@ -113,6 +113,10 @@ io.sockets.on('connection', function (socket) {
 			waiter = null;
 		}
 
+		if(socket.partner) {
+			socket.partner.emit('partner disconnect', {});
+		}
+
 		// If user is in a game, and not partnered or partner has disconnected, 
 		// delete the game
 		if(socket.game_id && (!socket.partner || !socket.partner.manager.connected)) {
@@ -128,7 +132,6 @@ io.sockets.on('connection', function (socket) {
 ///// Partnering Handler /////
 function partner_handler(socket) {
 return function() {
-	/*
 	if(connected_ips[socket.ip_address] && !socket.linked) {
 		socket.emit('already connected', {});
 		return;
@@ -136,7 +139,7 @@ return function() {
 		connected_ips[socket.ip_address] = true;
 	}
 	socket.first_connection = true;
-*/
+
 	// Let the waiting user know their max wait time
 	socket.emit('wait time', {time: 10 });
 
