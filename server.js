@@ -65,13 +65,13 @@ app.configure('development', function(){
 // Get requests
 app.get('/', function(req, res) {res.redirect('/game_info');});
 app.get('/game', routes.game);
-app.get('/game_info', routes.game_info);
+app.get('/game_info', routes.game_info(pg));
 app.get('/game_test', routes.game_test);
 app.get('/game_survey', routes.game_survey);
 app.get('/game_debrief', routes.game_debrief);
 
 // Post requests
-app.post('/submit_game_survey', function(){});
+app.post('/submit_game_survey', routes.submit_game_survey(pg));
 
 
 //////////////////////////////// Socket Handlers ///////////////////////////////
@@ -258,9 +258,6 @@ return function() {
 	});
 
 	if(!socket.partner || socket.partner.pass_requested) {
-
-		image_skipped(game.image_ids[game.cur_image]);
-		
 		var partner_guesses = socket.partner ? 
 			socket.partner.guesses : game.ai_guesses[game.cur_image];
 		log_data('skip', {
@@ -281,6 +278,11 @@ return function() {
 		} else {
 			broadcast_message(socket, 'image skipped');
 			end_game(socket);
+		}
+
+		if(socket.partner) {
+			// Only save skips if the player has a partner
+			image_skipped(game.image_ids[game.cur_image]);
 		}
 	} else {
 		socket.partner.emit('skip requested', {});
@@ -562,11 +564,11 @@ function log_data(event, data) {
 }
 
 function get_new_images() {
-	// TODO: Implement image adding
+	// TODO: Safe-search/High popularity, attribution, flagging
 	Flickr.authenticate(flickrOptions, function(error, flickr) {
 		flickr.photos.getRecent({
 			user_id: flickr.options.user_id,
-			save_search: 1,
+			safe_search: 1,
 			page: 1,
 			per_page: 15
 		}, function(err, result) {

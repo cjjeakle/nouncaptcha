@@ -1,4 +1,126 @@
 extends layout
 
 block append content	
-	
+	br
+	.jumbotron
+		.centered
+			h2 Exit Survey
+		br
+		form(name = 'game_survey', method = 'POST', action = '/submit_game_survey')
+			.col-md-6
+				|What is your native language? 
+				br
+				input(type = 'text', name = 'language')
+				br
+				br
+				|What country are you in?
+				br
+				input(type = 'text', name = 'country')
+				br
+				|If in the US, what state are you in?
+				br
+				input(type = 'text', name = 'state')
+				br
+				br
+				|What is your age?
+				br
+				input(type = 'number', name = 'age', min = '0', value = '0')
+				br
+				br
+				|What is your gender?
+				br
+				input(type = 'radio', name = 'sex', value = 'Male')
+				|Male
+				br
+				input(type = 'radio', name = 'sex', value = 'Female')
+				|Female
+				br
+				br
+				|How much education do you have?
+				br
+				input(type = 'radio', name = 'education', value = 'Less that HS')
+				|Less than High School
+				br
+				input(type = 'radio', name = 'education', value = 'HS')
+				|High School
+				br
+				input(type = 'radio', name = 'education', value = 'AS')
+				|Associates Degree
+				br
+				input(type = 'radio', name = 'education', value = 'BS')
+				|Bachelor's Degree
+				br
+				input(type = 'radio', name = 'education', value = 'Greater than BS')
+				|Greater than Bachelor's Degree
+			.col-md-6
+				|What type of input did you use?
+				br
+				input(type = 'radio', name = 'input', value = 'Keyboard and Mouse')
+				|Keyboard and Mouse
+				br
+				input(type = 'radio', name = 'input', value = 'Touch')
+				|Touch
+				br
+				input(type = 'radio', name = 'input', value = 'Other')
+				|Other
+				input(type = 'text', name = 'input_other')
+					|    
+				br
+				br
+				|Did you enjoy the game?
+				br
+				input(type = 'radio', name = 'enjoyed', value = 'TRUE')
+				|Yes
+				br
+				input(type = 'radio', name = 'enjoyed', value = 'FALSE')
+				|No
+				br
+				br
+				|Did you follow the game's instructions?
+				br
+				input(type = 'radio', name = 'followed_rules', value = 'TRUE')
+				|Yes
+				br
+				input(type = 'radio', name = 'followed_rules', value = 'FALSE')
+				|No
+				br
+				br
+				|Did you only provide nouns in your responses?
+				br
+				input(type = 'radio', name = 'nouns_only', value = 'TRUE')
+				|Yes
+				br
+				input(type = 'radio', name = 'nouns_only', value = 'FALSE')
+				|No
+				br
+				br
+				|Were the images large enough and easy to understand?
+				br
+				input(type = 'radio', name = 'image_quality', value = 'TRUE')
+				|Yes
+				br
+				input(type = 'radio', name = 'image_quality', value = 'FALSE')
+				|No
+			.row
+			br
+			br
+			.col-md-6
+				|Do you have any suggestions or input on the game?
+				br
+				textarea(name = 'suggestions', rows = '10', cols = '75')
+			.col-md-6
+				|Leave any additional comments here.
+				br
+				textarea(name = 'comments', rows = '10', cols = '75')
+				br
+				br
+			.row
+			.centered
+				input(type = 'submit', value = 'submit').btn.btn-lg.btn-success
+			br
+			br
+		.row
+	.row
+
+
+

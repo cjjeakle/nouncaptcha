@@ -10,3 +10,6 @@ VALUES (1, '["car","wheel", "rim", "windshield","tail light","mirror","rearview 
 INSERT INTO tags (img_id, noun, count)
 VALUES (1, 'car', 5), (1, 'wheel', 5), (1, 'tire', 5);
 
+INSERT INTO game_tokens(key, token, used)
+VALUES (555, 555, FALSE);
+

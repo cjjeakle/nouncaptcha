@@ -1,0 +1,14 @@
+extends layout
+
+block append content	
+	.col-md-4.col-md-offset-4
+		h2.centered Thats all!
+		br
+		|Your completion token is: #{token}
+		br
+		br
+		|Bookmark 
+		a(href = '/game', target = '_blank')
+			|  this link
+		|  to play The Guessing Game again some time.
+	.row

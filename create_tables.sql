@@ -34,17 +34,29 @@ data JSON,
 PRIMARY KEY (log_id)
 );
 
-
-/* TODO: Implement survey response table */
 CREATE TABLE game_survey (
 response_id SERIAL,
 time TIMESTAMP,
+language TEXT,
+country TEXT,
+state TEXT,
+age INT,
+sex TEXT,
+education TEXT,
+input TEXT,
+enjoyed BOOLEAN,
+followed_rules BOOLEAN,
+nouns_only BOOLEAN,
+image_quality BOOLEAN,
+suggestions TEXT,
+comments TEXT,
 PRIMARY KEY (response_id)
 );
 
 CREATE TABLE game_tokens (
 key TEXT,
 token TEXT,
+used BOOLEAN,
 PRIMARY KEY (key)
 );
 
