@@ -25,11 +25,19 @@ socket.on('wait time', function (data) {
 	setInterval(function() {
 		if(time > 0) {
 			time--;
-		} else if (!playing) {
+		}
+		// It takes ~1 second to start single player, so request a game with some buffer time
+		if (time < 3 && !playing) {
 			socket.emit('start single player', {});
 		}
 		document.getElementById('time').innerHTML = seconds_to_clock(time);
 	}, 1000);
+});
+
+socket.on('game ready', function(data) {
+	document.getElementById('waiting_message').innerHTML = 'Waiting for partner to respond...';
+	alert('Partner found!');
+	socket.emit('player ready');
 });
 
 socket.on('start game', function(data) {
@@ -53,7 +61,7 @@ socket.on('add points', function(data) {
 	score += 500;
 	document.getElementById('score').innerHTML = score;
 	display_message('Nice work, you guessed your partner\'s thoughts!');
-})
+});
 
 socket.on('new image', function(data) {
 	update_image(data.image);
@@ -216,11 +224,11 @@ function seconds_to_clock(seconds_) {
 	var minutes = Math.floor(seconds_ / 60);
 	var seconds = seconds_ % 60;
 
+	var time = minutes + ':';
 	if(seconds < 10) {
-		seconds *= 10;
+		time += '0';
 	}
-
-	var time = minutes + ':' + seconds;
+	time += seconds;
 	return time;
 }
 

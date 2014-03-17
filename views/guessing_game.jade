@@ -11,11 +11,12 @@ block append content
 			|nouncaptcha
 		div(style='text-align: center;').row.jumbotron
 			h1 The Guessing Game
-			|Please wait to connect with a partner.
-			br
-			|The maximum wait is:
-			div(id='time', style = 'display: inline-block;')
-			|.
+			div(id='waiting_message')
+				|Please wait to connect with a partner.
+				br
+				|The maximum wait is:
+				div(id='time', style = 'display: inline-block;')
+				|.
 	div(style = 'text-align: center;').jumbotron.game
 		h2 The Guessing Game
 		|Guess a <font color = 'red'>Noun</font> your Partner is Thinking of

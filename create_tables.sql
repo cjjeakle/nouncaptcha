@@ -3,6 +3,7 @@
 CREATE TABLE images (
 img_id SERIAL,
 url TEXT UNIQUE,
+attribution_url TEXT,
 skip_count INT,
 PRIMARY KEY (img_id)
 );
@@ -25,4 +26,19 @@ PRIMARY KEY (img_id, noun),
 FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE
 );
 
+CREATE TABLE game_log (
+log_id SERIAL,
+time TIMESTAMP,
+event TEXT,
+data JSON,
+PRIMARY KEY (log_id)
+);
+
+
 /* TODO: Implement survey response table */
+CREATE TABLE game_survey (
+response_id SERIAL,
+time TIMESTAMP,
+PRIMARY KEY (response_id)
+);
+
