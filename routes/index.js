@@ -34,7 +34,7 @@ return function(req, res) {
 
 			if(data.rowCount) {
 				req.session.game_survey_key = req.query.key;
-				req.session.game_survey_token = req.query.token;
+				req.session.game_survey_token = data.token;
 				res.render('game_info', {});
 			} else {
 				res.send(401, 'Invalid key provided.');

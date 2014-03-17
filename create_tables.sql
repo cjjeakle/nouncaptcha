@@ -17,7 +17,6 @@ PRIMARY KEY (guess_id),
 FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE
 );
 
-/* A sufficent count promotes a frequent tag to a taboo tag */
 CREATE TABLE tags (
 img_id INT,
 noun TEXT,
