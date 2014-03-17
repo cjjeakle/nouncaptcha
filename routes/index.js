@@ -71,7 +71,7 @@ return function(req, res) {
 		data.age,
 		data.sex,
 		data.education,
-		data.input == 'Other' ? data.input : data.input_other,
+		data.input == 'Other' ? data.input_other : data.input,
 		data.enjoyed,
 		data.followed_rules,
 		data.nouns_only,
