@@ -87,6 +87,8 @@ io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
 	socket.ip_address = socket.manager.handshaken[socket.id].address.address;
 
+	console.log('\n\n\n', socket.ip_address, '\n\n\n');
+
 	socket.on('waiting', partner_handler(socket));
 
 	socket.on('start single player', start_single_player(socket));
@@ -142,7 +144,7 @@ return function() {
 	// TODO: Log that user connected and is waiting
 
 	// Let the waiting user know their approx. wait time (~2 sec added for pairing)
-	socket.emit('wait time', {time: 150 });
+	socket.emit('wait time', {time: 300 });
 }
 }
 
@@ -299,7 +301,7 @@ function partner_up(socket1, socket2) {
 
 function prepare_game (player1, player2, game) {
 
-	// TODO: Log that the game is starting, and the game's taboo list
+	// TODO: Log that the game is starting, timestamp, the player UUIDs (null for partner if none), the game's taboo list
 
 	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
 		if (err) {
