@@ -91,6 +91,8 @@ io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
 	socket.ip_address = socket.manager.handshaken[socket.id].address.address;
 
+	get_new_images();
+
 	socket.on('waiting', partner_handler(socket));
 
 	socket.on('start single player', start_single_player(socket));
@@ -380,7 +382,7 @@ function prepare_game (player1, player2, game) {
 		client.query(query, function(err, data) {
 			if (err) {
 				broadcast_message(player1, 'database error');
-				return console.error('error running query', err);
+				return console.error('error running query (get images)', err);
 			}
 
 			data.rows.forEach(function(row){
@@ -390,7 +392,6 @@ function prepare_game (player1, player2, game) {
 
 			var images = game.image_ids;
 			if(player2) {
-
 				query = 'SELECT t.noun, t.img_id FROM tags t'
 				+ ' WHERE t.img_id = ' + images[0] + ' AND t.count >= 5';
 				
@@ -414,13 +415,13 @@ function prepare_game (player1, player2, game) {
 				}
 			}
 			query += ';';
-			
+
 			client.query(query, function(err, data) {
 				done();
 
 				if (err) {
 					broadcast_message(player1, 'database error');
-					return console.error('error running query', err);
+					return console.error('error running query (get taboo/guesses)', err);
 				}
 
 				if(player2) {
@@ -463,26 +464,37 @@ function save_match (player_guesses, partner_guesses, taboo_list, match, image_i
 
 		// Insert the tag if it doesn't exist with count = 0
 		var query = 'INSERT INTO tags (img_id, noun, count)'
-					+ ' SELECT $1, $2, 0'
-					+ ' WHERE NOT EXISTS'
-					+ ' (select 1 from tags WHERE img_id = $1 AND noun = $2);'
+				+ ' SELECT $1, $2, 0'
+				+ ' WHERE NOT EXISTS'
+				+ ' (select 1 from tags WHERE img_id = $1 AND noun = $2);'
 		var inputs = [image_id, match.toString()];
 		
 		client.query(query, inputs, function(err, data) {
 			if (err) {
-				return console.error('error running query', err);
+				return console.error('error running query (save match)', err);
 			}
 
 			// Increment count of either the inserted tag or the existing one
 			query = 'UPDATE tags'
-					+ ' SET count = count + 1'
-					+ ' WHERE img_id = $1 AND noun = $2;';
+				+ ' SET count = count + 1'
+				+ ' WHERE img_id = $1 AND noun = $2;';
 			
 			client.query(query, inputs, function(err, data) {
-				done();
 				if (err) {
-					return console.error('error running query', err);
+					return console.error('error running query (increment tags)', err);
 				}
+
+				query = 'UPDATE images'
+					+ ' SET skip_count = skip_count - 1'
+					+ ' WHERE img_id = $1 AND skip_count > 0;';
+				inputs = [image_id];
+
+				client.query(query, inputs, function(err, data) {
+					done();
+					if (err) {
+						return console.error('error running query (decrement skip)', err);
+					}
+				});
 			});
 		});
 	});
@@ -503,7 +515,7 @@ function image_skipped (image_id) {
 		client.query(query, [image_id], function(err, data) {
 			done();
 			if (err) {
-				return console.error('error running query', err);
+				return console.error('error running query (image skip)', err);
 			}
 		});
 	});
@@ -526,7 +538,7 @@ function save_guesses (player_guesses, partner_guesses, taboo_list, image_id) {
 		client.query(query, inputs, function(err, data) {
 			done();
 			if (err) {
-				return console.error('error running query', err);
+				return console.error('error running query (save guesses)', err);
 			}
 		});
 	});
@@ -543,7 +555,7 @@ function log_data(event, data) {
 		client.query(query, [event, data], function(err, data) {
 			done();
 			if (err) {
-				return console.error('error running query', err);
+				return console.error('error running query (log data)', err);
 			}
 		});
 	});
@@ -554,34 +566,46 @@ function get_new_images() {
 	Flickr.authenticate(flickrOptions, function(error, flickr) {
 		flickr.photos.getRecent({
 			user_id: flickr.options.user_id,
+			save_search: 1,
 			page: 1,
-			per_page: 5
+			per_page: 15
 		}, function(err, result) {
 			if(err) {
 				console.log('error: ', err);
 				return;
 			}
-			console.log(JSON.stringify(result));
+			var images = [];
+			result.photos.photo.forEach(function(image) {
+				if(image.ispublic) {
+					var url = 'http://farm' + image.farm + '.staticflickr.com/' 
+					+ image.server + '/' + image.id + '_' + image.secret + '.jpg';
+					images.push(url);
+				}
+			});
+			save_images(images);
 		});
-	});
-	
-	return;
+	});	
+}
 
-	var images = [];
-
+function save_images(images) {
 	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = '';
-		var inputs = [];
+		var query = 'INSERT INTO images(url, attribution_url, skip_count) VALUES'
+		for(var i = 0; i < images.length; i++) {
+			if(i > 0) {
+				query += ',';
+			}
+			query += ' ($' + (i + 1) + ',' + 'null' +', 0)'
+		}
 		query += ';';
 
-		client.query(query, inputs, function(err, data) {
+		client.query(query, images, function(err, data) {
 			done();
 			if (err) {
-				return console.error('error running query', err);
+				return console.error('error running query (save images)', err);
 			}
 		});
 	});

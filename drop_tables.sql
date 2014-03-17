@@ -4,3 +4,4 @@ DROP TABLE image_guesses;
 DROP TABLE images;
 DROP TABLE game_log;
 DROP TABLE game_survey;
+DROP TABLE game_tokens;
