@@ -134,7 +134,7 @@ io.sockets.on('connection', function (socket) {
 ///// Partnering Handler /////
 function partner_handler(socket) {
 return function() {
-	if(connected_ips[socket.ip_address] && !socket.linked) {
+	if(connected_ips[socket.ip_address] && !socket.first_connection) {
 		socket.emit('already connected', {});
 		return;
 	} else {
