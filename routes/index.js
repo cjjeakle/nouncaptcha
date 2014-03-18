@@ -20,6 +20,7 @@ return function(req, res) {
 	});
 
 	res.render('guessing_game', {
+		continue_btn: 'Click here to play again',
 		continue_message: 'Press okay to play again.',
 		link: '/game'
 	});
@@ -32,6 +33,7 @@ exports.game_info = function(req, res) {
 
 exports.game_test = function(req, res) {
 	res.render('guessing_game', {
+		continue_btn: 'Click here to take a quick survey.',
 		continue_message: 'Please press okay to take a quick survey.',
 		link: '/game_survey'
 	});

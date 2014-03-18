@@ -4,6 +4,7 @@ var playing = false;
 var taboo_list = [];
 var guesses = [];
 var score = 0;
+var skip_appear;
 
 ///// Socket Handlers /////
 
@@ -39,14 +40,14 @@ socket.on('wait time', function (data) {
 });
 
 socket.on('game ready', function(data) {
-	document.getElementById('waiting_message').innerHTML = 'Waiting for partner to respond...';
+	document.getElementById('placeholder_message').innerHTML = 'Waiting for partner to respond...';
 	alert('Partner found!');
 	socket.emit('player ready');
 });
 
 socket.on('start game', function(data) {
 	playing = true;
-	document.getElementById('partner_up').style.display = 'none';
+	document.getElementById('placeholder').style.display = 'none';
 
 	var time = data.time;
 	document.getElementById('timer').innerHTML = seconds_to_clock(time);
@@ -78,6 +79,7 @@ socket.on('new image', function(data) {
 	guesses = [];
 
 	wants_skip = false;
+	reset_skip_btn();
 });
 
 socket.on('skip requested', function(data) {
@@ -121,10 +123,13 @@ function update_score(points) {
 function game_error(msg) {
 	playing = false;
 	document.getElementById('guess').disabled = true;
-	alert(msg + 
+	var choice = confirm(msg + 
 		'\nYour final score is: ' + score + ' points.' +
 		'\n\n' + continue_message);
-	window.location.href = link;
+	if(choice) {
+		window.location.href = link;
+	}
+	show_placeholder();
 }
 
 function end_game() {
@@ -136,10 +141,13 @@ function end_game() {
 		greeting = 'Great job!\n';
 		punctuation = '!';
 	}
-	alert(greeting + 
+	var choice = confirm (greeting + 
 		'Your final score is: ' + score + ' points' + punctuation +
 		'\n\n' + continue_message);
-	window.location.href = link;
+	if(choice) {
+		window.location.href = link;
+	}
+	show_placeholder();
 }
 
 
@@ -236,4 +244,18 @@ function seconds_to_clock(seconds_) {
 	return time;
 }
 
+function reset_skip_btn() {
+	clearTimeout(skip_appear);
+	document.getElementById('skip_btn').style.display = 'none';
+	skip_appear = setTimeout(function() {
+		document.getElementById('skip_btn').style.display = 'inline-block';
+	},15000);
+}
 
+function show_placeholder() {
+	document.getElementById('placeholder').style.display = '';
+	document.getElementById('placeholder_message').innerHTML = 
+		'Game over. Your final score was: ' + score + '.<br/><br/>'
+		+ '<a href = \"' + link + '\" class = "btn btn-sm btn-success">'
+		+ continue_btn + '</a>';
+}
