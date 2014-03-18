@@ -117,6 +117,7 @@ io.sockets.on('connection', function (socket) {
 
 		if(socket.partner) {
 			socket.partner.emit('partner disconnect', {});
+			socket.disconnect = true;
 		}
 
 		// If user is in a game, and not partnered or partner has disconnected, 
@@ -145,6 +146,10 @@ return function() {
 	// Let the waiting user know their max wait time
 	socket.emit('wait time', {time: 300 });
 
+	log_data('connect', {
+		user_uuid: socket.uuid
+	});
+
 	if(waiter) {
 		var temp = waiter;
 		partner_up(socket, waiter);
@@ -152,10 +157,6 @@ return function() {
 	} else {
 		waiter = socket;
 	}
-
-	log_data('connect', {
-		user_uuid: socket.uuid
-	});
 }
 }
 
@@ -171,6 +172,10 @@ return function() {
 function ready_handler(socket) {
 return function() {
 	var game = game_data[socket.game_id];
+
+	if(socket.partner && socket.partner.disconnect) {
+		socket.emit('partner disconnect', {});
+	}
 
 	if(socket.partner && !socket.partner.ready) {
 		socket.ready = true;
