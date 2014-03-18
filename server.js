@@ -135,12 +135,13 @@ io.sockets.on('connection', function (socket) {
 ///// Partnering Handler /////
 function partner_handler(socket) {
 return function() {
-	if(connected_ips[socket.ip_address]) {
+	if(connected_ips[socket.ip_address] && !socket.first_connection) {
 		socket.emit('already connected', {});
 		return;
 	} else {
 		connected_ips[socket.ip_address] = true;
 	}
+	socket.first_connection = true;
 
 	// Let the waiting user know their max wait time
 	socket.emit('wait time', {time: 300 });
