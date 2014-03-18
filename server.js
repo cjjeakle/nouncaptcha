@@ -117,7 +117,6 @@ io.sockets.on('connection', function (socket) {
 
 		if(socket.partner) {
 			socket.partner.emit('partner disconnect', {});
-			socket.disconnect = true;
 		}
 
 		// If user is in a game, and not partnered or partner has disconnected, 
@@ -174,11 +173,6 @@ return function() {
 function ready_handler(socket) {
 return function() {
 	var game = game_data[socket.game_id];
-
-	if(socket.partner && socket.partner.disconnect) {
-		socket.emit('partner disconnect', {});
-		return;
-	}
 
 	if(socket.partner && !socket.partner.ready) {
 		socket.ready = true;
