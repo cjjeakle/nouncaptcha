@@ -89,7 +89,7 @@ var game_data = {};
 
 io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
-	socket.ip_address = socket.manager.handshaken[socket.id].address.address;
+	socket.ip_address = socket.manager.handshaken[socket.id].remoteAddress;
 
 	check_and_get_images();
 	
@@ -135,8 +135,6 @@ io.sockets.on('connection', function (socket) {
 ///// Partnering Handler /////
 function partner_handler(socket) {
 return function() {
-	console.log(socket.ip_address, ': ', connected_ips[socket.ip_address]);
-
 	if(connected_ips[socket.ip_address]) {
 		socket.emit('already connected', {});
 		return;
