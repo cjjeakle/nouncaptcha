@@ -135,6 +135,8 @@ io.sockets.on('connection', function (socket) {
 ///// Partnering Handler /////
 function partner_handler(socket) {
 return function() {
+	console.log(socket.ip_address, ': ', connected_ips[socket.ip_address]);
+
 	if(connected_ips[socket.ip_address]) {
 		socket.emit('already connected', {});
 		return;
