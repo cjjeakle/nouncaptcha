@@ -143,7 +143,7 @@ return function() {
 	socket.first_connection = true;
 
 	// Let the waiting user know their max wait time
-	socket.emit('wait time', {time: 10 });
+	socket.emit('wait time', {time: 300 });
 
 	if(waiter) {
 		var temp = waiter;
