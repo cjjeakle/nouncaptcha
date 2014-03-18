@@ -89,10 +89,7 @@ var game_data = {};
 
 io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
-	var addresses = socket.manager.handshaken[socket.id].address;
-	socket.ip_address = addresses.remoteAddress ? addresses.remoteAddress : addresses.address;
-
-	console.log(socket.manager.handshaken[socket.id]);
+	socket.ip_address = socket.manager.handshaken[socket.id].address.address;
 
 	check_and_get_images();
 	
@@ -110,7 +107,6 @@ io.sockets.on('connection', function (socket) {
 	socket.on('disconnect', function() {
 		// erase from connected ips if this is their game connection
 		if(socket.first_connection) {
-			console.log('deleting connection')
 			delete connected_ips[socket.ip_address];
 		}
 
@@ -139,8 +135,7 @@ io.sockets.on('connection', function (socket) {
 ///// Partnering Handler /////
 function partner_handler(socket) {
 return function() {
-	console.log(socket.ip_address, ': ', connected_ips[socket.ip_address])
-
+	/*
 	if(connected_ips[socket.ip_address] && !socket.first_connection) {
 		socket.emit('already connected', {});
 		return;
@@ -148,6 +143,7 @@ return function() {
 		connected_ips[socket.ip_address] = true;
 	}
 	socket.first_connection = true;
+	*/
 
 	// Let the waiting user know their max wait time
 	socket.emit('wait time', {time: 300 });
@@ -181,6 +177,7 @@ return function() {
 
 	if(socket.partner && socket.partner.disconnect) {
 		socket.emit('partner disconnect', {});
+		return;
 	}
 
 	if(socket.partner && !socket.partner.ready) {
