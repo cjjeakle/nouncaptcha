@@ -89,7 +89,7 @@ var game_data = {};
 
 io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
-	socket.ip_address = socket.manager.handshaken[socket.id].remoteAddress;
+	socket.ip_address = socket.manager.handshaken[socket.id].address.address;
 
 	check_and_get_images();
 	
