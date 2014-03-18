@@ -63,7 +63,7 @@ app.configure('development', function(){
 
 
 // Get requests
-app.get('/', function(req, res) {res.redirect('/game_info');});
+app.get('/', function(req, res) {res.redirect('/game');});
 app.get('/game', routes.game);
 app.get('/game_info', routes.game_info(uuid));
 app.get('/game_test', routes.game_test);
@@ -91,8 +91,8 @@ io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
 	socket.ip_address = socket.manager.handshaken[socket.id].address.address;
 
-	get_new_images();
-
+	check_and_get_images();
+	
 	socket.on('waiting', partner_handler(socket));
 
 	socket.on('start single player', start_single_player(socket));
@@ -565,8 +565,29 @@ function log_data(event, data) {
 	});
 }
 
-function get_new_images() {
+function check_and_get_images() {
 	// TODO: Safe-search/High popularity, attribution, flagging
+	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+		if (err) {
+			return console.error('Error establishing connection to client', err);
+		}
+
+		var query = 'SELECT COUNT(*) count FROM images WHERE skip_count < 5;';
+
+		client.query(query, function(err, data) {
+			done();
+			if (err) {
+				return console.error('error running query (log data)', err);
+			}
+
+			if(data.rows[0].count < 20) {
+				get_flickr_images();
+			}
+		});
+	});
+}
+
+function get_flickr_images() {
 	Flickr.authenticate(flickrOptions, function(error, flickr) {
 		flickr.photos.getRecent({
 			user_id: flickr.options.user_id,

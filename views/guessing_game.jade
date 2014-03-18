@@ -35,7 +35,7 @@ block append content
 		div.col-md-6.col-sm-12
 			img(src = '', id = 'pic').img-responsive.center-block
 			br
-			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess', autocapitalize='off', autocorrect='on', autofocus='autofocus')
+			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess', spellcheck='true', autocapitalize='off', autocorrect='on', autofocus='autofocus')
 			br
 			a(href = 'javascript:send_guess();', id = 'submit_btn').btn.btn-sm.btn-success
 				| Submit

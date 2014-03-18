@@ -2,11 +2,31 @@
  * HTTP handlers for non-nested directories
  */
 
-exports.game = function(req, res) {
+exports.game = function(pg) {
+return function(req, res) {
+	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+		if (err) {
+			return console.error('Error establishing connection to client', err);
+		}
+
+		var query = 'UPDATE game_count SET count = count + 1;';
+
+		client.query(query, function(err, data) {
+			done();
+			if (err) {
+				return console.error('error running query (log data)', err);
+			}
+
+			if(data.rows[0].count < 20) {
+				get_flickr_images();
+			}
+		});
+	});
 	res.render('guessing_game', {
 		continue_message: 'Press okay to play again.',
 		link: '/game'
 	});
+}
 }
 
 exports.game_info = function(uuid) {

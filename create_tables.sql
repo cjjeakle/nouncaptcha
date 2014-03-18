@@ -58,3 +58,8 @@ token TEXT,
 PRIMARY KEY (token_id)
 );
 
+CREATE TABLE game_count (
+count INT,
+PRIMARY KEY (count)
+);
+
