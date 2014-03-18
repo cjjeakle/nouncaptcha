@@ -19,6 +19,10 @@ socket.on('already connected', function() {
 		'\n\n(You may need to clear your cookies or restart the browser.)');
 });
 
+socket.on('uuid', function(data) {
+	localStorage.setItem('uuid', data.uuid);
+})
+
 socket.on('wait time', function (data) {
 	var time = data.time;
 	document.getElementById('time').innerHTML = seconds_to_clock(time);

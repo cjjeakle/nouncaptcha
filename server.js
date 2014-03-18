@@ -65,7 +65,7 @@ app.configure('development', function(){
 // Get requests
 app.get('/', function(req, res) {res.redirect('/game');});
 app.get('/game', routes.game(pg));
-app.get('/start_game_survey', routes.game_info(uuid));
+app.get('/start_game_survey', routes.game_info);
 app.get('/game_test', routes.game_test);
 app.get('/game_survey', routes.game_survey);
 app.get('/game_debrief', routes.game_debrief);
@@ -90,6 +90,8 @@ var game_data = {};
 io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
 	socket.ip_address = socket.manager.handshaken[socket.id].address.address;
+
+	socket.emit('uuid', {uuid: socket.uuid});
 
 	check_and_get_images();
 	

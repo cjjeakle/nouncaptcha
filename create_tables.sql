@@ -36,6 +36,7 @@ PRIMARY KEY (log_id)
 CREATE TABLE game_survey (
 response_id SERIAL,
 time TIMESTAMP,
+uuid TEXT,
 language TEXT,
 country TEXT,
 state TEXT,

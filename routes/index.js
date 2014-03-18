@@ -26,11 +26,8 @@ return function(req, res) {
 }
 }
 
-exports.game_info = function(uuid) {
-return function(req, res) {
-	req.session.game_survey_token = uuid.v4();
+exports.game_info = function(req, res) {
 	res.render('game_info', {});
-}
 }
 
 exports.game_test = function(req, res) {
@@ -41,19 +38,15 @@ exports.game_test = function(req, res) {
 };
 
 exports.game_survey =  function(req, res) {
-	if(!req.session.game_survey_token) {
-		res.send(401, 'Error: no user token found. Don\'t forget to enable cookies.');
-		return;
-	}
-
 	res.render('game_survey', {});
 }
 
 exports.submit_game_survey = function(pg) {
 return function(req, res) {
-	var token = [req.session.game_survey_token];
+	var uuid = req.body.uuid;
 	var data = req.body;
 	var input = [
+		data.uuid,
 		data.language,
 		data.country,
 		data.state,
@@ -74,9 +67,9 @@ return function(req, res) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'INSERT INTO game_survey (time, language, country, state, age, sex,' 
+		var query = 'INSERT INTO game_survey (time, uuid, language, country, state, age, sex,' 
 			+ ' education, input, enjoyed, followed_rules, nouns_only, image_quality, suggestions, comments)'
-			+ ' VALUES (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);'
+			+ ' VALUES (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14);'
 
 		client.query(query, input, function(err, data) {
 			if (err) {
@@ -86,7 +79,7 @@ return function(req, res) {
 
 			query = 'INSERT INTO game_tokens (token) VALUES($1)';
 
-			client.query(query, token, function(err, data) {
+			client.query(query, [uuid], function(err, data) {
 				done();
 				if (err) {
 					return console.error('error running query (save token)', err);
@@ -100,14 +93,7 @@ return function(req, res) {
 }
 
 exports.game_debrief = function(req, res) {
-	if(!req.session.game_survey_token) {
-		res.send(401, 'Error: no user key found. Don\'t forget to enable cookies.');
-		return;
-	}
-
-	res.render('game_debrief', {
-		token: req.session.game_survey_token
-	});
+	res.render('game_debrief');
 }
 
 

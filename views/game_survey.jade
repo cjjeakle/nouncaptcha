@@ -115,6 +115,9 @@ block append content
 				br
 				br
 			.row
+			input(type = 'text', id = 'uuid', name = 'uuid').hide
+			script.
+				document.getElementById('uuid').value = localStorage.getItem('uuid');
 			.centered
 				input(type = 'submit', value = 'submit').btn.btn-lg.btn-success
 			br

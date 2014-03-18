@@ -1,6 +1,13 @@
 extends layout
 
 block append content	
+	script.
+		if(typeof(Storage)=="undefined")
+		{
+			alert('Your browser does not support local storage. ' +
+				' You will need that feature to get your token at the end of your session.\n\n' + 
+				'Please enable web storage or download the latest version of Chrome, Firefox, or IE.')
+		}
 	.jumbotron.briefing
 		h1 The Guessing Game
 		.centered
@@ -60,10 +67,7 @@ block append content
 				|You must be 18 years or older to participate in this study. 
 			br
 			li
-				|You must have cookies enabled.
-			br
-			li
-				|You must have Javascript enabled.
+				|You must be using a modern browser (Chrome, Firefox, IE 8+).
 			br
 		div.col-lg-4.col-lg-offset-2
 			br

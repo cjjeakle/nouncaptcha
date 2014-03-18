@@ -6,7 +6,9 @@ block append content
 		br
 		|Your completion token is: 
 		br
-		|#{token}
+		div(id = 'uuid', style = 'display:inline-block;')
+		script.
+			document.getElementById('uuid').innerHTML = localStorage.getItem('uuid');
 		br
 		br
 		|Bookmark 
