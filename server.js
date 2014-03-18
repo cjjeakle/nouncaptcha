@@ -151,7 +151,7 @@ return function() {
 	*/
 
 	// Let the waiting user know their max wait time
-	socket.emit('wait time', {time: 10 });
+	socket.emit('wait time', {time: 300 });
 
 	log_data('connect', {
 		user_uuid: socket.uuid
@@ -557,7 +557,6 @@ function save_guesses (player_guesses, partner_guesses, taboo_list, image_id) {
 }
 
 function log_data(event, data) {
-	return;
 	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
