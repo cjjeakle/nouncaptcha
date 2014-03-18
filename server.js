@@ -107,6 +107,10 @@ io.sockets.on('connection', function (socket) {
 
 	///// Close Connections /////
 	socket.on('disconnect', function() {
+		log_data('disconnect', {
+			user_uuid: socket.uuid
+		});
+
 		// erase from connected ips if this is their game connection
 		if(socket.first_connection) {
 			delete connected_ips[socket.ip_address];
