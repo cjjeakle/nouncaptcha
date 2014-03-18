@@ -65,7 +65,7 @@ app.configure('development', function(){
 // Get requests
 app.get('/', function(req, res) {res.redirect('/game_info');});
 app.get('/game', routes.game);
-app.get('/game_info', routes.game_info(pg));
+app.get('/game_info', routes.game_info(uuid));
 app.get('/game_test', routes.game_test);
 app.get('/game_survey', routes.game_survey);
 app.get('/game_debrief', routes.game_debrief);
@@ -378,8 +378,10 @@ function prepare_game (player1, player2, game) {
 		if(!player2) {
 			query += ' INNER JOIN image_guesses g'
 			+ ' ON i.img_id = g.img_id';
+		} else {
+			query += ' where i.skip_count < 5';
 		}
-		query += ' where i.skip_count < 5) AS temp ORDER BY RANDOM() LIMIT 15;'
+		query += ') AS temp ORDER BY RANDOM() LIMIT 15;'
 
 		client.query(query, function(err, data) {
 			if (err) {

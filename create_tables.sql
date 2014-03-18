@@ -53,9 +53,8 @@ PRIMARY KEY (response_id)
 );
 
 CREATE TABLE game_tokens (
-key TEXT,
+token_id SERIAL,
 token TEXT,
-used BOOLEAN,
-PRIMARY KEY (key)
+PRIMARY KEY (token_id)
 );
 
