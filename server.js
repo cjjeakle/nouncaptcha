@@ -107,6 +107,7 @@ io.sockets.on('connection', function (socket) {
 	socket.on('disconnect', function() {
 		// erase from connected ips if this is their game connection
 		if(socket.first_connection) {
+			console.log('deleting connection')
 			delete connected_ips[socket.ip_address];
 		}
 
@@ -135,6 +136,8 @@ io.sockets.on('connection', function (socket) {
 ///// Partnering Handler /////
 function partner_handler(socket) {
 return function() {
+	console.log(socket.ip_address, ': ', connected_ips[socket.ip_address])
+
 	if(connected_ips[socket.ip_address] && !socket.first_connection) {
 		socket.emit('already connected', {});
 		return;
