@@ -18,7 +18,7 @@ VALUES ('http://77wallpaper.com/wp-content/uploads/2013/11/Cool-Car-Pictures-49.
 
 INSERT INTO image_guesses (img_id, guesses, taboo)
 VALUES (1, '["car","wheel", "rim", "windshield","tail light","mirror","rearview mirror","rear view mirror"]', '["car", "wheel", "tire"]'),
-	(2, '["sign","danger sign", "snow", "trees","tree","twig","twigs","sky"]', '["snow", "tree"]'),
+	(2, '["sign","danger sign", "snow", "trees","tree","twig","twigs","sky"]', '["snow", "trees"]'),
 	(3, '["car","cars", "barrier", "lights","grass","sky","cloud","clouds", "building", "person", "fire extinguisher"]', '[]'),
 	(4, '["leather","bullet", "shell", "casing","shell","brass"]', '[]'),
 	(5, '["skillet", "stove", "pan", "wood", "food", "onion", "onions"]', '[]'),
@@ -37,7 +37,7 @@ VALUES (1, 'car', 5),
 	(1, 'wheel', 5),
 	(1, 'tire', 5),
 	(2, 'snow', 5),
-	(2, 'tree', 5);
+	(2, 'trees', 5);
 
 INSERT INTO game_count (count)
 VALUES (0);

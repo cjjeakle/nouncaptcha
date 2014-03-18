@@ -64,7 +64,7 @@ app.configure('development', function(){
 
 // Get requests
 app.get('/', function(req, res) {res.redirect('/game');});
-app.get('/game', routes.game);
+app.get('/game', routes.game(pg));
 app.get('/game_info', routes.game_info(uuid));
 app.get('/game_test', routes.game_test);
 app.get('/game_survey', routes.game_survey);

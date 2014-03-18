@@ -14,14 +14,11 @@ return function(req, res) {
 		client.query(query, function(err, data) {
 			done();
 			if (err) {
-				return console.error('error running query (log data)', err);
-			}
-
-			if(data.rows[0].count < 20) {
-				get_flickr_images();
+				return console.error('error running query (game count)', err);
 			}
 		});
 	});
+
 	res.render('guessing_game', {
 		continue_message: 'Press okay to play again.',
 		link: '/game'
@@ -83,7 +80,7 @@ return function(req, res) {
 
 		client.query(query, input, function(err, data) {
 			if (err) {
-				return console.error('error running query (save images)', err);
+				return console.error('error running query (save form)', err);
 				res.send(500, 'Database error.');
 			}
 
@@ -92,7 +89,7 @@ return function(req, res) {
 			client.query(query, token, function(err, data) {
 				done();
 				if (err) {
-					return console.error('error running query (save images)', err);
+					return console.error('error running query (save token)', err);
 					res.send(500, 'Database error.');
 				}
 				res.redirect('/game_debrief')
