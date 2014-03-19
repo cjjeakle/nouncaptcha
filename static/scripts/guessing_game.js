@@ -54,7 +54,7 @@ socket.on('start game', function(data) {
 	setInterval(function() {
 		if(time > 0) {
 			time--;
-		} else {
+		} else if (playing) {
 			socket.emit('game over', {});
 			end_game();
 		}
