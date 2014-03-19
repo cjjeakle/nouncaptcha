@@ -15,6 +15,7 @@ var logfmt = require('logfmt');
 var routes = require('./routes');
 var path = require('path');
 var pg = require('pg').native;
+var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTGRESQL_CYAN_URL;
 
 var Flickr = require("flickrapi");
 var flickrOptions = {
@@ -91,8 +92,6 @@ io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
 	socket.ip_address = socket.manager.handshaken[socket.id].address.address;
 
-	socket.emit('uuid', {uuid: socket.uuid});
-
 	check_and_get_images();
 	
 	socket.on('waiting', partner_handler(socket));
@@ -107,9 +106,12 @@ io.sockets.on('connection', function (socket) {
 
 	///// Close Connections /////
 	socket.on('disconnect', function() {
-		log_data('disconnect', {
-			user_uuid: socket.uuid
-		});
+		log_data('disconnect', 
+			socket.game_id,
+			socket.uuid,
+			null,
+			null
+		);
 
 		// erase from connected ips if this is their game connection
 		if(socket.first_connection) {
@@ -153,9 +155,14 @@ return function() {
 	// Let the waiting user know their max wait time
 	socket.emit('wait time', {time: 300 });
 
-	log_data('connect', {
-		user_uuid: socket.uuid
-	});
+	socket.emit('uuid', {uuid: socket.uuid});
+
+	log_data('connect',
+		null,
+		socket.uuid,
+		null,
+		null
+	);
 
 	if(waiter) {
 		var temp = waiter;
@@ -232,17 +239,19 @@ return function(data) {
 		);
 	}
 
-	log_data('match', {
-		game_id: socket.game_id,
-		player1_id: socket.uuid,
-		player1_guesses: socket.guesses,
-		player2_id: socket.partner ? socket.partner.uuid : null,
-		player2_guesses: partner_guesses,
-		taboo: game.taboo[game.cur_image],
-		match: data.guess,
-		image_id: game.image_ids[game.cur_image],
-		image_url: game.images[game.cur_image]
-	});
+	log_data('match', 
+		socket.game_id,
+		socket.uuid,
+		socket.partner ? socket.partner.uuid : null,
+		{
+			player1_guesses: socket.guesses,
+			player2_guesses: partner_guesses,
+			taboo: game.taboo[game.cur_image],
+			match: data.guess,
+			image_id: game.image_ids[game.cur_image],
+			image_url: game.images[game.cur_image]
+		}
+	);
 
 
 	broadcast_message(socket, 'add points');
@@ -261,23 +270,28 @@ return function() {
 	var game = game_data[socket.game_id];
 	socket.pass_requested = true;
 
-	log_data('skip requested', {
-		requester: socket.uuid
-	});
+	log_data('skip requested',
+		socket.game_id,
+		socket.uuid,
+		null,
+		null
+	);
 
 	if(!socket.partner || socket.partner.pass_requested) {
 		var partner_guesses = socket.partner ? 
 			socket.partner.guesses : game.ai_guesses[game.cur_image];
-		log_data('skip', {
-			game_id: socket.game_id,
-			player1_id: socket.uuid,
-			player1_guesses: socket.guesses,
-			player2_id: socket.partner ? socket.partner.uuid : null,
-			player2_guesses: partner_guesses,
-			taboo: game.taboo[game.cur_image],
-			image_id: game.image_ids[game.cur_image],
-			image_url: game.images[game.cur_image]
-		});
+		log_data('skip', 
+			socket.game_id,
+			socket.uuid,
+			socket.partner ? socket.partner.uuid : null,
+			{
+				player1_guesses: socket.guesses,
+				player2_guesses: partner_guesses,
+				taboo: game.taboo[game.cur_image],
+				image_id: game.image_ids[game.cur_image],
+				image_url: game.images[game.cur_image]
+			}
+		);
 
 		game.cur_image++;
 		if(game.cur_image < game.images.length) {
@@ -375,7 +389,7 @@ function partner_up(socket1, socket2) {
 }
 
 function prepare_game (player1, player2, game) {
-	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			broadcast_message(player1, 'database error');
 			return console.error('Error establishing connection to client', err);
@@ -457,11 +471,12 @@ function prepare_game (player1, player2, game) {
 				if(player2) {
 					player2.emit('game ready');
 				}
-				log_data('starting', {
-					game_id: player1.game_id,
-					player1: player1.uuid,
-					player2: player2 ? player2.uuid : null
-				});
+				log_data('starting',
+					player1.game_id,
+					player1.uuid,
+					player2 ? player2.uuid : null,
+					null
+				);
 			});
 		});
 	});
@@ -469,7 +484,7 @@ function prepare_game (player1, player2, game) {
 
 function save_match (player_guesses, partner_guesses, taboo_list, match, image_id) {
 	// Save the matched word
-	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}
@@ -515,7 +530,7 @@ function save_match (player_guesses, partner_guesses, taboo_list, match, image_i
 }
 
 function image_skipped (image_id) {
-	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}
@@ -534,7 +549,7 @@ function image_skipped (image_id) {
 }
 
 function save_guesses (player_guesses, partner_guesses, taboo_list, image_id) {
-	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}
@@ -556,15 +571,16 @@ function save_guesses (player_guesses, partner_guesses, taboo_list, image_id) {
 	});
 }
 
-function log_data(event, data) {
-	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+function log_data(event, game_id, uuid1, uuid2, data) {
+	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'INSERT INTO game_log (time, event, data) VALUES (now(), $1, $2)';
+		var query = 'INSERT INTO game_log (time, event, game_id, uuid1, uuid2, data)'
+			+ ' VALUES (now(), $1, $2, $3, $4, $5)';
 
-		client.query(query, [event, data], function(err, data) {
+		client.query(query, [event, game_id, uuid1, uuid2, data], function(err, data) {
 			done();
 			if (err) {
 				return console.error('error running query (log data)', err);
@@ -575,7 +591,7 @@ function log_data(event, data) {
 
 function check_and_get_images() {
 	// TODO: Safe-search/High popularity, attribution, flagging
-	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}
@@ -621,7 +637,7 @@ function get_flickr_images() {
 }
 
 function save_images(images) {
-	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}

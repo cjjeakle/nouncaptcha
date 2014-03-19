@@ -8,7 +8,12 @@ block append content
 		br
 		div(id = 'uuid', style = 'display:inline-block;')
 		script.
-			document.getElementById('uuid').innerHTML = localStorage.getItem('uuid');
+			if(localStorage.getItem('finished_game')) {
+				document.getElementById('uuid').innerHTML = localStorage.getItem('uuid');
+			} else {
+				document.getElementById('uuid').innerHTML = 
+					'Records indicate you did not play a game to completion.';
+			}
 		br
 		br
 		|Bookmark 

@@ -21,6 +21,7 @@ socket.on('already connected', function() {
 });
 
 socket.on('uuid', function(data) {
+	console.log(data.uuid);
 	localStorage.setItem('uuid', data.uuid);
 })
 
@@ -122,6 +123,7 @@ function update_score(points) {
 
 function game_error(msg) {
 	playing = false;
+	localStorage.setItem('finished_game', true);
 	document.getElementById('guess').disabled = true;
 	var choice = confirm(msg + 
 		'\nYour final score is: ' + score + ' points.' +
@@ -134,6 +136,7 @@ function game_error(msg) {
 
 function end_game() {
 	playing = false;
+	localStorage.setItem('finished_game', true);
 	document.getElementById('guess').disabled = true;
 	var greeting = ''
 	var punctuation = '.';

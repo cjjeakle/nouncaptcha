@@ -2,9 +2,11 @@
  * HTTP handlers for non-nested directories
  */
 
+var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTGRESQL_CYAN_URL;
+
 exports.game = function(pg) {
 return function(req, res) {
-	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}
@@ -64,7 +66,7 @@ return function(req, res) {
 		data.comments
 	];
 
-	pg.connect(process.env.HEROKU_POSTGRESQL_CYAN_URL, function(err, client, done) {
+	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}

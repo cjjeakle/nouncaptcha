@@ -29,6 +29,9 @@ CREATE TABLE game_log (
 log_id SERIAL,
 time TIMESTAMP,
 event TEXT,
+game_id TEXT,
+uuid1 TEXT,
+uuid2 TEXT,
 data JSON,
 PRIMARY KEY (log_id)
 );
