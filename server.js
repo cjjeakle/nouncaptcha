@@ -92,7 +92,16 @@ io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
 	socket.ip_address = socket.manager.handshaken[socket.id].address.address;
 
-	console.log("\n\n\n", socket.handshake, "\n\n\n");
+	var handshake = socket.handshake;
+	socket.ip = handshake.headers['x-forwarded-for'] || handshake.address.address;
+
+	console.log("\n\n\n", socket.handshake.headers['x-forwarded-for'], "\n\n\n");
+	console.log("\n\n\n", socket.handshake.address.address, "\n\n\n");
+	console.log("\n\n\n", socket.ip, "\n\n\n");
+
+
+
+
 
 	check_and_get_images();
 	
