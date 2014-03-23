@@ -291,6 +291,8 @@ return function() {
 			}
 		);
 
+		save_flag(game.image_ids[game.cur_image]);
+
 		game.cur_image++;
 		if(game.cur_image < game.images.length) {
 			send_cur_image(socket, game);
@@ -299,8 +301,6 @@ return function() {
 			broadcast_message(socket, 'image flagged');
 			end_game(socket);
 		}
-
-		save_flag(game.image_ids[game.cur_image]);
 	} else {
 		socket.partner.emit('skip requested', {});
 	}
@@ -335,6 +335,11 @@ return function() {
 			}
 		);
 
+		if(socket.partner) {
+			// Only save skips if the player has a partner
+			image_skipped(game.image_ids[game.cur_image]);
+		}
+
 		game.cur_image++;
 		if(game.cur_image < game.images.length) {
 			send_cur_image(socket, game);
@@ -342,11 +347,6 @@ return function() {
 		} else {
 			broadcast_message(socket, 'image skipped');
 			end_game(socket);
-		}
-
-		if(socket.partner) {
-			// Only save skips if the player has a partner
-			image_skipped(game.image_ids[game.cur_image]);
 		}
 	} else {
 		socket.partner.emit('skip requested', {});
@@ -462,11 +462,11 @@ function prepare_game (player1, player2, game) {
 
 		if(!player2) {
 			query += ' INNER JOIN image_guesses g'
-			+ ' ON i.img_id = g.img_id';
+			+ ' ON i.img_id = g.img_id WHERE';
 		} else {
-			query += ' where i.skip_count < 5';
+			query += ' where i.skip_count < 5 AND';
 		}
-		query += ') AS temp ORDER BY RANDOM() LIMIT 15;'
+		query += ' flag_count < 3) AS temp ORDER BY RANDOM() LIMIT 15;'
 
 		client.query(query, function(err, data) {
 			if (err) {
@@ -607,8 +607,10 @@ function save_flag(image_id) {
 		}
 
 		var query = 'UPDATE images'
-		+ ' SET flag_count = flag_count + 1'
-		+ ' WHERE img_id = $1;';
+			+ ' SET flag_count = flag_count + 1'
+			+ ' WHERE img_id = $1;';
+
+		console.log(query, image_id);
 
 		client.query(query, [image_id], function(err, data) {
 			done();
@@ -626,8 +628,8 @@ function image_skipped (image_id) {
 		}
 
 		var query = 'UPDATE images'
-		+ ' SET skip_count = skip_count + 1'
-		+ ' WHERE img_id = $1;';
+			+ ' SET skip_count = skip_count + 1'
+			+ ' WHERE img_id = $1;';
 
 		client.query(query, [image_id], function(err, data) {
 			done();
