@@ -92,6 +92,8 @@ io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
 	socket.ip_address = socket.manager.handshaken[socket.id].address.address;
 
+	console.log("\n\n\n", socket.handshake, "\n\n\n");
+
 	check_and_get_images();
 	
 	socket.on('waiting', partner_handler(socket));
