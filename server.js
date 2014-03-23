@@ -29,6 +29,14 @@ var flickrOptions = {
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+io.set('transports', [
+	'websocket'
+	, 'flashsocket'
+	, 'htmlfile'
+	, 'xhr-polling'
+	, 'jsonp-polling'
+]);
+
 app.use(logfmt.requestLogger());
 app.use(express.favicon());
 app.use(express.urlencoded());
