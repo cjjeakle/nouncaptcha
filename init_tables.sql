@@ -1,20 +1,20 @@
 -- Give the tables some initial values
 
-INSERT INTO images (url, skip_count) 
-VALUES ('http://77wallpaper.com/wp-content/uploads/2013/11/Cool-Car-Pictures-49.jpg', 0),
-	('http://farm8.staticflickr.com/7427/13232125833_0bfbca3f32.jpg', 0),
-	('http://farm4.staticflickr.com/3748/13233960474_6188a276ca.jpg', 0),
-	('http://farm8.staticflickr.com/7404/13233961384_11a891fdb8.jpg', 0),
-	('http://farm4.staticflickr.com/3722/13233961424_77d9530b84.jpg', 0),
-	('http://farm3.staticflickr.com/2864/13233961864_26d84a3719.jpg', 0),
-	('http://farm8.staticflickr.com/7264/13233635375_d2dbc9649c.jpg', 0),
-	('http://farm8.staticflickr.com/7254/13233439953_549d72d89a.jpg', 0),
-	('http://farm4.staticflickr.com/3826/13232609104_961bd57f12.jpg', 0),
-	('http://farm4.staticflickr.com/3710/13201532363_310a83b44b.jpg', 0),
-	('http://farm4.staticflickr.com/3763/13193529034_1879e9d22d.jpg', 0),
-	('http://farm3.staticflickr.com/2800/13199170895_610dc6eaf3.jpg', 0),
-	('http://farm8.staticflickr.com/7336/13185458504_fed82d5172.jpg', 0),
-	('http://farm3.staticflickr.com/2885/13205145903_20d9b285dd.jpg', 0);
+INSERT INTO images (url, skip_count, flag_count) 
+VALUES ('http://77wallpaper.com/wp-content/uploads/2013/11/Cool-Car-Pictures-49.jpg', 0, 0),
+	('http://farm8.staticflickr.com/7427/13232125833_0bfbca3f32.jpg', 0, 0),
+	('http://farm4.staticflickr.com/3748/13233960474_6188a276ca.jpg', 0, 0),
+	('http://farm8.staticflickr.com/7404/13233961384_11a891fdb8.jpg', 0, 0),
+	('http://farm4.staticflickr.com/3722/13233961424_77d9530b84.jpg', 0, 0),
+	('http://farm3.staticflickr.com/2864/13233961864_26d84a3719.jpg', 0, 0),
+	('http://farm8.staticflickr.com/7264/13233635375_d2dbc9649c.jpg', 0, 0),
+	('http://farm8.staticflickr.com/7254/13233439953_549d72d89a.jpg', 0, 0),
+	('http://farm4.staticflickr.com/3826/13232609104_961bd57f12.jpg', 0, 0),
+	('http://farm4.staticflickr.com/3710/13201532363_310a83b44b.jpg', 0, 0),
+	('http://farm4.staticflickr.com/3763/13193529034_1879e9d22d.jpg', 0, 0),
+	('http://farm3.staticflickr.com/2800/13199170895_610dc6eaf3.jpg', 0, 0),
+	('http://farm8.staticflickr.com/7336/13185458504_fed82d5172.jpg', 0, 0),
+	('http://farm3.staticflickr.com/2885/13205145903_20d9b285dd.jpg', 0, 0);
 
 INSERT INTO image_guesses (img_id, guesses, taboo)
 VALUES (1, '["car","wheel", "rim", "windshield","tail light","mirror","rearview mirror","rear view mirror"]', '["car", "wheel", "tire"]'),

@@ -5,6 +5,7 @@ img_id SERIAL,
 url TEXT UNIQUE,
 attribution_url TEXT,
 skip_count INT,
+flag_count INT,
 PRIMARY KEY (img_id)
 );
 
@@ -41,6 +42,7 @@ response_id SERIAL,
 time TIMESTAMP,
 uuid TEXT,
 language TEXT,
+english BOOLEAN,
 country TEXT,
 state TEXT,
 age INT,
@@ -51,6 +53,7 @@ enjoyed BOOLEAN,
 followed_rules BOOLEAN,
 nouns_only BOOLEAN,
 image_quality BOOLEAN,
+how_found TEXT,
 suggestions TEXT,
 comments TEXT,
 PRIMARY KEY (response_id)
@@ -58,6 +61,7 @@ PRIMARY KEY (response_id)
 
 CREATE TABLE game_tokens (
 token_id SERIAL,
+uuid TEXT,
 token TEXT,
 PRIMARY KEY (token_id)
 );

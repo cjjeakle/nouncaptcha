@@ -29,6 +29,18 @@ return function(req, res) {
 }
 }
 
+exports.game_HIT = function(req, res) {
+	res.render('guessing_game', {
+		continue_btn: 'Click here to get your token',
+		continue_message: 'Press okay to continue to your token.',
+		link: '/game_HIT_debrief'
+	});
+}
+
+exports.game_HIT_debrief = function(req, res) {
+	res.render('game_HIT_debrief');
+}
+
 exports.game_info = function(req, res) {
 	res.render('game_info', {});
 }
@@ -52,6 +64,7 @@ return function(req, res) {
 	var input = [
 		data.uuid,
 		data.language,
+		data.english,
 		data.country,
 		data.state,
 		data.age,
@@ -62,6 +75,7 @@ return function(req, res) {
 		data.followed_rules,
 		data.nouns_only,
 		data.image_quality,
+		data.how_found,
 		data.suggestions,
 		data.comments
 	];
@@ -71,33 +85,24 @@ return function(req, res) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'INSERT INTO game_survey (time, uuid, language, country, state, age, sex,' 
-			+ ' education, input, enjoyed, followed_rules, nouns_only, image_quality, suggestions, comments)'
-			+ ' VALUES (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14);'
+		var query = 'INSERT INTO game_survey (time, uuid, language, english, country, state, age, sex, education,' 
+			+ ' input, enjoyed, followed_rules, nouns_only, image_quality, how_found, suggestions, comments)'
+			+ ' VALUES (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16);'
 
 		client.query(query, input, function(err, data) {
 			if (err) {
 				return console.error('error running query (save form)', err);
 				res.send(500, 'Database error.');
 			}
-
-			query = 'INSERT INTO game_tokens (token) VALUES($1)';
-
-			client.query(query, [uuid], function(err, data) {
-				done();
-				if (err) {
-					return console.error('error running query (save token)', err);
-					res.send(500, 'Database error.');
-				}
-				res.redirect('/game_debrief')
-			});
+			done();
+			res.redirect('/game_debrief');
 		});
 	});	
 }
 }
 
 exports.game_debrief = function(req, res) {
-	res.render('game_debrief');
+	res.render('game_survey_debrief');
 }
 
 

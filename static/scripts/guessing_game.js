@@ -20,9 +20,10 @@ socket.on('already connected', function() {
 		'\n\n(You may need to clear your cookies or restart the browser.)');
 });
 
-socket.on('uuid', function(data) {
-	console.log(data.uuid);
-	localStorage.setItem('uuid', data.uuid);
+socket.on('token', function(data) {
+	console.log(data.token);
+	localStorage.setItem('game_finished', false);
+	localStorage.setItem('token', data.token);
 })
 
 socket.on('wait time', function (data) {
@@ -64,8 +65,7 @@ socket.on('start game', function(data) {
 });
 
 socket.on('add points', function(data) {
-	score += 500;
-	document.getElementById('score').innerHTML = score;
+	add_points(500);
 	display_message('Nice work, you guessed your partner\'s thoughts!');
 });
 
@@ -80,7 +80,12 @@ socket.on('new image', function(data) {
 	guesses = [];
 
 	wants_skip = false;
-	reset_skip_btn();
+	hide_timed_buttons();
+});
+
+socket.on('image flagged', function(data) {
+	display_message('The previous image has been flagged.');
+	add_points(500);
 });
 
 socket.on('skip requested', function(data) {
@@ -88,8 +93,7 @@ socket.on('skip requested', function(data) {
 });
 
 socket.on('image skipped', function(data) {
-	score -= 250;
-	document.getElementById('score').innerHTML = score;
+	add_points(-250);
 	display_message('Your team has skipped an image, -250 points.');
 });
 
@@ -116,14 +120,14 @@ function update_image(link) {
 	document.getElementById('pic').src = link;
 }
 
-function update_score(points) {
+function add_points(points) {
 	score = score + points;
 	document.getElementById('score').innerHTML = score;
 }
 
 function game_error(msg) {
 	playing = false;
-	localStorage.setItem('finished_game', true);
+	localStorage.setItem('game_finished', true);
 	document.getElementById('guess').disabled = true;
 	var choice = confirm(msg + 
 		'\nYour final score is: ' + score + ' points.' +
@@ -136,7 +140,7 @@ function game_error(msg) {
 
 function end_game() {
 	playing = false;
-	localStorage.setItem('finished_game', true);
+	localStorage.setItem('game_finished', true);
 	document.getElementById('guess').disabled = true;
 	var greeting = ''
 	var punctuation = '.';
@@ -186,6 +190,14 @@ function send_guess() {
 	var user_guess = document.getElementById('guess').value = '';
 }
 
+function flag_image() {
+	var msg = 'Are you sure you would like to flag this image?';
+	var choice = confirm (msg); 
+	if(choice) {
+		socket.emit('flag image', {});
+	}
+}
+
 function request_skip() {
 	if(!playing) {
 		return;
@@ -204,6 +216,7 @@ function alert_message(msg) {
 }
 
 function display_message(msg) {
+	window.location.hash = '';
 	var notes = document.getElementById('notifications')
 	if(msg.length) {
 		notes.style.display = 'inherit';
@@ -247,12 +260,14 @@ function seconds_to_clock(seconds_) {
 	return time;
 }
 
-function reset_skip_btn() {
+function hide_timed_buttons() {
 	clearTimeout(skip_appear);
+	document.getElementById('flag_link').style.display = 'none';
 	document.getElementById('skip_btn').style.display = 'none';
 	skip_appear = setTimeout(function() {
+		document.getElementById('flag_link').style.display = 'inline-block';
 		document.getElementById('skip_btn').style.display = 'inline-block';
-	},15000);
+	}, 7000);
 }
 
 function show_placeholder() {

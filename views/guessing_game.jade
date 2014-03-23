@@ -38,6 +38,9 @@ block append content
 			br
 		div.col-md-6.col-sm-12
 			img(src = '', id = 'pic').img-responsive.center-block
+			a(href = 'javascript:flag_image()', id = 'flag_link', style = 'display: none')
+				| Flag inappropriate/broken
+			br
 			br
 			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess', spellcheck='true', autocapitalize='off', autocorrect='on', autofocus='autofocus')
 			br

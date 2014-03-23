@@ -53,3 +53,9 @@ h1, h2, h3 .briefing {
 	border-left: 5px solid #dFb5b4;
 	background-color: #fcf2f2;
 }
+
+textarea {
+	height: 100px;
+	width: 100%;
+	box-sizing:border-box;
+}

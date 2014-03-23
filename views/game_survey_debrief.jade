@@ -4,14 +4,14 @@ block append content
 	.jumbotron.col-md-6.col-md-offset-3
 		h2.centered That's all!
 		br
-		|Your completion token is: 
+		|If needed, your completion token is: 
 		br
-		div(id = 'uuid', style = 'display:inline-block;')
+		div(id = 'token', style = 'display:inline-block;')
 		script.
-			if(localStorage.getItem('finished_game')) {
-				document.getElementById('uuid').innerHTML = localStorage.getItem('uuid');
+			if(localStorage.getItem('game_finished') == 'true') {
+				document.getElementById('token').innerHTML = localStorage.getItem('token');
 			} else {
-				document.getElementById('uuid').innerHTML = 
+				document.getElementById('token').innerHTML = 
 					'Records indicate you did not play a game to completion.';
 			}
 		br
@@ -22,6 +22,6 @@ block append content
 		|  to play The Guessing Game again some time.
 		br
 		br
-		a(href = 'game', target = '_blank').btn.btn-lg.btn-success.center-block
+		a(href = '/game', target = '_blank').btn.btn-lg.btn-success.center-block
 			|Play Again!
 	.row

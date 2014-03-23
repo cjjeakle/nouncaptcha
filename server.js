@@ -66,10 +66,12 @@ app.configure('development', function(){
 // Get requests
 app.get('/', function(req, res) {res.redirect('/game');});
 app.get('/game', routes.game(pg));
+app.get('/game_HIT', routes.game_HIT);
+app.get('/game_HIT_debrief', routes.game_HIT_debrief);
 app.get('/start_game_survey', routes.game_info);
 app.get('/game_test', routes.game_test);
 app.get('/game_survey', routes.game_survey);
-app.get('/game_debrief', routes.game_debrief);
+app.get('/game_survey_debrief', routes.game_debrief);
 
 // Post requests
 app.post('/submit_game_survey', routes.submit_game_survey(pg));
@@ -90,18 +92,8 @@ var game_data = {};
 
 io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
-	socket.ip_address = socket.manager.handshaken[socket.id].address.address;
-
 	var handshake = socket.handshake;
 	socket.ip = handshake.headers['x-forwarded-for'] || handshake.address.address;
-
-	console.log("\n\n\n", socket.handshake.headers['x-forwarded-for'], "\n\n\n");
-	console.log("\n\n\n", socket.handshake.address.address, "\n\n\n");
-	console.log("\n\n\n", socket.ip, "\n\n\n");
-
-
-
-
 
 	check_and_get_images();
 	
@@ -112,6 +104,8 @@ io.sockets.on('connection', function (socket) {
 	socket.on('player ready', ready_handler(socket));
 	
 	socket.on('guess', guess_handler(socket));
+
+	socket.on('flag image', flag_handler(socket));
 
 	socket.on('request skip', skip_handler(socket));
 
@@ -126,7 +120,7 @@ io.sockets.on('connection', function (socket) {
 
 		// erase from connected ips if this is their game connection
 		if(socket.first_connection) {
-			delete connected_ips[socket.ip_address];
+			delete connected_ips[socket.ip];
 		}
 
 		// delete waiter if this user is waiting
@@ -153,20 +147,18 @@ io.sockets.on('connection', function (socket) {
 ///// Partnering Handler /////
 function partner_handler(socket) {
 return function() {
-	/*
-	if(connected_ips[socket.ip_address] && !socket.first_connection) {
+	if(connected_ips[socket.ip] && !socket.first_connection) {
 		socket.emit('already connected', {});
 		return;
 	} else {
-		connected_ips[socket.ip_address] = true;
+		connected_ips[socket.ip] = true;
 	}
 	socket.first_connection = true;
-	*/
 
 	// Let the waiting user know their max wait time
 	socket.emit('wait time', {time: 300 });
 
-	socket.emit('uuid', {uuid: socket.uuid});
+	emit_token(socket);
 
 	log_data('connect',
 		null,
@@ -272,6 +264,45 @@ return function(data) {
 		send_cur_image(socket, game);
 	} else {
 		end_game(socket);
+	}
+}
+}
+
+function flag_handler(socket) {
+return function() {
+	var game = game_data[socket.game_id];
+	socket.pass_requested = true;
+
+	log_data('flag requested',
+		socket.game_id,
+		socket.uuid,
+		null,
+		null
+	);
+
+	if(!socket.partner || socket.partner.flagged_image) {
+		log_data('flagged', 
+			socket.game_id,
+			socket.uuid,
+			socket.partner ? socket.partner.uuid : null,
+			{
+				image_id: game.image_ids[game.cur_image],
+				image_url: game.images[game.cur_image]
+			}
+		);
+
+		game.cur_image++;
+		if(game.cur_image < game.images.length) {
+			send_cur_image(socket, game);
+			broadcast_message(socket, 'image flagged');
+		} else {
+			broadcast_message(socket, 'image flagged');
+			end_game(socket);
+		}
+
+		save_flag(game.image_ids[game.cur_image]);
+	} else {
+		socket.partner.emit('skip requested', {});
 	}
 }
 }
@@ -397,6 +428,27 @@ function partner_up(socket1, socket2) {
 	}
 
 	prepare_game(socket1, socket2, game);
+}
+
+function emit_token(socket) {
+	pg.connect(PG_URL, function(err, client, done) {
+		if (err) {
+			broadcast_message(player1, 'database error');
+			return console.error('Error establishing connection to client', err);
+		}
+
+		query = 'INSERT INTO game_tokens (uuid, token) VALUES($1, $2)';
+		var token_ = uuid.v4();
+
+		client.query(query, [socket.uuid, token_], function(err, data) {
+			done();
+			if (err) {
+				return console.error('error running query (save token)', err);
+				res.send(500, 'Database error.');
+			}
+			socket.emit('token', {token: token_});
+		});
+	});
 }
 
 function prepare_game (player1, player2, game) {
@@ -525,19 +577,46 @@ function save_match (player_guesses, partner_guesses, taboo_list, match, image_i
 				query = 'UPDATE images'
 					+ ' SET skip_count = skip_count - 1'
 					+ ' WHERE img_id = $1 AND skip_count > 0;';
-				inputs = [image_id];
 
-				client.query(query, inputs, function(err, data) {
-					done();
+				client.query(query, [image_id], function(err, data) {
 					if (err) {
 						return console.error('error running query (decrement skip)', err);
 					}
+					query = 'UPDATE images'
+						+ ' SET flag_count = 0'
+						+ ' WHERE img_id = $1;';
+
+					client.query(query, [image_id], function(err, data) {
+						done();
+						if (err) {
+							return console.error('error running query (reset flags)', err);
+						}
+					});
 				});
 			});
 		});
 	});
 
 	save_guesses (player_guesses, partner_guesses, taboo_list, image_id);
+}
+
+function save_flag(image_id) {
+	pg.connect(PG_URL, function(err, client, done) {
+		if (err) {
+			return console.error('Error establishing connection to client', err);
+		}
+
+		var query = 'UPDATE images'
+		+ ' SET flag_count = flag_count + 1'
+		+ ' WHERE img_id = $1;';
+
+		client.query(query, [image_id], function(err, data) {
+			done();
+			if (err) {
+				return console.error('error running query (flag image)', err);
+			}
+		});
+	});
 }
 
 function image_skipped (image_id) {
@@ -653,12 +732,12 @@ function save_images(images) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'INSERT INTO images(url, attribution_url, skip_count) VALUES'
+		var query = 'INSERT INTO images(url, attribution_url, skip_count, flag_count) VALUES'
 		for(var i = 0; i < images.length; i++) {
 			if(i > 0) {
 				query += ',';
 			}
-			query += ' ($' + (i + 1) + ',' + 'null' +', 0)'
+			query += ' ($' + (i + 1) + ',' + 'null' +', 0, 0)'
 		}
 		query += ';';
 
