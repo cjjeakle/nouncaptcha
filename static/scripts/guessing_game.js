@@ -15,7 +15,7 @@ alert('In this game, be sure to only respond with nouns.'
 
 
 function connected_msg() {
-	var message = 'This IP address is already in a game or are being paired. Please close this window.';
+	var message = 'This IP address is already in a game or is being paired. Please close this window.';
 	alert(message + '\n\nIf you got this message in error, refresh the page or restart your browser.');
 	document.getElementById('placeholder_message').innerHTML = message;
 }
