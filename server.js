@@ -354,8 +354,12 @@ return function() {
 	);
 
 	if(!socket.partner || socket.partner.pass_requested) {
-		var partner_guesses = socket.partner ? 
-			socket.partner.guesses : game.ai_guesses[game.cur_image];
+		var partner_guesses = null;
+		if(socket.partner) {
+			partner_guesses = socket.partner.guesses;
+		} else if (game.ai_guesses) {
+			partner_guesses = game.ai_guesses[game.cur_image];
+		}
 		log_data('skip', 
 			socket.game_id,
 			socket.uuid,
