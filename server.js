@@ -287,7 +287,7 @@ return function(data) {
 function flag_handler(socket) {
 return function() {
 	var game = game_data[socket.game_id];
-	socket.pass_requested = true;
+	socket.flag = true;
 
 	log_data('flag requested',
 		socket.game_id,
@@ -296,7 +296,7 @@ return function() {
 		null
 	);
 
-	if(!socket.partner || socket.partner.flagged_image) {
+	if(!socket.partner || socket.partner.flag) {
 		log_data('flagged', 
 			socket.game_id,
 			socket.uuid,
@@ -317,8 +317,6 @@ return function() {
 			broadcast_message(socket, 'image flagged');
 			end_game(socket);
 		}
-	} else {
-		socket.partner.emit('skip requested', {});
 	}
 }
 }
@@ -384,11 +382,13 @@ function broadcast_message (socket, msg) {
 function send_cur_image (socket, game) {
 	var partner = socket.partner ? socket.partner : null;
 
-	// reset skip flags and guess arrays
+	// reset skip flags, content flags, and guess arrays
 	socket.pass_requested = false;
+	socket.flag = false;
 	socket.guesses = [];
 	if(partner) {
 		partner.pass_requested = false;
+		partner.flag = false;
 		partner.guesses = [];
 	}
 

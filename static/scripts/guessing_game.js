@@ -297,7 +297,7 @@ function show_placeholder() {
 }
 
 function cleanup () {
-	if(localStorage.getItem('connected') == 'true' && connected) {
+	if(sessionStorage.getItem('connected') == 'true' && connected) {
 		sessionStorage.setItem('connected', 'false');
 	}
 }
