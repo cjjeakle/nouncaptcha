@@ -8,8 +8,8 @@ block append content
 		br
 		div(id = 'token', style = 'display:inline-block;')
 		script.
-			if(sessionStorage.getItem('game_finished') == 'true') {
-				document.getElementById('token').innerHTML = sessionStorage.getItem('token');
+			if(localStorage.getItem('game_finished') == 'true') {
+				document.getElementById('token').innerHTML = localStorage.getItem('token');
 			} else {
 				document.getElementById('token').innerHTML = 
 					'Records indicate you did not play a game to completion.';

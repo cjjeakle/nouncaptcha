@@ -95,7 +95,7 @@ return function(req, res) {
 				res.send(500, 'Database error.');
 			}
 			done();
-			res.redirect('/game_debrief');
+			res.redirect('/game_survey_debrief');
 		});
 	});	
 }

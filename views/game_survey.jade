@@ -132,7 +132,7 @@ block append content
 			.row
 			input(type = 'text', id = 'uuid', name = 'uuid').hide
 			script.
-				document.getElementById('uuid').value = sessionStorage.getItem('uuid');
+				document.getElementById('uuid').value = localStorage.getItem('uuid');
 			.centered
 				input(type = 'submit', value = 'submit').btn.btn-lg.btn-success
 			br

@@ -34,9 +34,9 @@ socket.on('already connected', function() {
 });
 
 socket.on('token', function(data) {
-	sessionStorage.setItem('game_finished', false);
-	sessionStorage.setItem('token', data.token);
-	sessionStorage.setItem('uuid', data.uuid);
+	localStorage.setItem('game_finished', false);
+	localStorage.setItem('token', data.token);
+	localStorage.setItem('uuid', data.uuid);
 });
 
 socket.on('wait time', function (data) {
@@ -145,7 +145,7 @@ function add_points(points) {
 
 function game_error(msg) {
 	playing = false;
-	sessionStorage.setItem('game_finished', true);
+	localStorage.setItem('game_finished', true);
 	document.getElementById('guess').disabled = true;
 	var choice = confirm(msg + 
 		'\nYour final score is: ' + score + ' points.' +
@@ -158,7 +158,7 @@ function game_error(msg) {
 
 function end_game() {
 	playing = false;
-	sessionStorage.setItem('game_finished', true);
+	localStorage.setItem('game_finished', true);
 	document.getElementById('guess').disabled = true;
 	var greeting = ''
 	var punctuation = '.';
@@ -297,7 +297,7 @@ function show_placeholder() {
 }
 
 function cleanup () {
-	if(sessionStorage.getItem('connected') == 'true' && connected) {
+	if(localStorage.getItem('connected') == 'true' && connected) {
 		sessionStorage.setItem('connected', 'false');
 	}
 }
