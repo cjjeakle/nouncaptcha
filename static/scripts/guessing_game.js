@@ -5,6 +5,7 @@ var connected = false;
 var taboo_list = [];
 var guesses = [];
 var score = 0;
+var game_time = 0;
 var skip_appear;
 
 ///// Socket Handlers /////
@@ -69,17 +70,17 @@ socket.on('start game', function(data) {
 	playing = true;
 	document.getElementById('placeholder').style.display = 'none';
 
-	var time = data.time;
+	game_time = data.time;
 	var prev_time = new Date();
-	document.getElementById('timer').innerHTML = seconds_to_clock(time);
+	document.getElementById('timer').innerHTML = seconds_to_clock(game_time);
 	
 	setInterval(function() {
 		var cur_time = new Date();
-		time -= (cur_time - prev_time) / 1000;
+		game_time -= (cur_time - prev_time) / 1000;
 		prev_time = cur_time;
 
-		if(time > 0) {
-			document.getElementById('timer').innerHTML = seconds_to_clock(Math.floor(time));
+		if(game_time > 0) {
+			document.getElementById('timer').innerHTML = seconds_to_clock(Math.floor(game_time));
 		} else if (playing) {
 			socket.emit('game over', {});
 			end_game();
@@ -89,6 +90,7 @@ socket.on('start game', function(data) {
 
 socket.on('add points', function(data) {
 	add_points(500);
+	game_time += 15;
 	display_message('Nice work, you guessed your partner\'s thoughts!');
 });
 
