@@ -172,7 +172,7 @@ return function() {
 	*/
 
 	// Let the waiting user know their max wait time
-	socket.emit('wait time', {time: 300 });
+	socket.emit('wait time', {time: 60 });
 
 	emit_token(socket);
 
