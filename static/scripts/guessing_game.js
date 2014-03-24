@@ -20,10 +20,11 @@ function connected_msg() {
 	document.getElementById('placeholder_message').innerHTML = message;
 }
 
-var already_connected = sessionStorage.getItem('connected');
-if(already_connected != 'true') {
+var already_connected = localStorage.getItem('connected');
+if(!already_connected || already_connected == 'false') {
+	console.log(already_connected);
 	socket.emit('waiting', {});
-	sessionStorage.setItem('connected', 'true');
+	localStorage.setItem('connected', 'true');
 	connected = true;
 } else {
 	connected_msg();
@@ -297,7 +298,7 @@ function show_placeholder() {
 }
 
 function cleanup () {
-	if(sessionStorage.getItem('connected') == 'true' && connected) {
-		sessionStorage.setItem('connected', 'false');
+	if(localStorage.getItem('connected') == 'true' && connected) {
+		localStorage.setItem('connected', 'false');
 	}
 }
