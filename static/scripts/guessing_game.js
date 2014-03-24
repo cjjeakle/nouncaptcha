@@ -20,15 +20,19 @@ function connected_msg() {
 	document.getElementById('placeholder_message').innerHTML = message;
 }
 
-var already_connected = localStorage.getItem('connected');
+/*
+// Commented because of buggy behavior
+var already_connected = sessionStorage.getItem('connected');
 if(!already_connected || already_connected == 'false') {
-	console.log(already_connected);
-	socket.emit('waiting', {});
-	localStorage.setItem('connected', 'true');
+	
+	sessionStorage.setItem('connected', 'true');
 	connected = true;
 } else {
 	connected_msg();
 }
+*/
+
+socket.emit('waiting', {});
 
 socket.on('already connected', function() {
 	connected_msg();
@@ -297,8 +301,11 @@ function show_placeholder() {
 		+ continue_btn + '</a>';
 }
 
+/*
+// Commented because of buggy behavior
 function cleanup () {
-	if(localStorage.getItem('connected') == 'true' && connected) {
-		localStorage.setItem('connected', 'false');
+	if(sessionStorage.getItem('connected') == 'true' && connected) {
+		sessionStorage.setItem('connected', 'false');
 	}
 }
+*/
