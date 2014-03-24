@@ -509,7 +509,7 @@ function prepare_game (player1, player2, game) {
 		} else {
 			query += ' where i.skip_count < 5 AND';
 		}
-		query += ' flag_count < 3) AS temp ORDER BY RANDOM() LIMIT 15;'
+		query += ' flag_count < 2) AS temp ORDER BY RANDOM() LIMIT 15;'
 
 		client.query(query, function(err, data) {
 			if (err) {
@@ -729,7 +729,7 @@ function check_and_get_images() {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'SELECT COUNT(*) count FROM images WHERE skip_count < 5;';
+		var query = 'SELECT COUNT(*) count FROM images WHERE skip_count < 5 AND flag_count < 2;';
 
 		client.query(query, function(err, data) {
 			done();
