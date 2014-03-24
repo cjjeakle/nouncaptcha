@@ -29,6 +29,8 @@ var flickrOptions = {
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+io.enable('browser client etag');
+io.set('log level', 1);
 io.set('transports', [
 	'websocket'
 	, 'flashsocket'
@@ -100,8 +102,10 @@ var game_data = {};
 
 io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
+	/*
 	var handshake = socket.handshake;
 	socket.ip = handshake.headers['x-forwarded-for'] || handshake.address.address;
+	*/
 
 	check_and_get_images();
 	
@@ -126,10 +130,12 @@ io.sockets.on('connection', function (socket) {
 			null
 		);
 
+		/*
 		// erase from connected ips if this is their game connection
 		if(socket.first_connection) {
 			delete connected_ips[socket.ip];
 		}
+		*/
 
 		// delete waiter if this user is waiting
 		if(waiter && waiter.uuid == socket.uuid) {
@@ -155,6 +161,7 @@ io.sockets.on('connection', function (socket) {
 ///// Partnering Handler /////
 function partner_handler(socket) {
 return function() {
+	/*
 	if(connected_ips[socket.ip] && !socket.first_connection) {
 		socket.emit('already connected', {});
 		return;
@@ -162,6 +169,7 @@ return function() {
 		connected_ips[socket.ip] = true;
 	}
 	socket.first_connection = true;
+	*/
 
 	// Let the waiting user know their max wait time
 	socket.emit('wait time', {time: 300 });

@@ -93,7 +93,7 @@ socket.on('skip requested', function(data) {
 });
 
 socket.on('image skipped', function(data) {
-	add_points(-250);
+	add_points(-75);
 	display_message('Your team has skipped an image, -250 points.');
 });
 
