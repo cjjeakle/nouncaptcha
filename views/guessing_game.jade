@@ -1,12 +1,6 @@
 extends layout
 
 block append content
-	script.
-		var continue_btn = '#{continue_btn}'
-		var link = '#{link}';
-		var continue_message = '#{continue_message}';
-	script(src='/socket.io/socket.io.js')
-	script(src='/scripts/guessing_game.js')
 	div(id = 'placeholder').partner_up
 		h3
 			|nouncaptcha
@@ -59,3 +53,13 @@ block append content
 			h3 Off-Limits:
 			div(style = 'display:inline-block', id = 'taboo')
 		.row
+	script.
+		var continue_btn = '#{continue_btn}'
+		var link = '#{link}';
+		var continue_message = '#{continue_message}';
+	script(src='/socket.io/socket.io.js')
+	script(src='/scripts/guessing_game.js')
+	script.
+		window.onbeforeunload = function() {
+			return cleanup();
+		};

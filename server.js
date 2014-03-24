@@ -462,7 +462,10 @@ function emit_token(socket) {
 				return console.error('error running query (save token)', err);
 				res.send(500, 'Database error.');
 			}
-			socket.emit('token', {token: token_});
+			socket.emit('token', {
+				token: token_,
+				uuid: socket.uuid
+			});
 		});
 	});
 }

@@ -1,6 +1,7 @@
 var socket = io.connect('');
 var wants_skip = false;
 var playing = false;
+var connected = false;
 var taboo_list = [];
 var guesses = [];
 var score = 0;
@@ -12,19 +13,31 @@ alert('In this game, be sure to only respond with nouns.'
 	+ '\n(nouns are people, places, and things.)' +
 	'\n\n eg: car or tire, not driving (verb) or fast (adjective).');
 
-socket.emit('waiting', {});
+
+function connected_msg() {
+	var message = 'This IP address is already in a game or are being paired. Please close this window.';
+	alert(message + '\n\nIf you got this message in error, refresh the page or restart your browser.');
+	document.getElementById('placeholder_message').innerHTML = message;
+}
+
+var already_connected = sessionStorage.getItem('connected');
+if(already_connected != 'true') {
+	socket.emit('waiting', {});
+	sessionStorage.setItem('connected', 'true');
+	connected = true;
+} else {
+	connected_msg();
+}
 
 socket.on('already connected', function() {
-	alert('This IP address is already in a game or are being paired. Please close this window.' +
-		'\n\nIf you got this message in error, refresh the page.' +
-		'\n\n(You may need to clear your cookies or restart the browser.)');
+	connected_msg();
 });
 
 socket.on('token', function(data) {
-	console.log(data.token);
-	localStorage.setItem('game_finished', false);
-	localStorage.setItem('token', data.token);
-})
+	sessionStorage.setItem('game_finished', false);
+	sessionStorage.setItem('token', data.token);
+	sessionStorage.setItem('uuid', data.uuid);
+});
 
 socket.on('wait time', function (data) {
 	var time = data.time;
@@ -52,15 +65,20 @@ socket.on('start game', function(data) {
 	document.getElementById('placeholder').style.display = 'none';
 
 	var time = data.time;
+	var prev_time = new Date();
 	document.getElementById('timer').innerHTML = seconds_to_clock(time);
+	
 	setInterval(function() {
+		var cur_time = new Date();
+		time -= (cur_time - prev_time) / 1000;
+		prev_time = cur_time;
+
 		if(time > 0) {
-			time--;
+			document.getElementById('timer').innerHTML = seconds_to_clock(Math.floor(time));
 		} else if (playing) {
 			socket.emit('game over', {});
 			end_game();
 		}
-		document.getElementById('timer').innerHTML = seconds_to_clock(time);
 	}, 1000);
 });
 
@@ -127,7 +145,7 @@ function add_points(points) {
 
 function game_error(msg) {
 	playing = false;
-	localStorage.setItem('game_finished', true);
+	sessionStorage.setItem('game_finished', true);
 	document.getElementById('guess').disabled = true;
 	var choice = confirm(msg + 
 		'\nYour final score is: ' + score + ' points.' +
@@ -140,7 +158,7 @@ function game_error(msg) {
 
 function end_game() {
 	playing = false;
-	localStorage.setItem('game_finished', true);
+	sessionStorage.setItem('game_finished', true);
 	document.getElementById('guess').disabled = true;
 	var greeting = ''
 	var punctuation = '.';
@@ -276,4 +294,10 @@ function show_placeholder() {
 		'Game over. Your final score was: ' + score + '.<br/><br/>'
 		+ '<a href = \"' + link + '\" class = "btn btn-sm btn-success">'
 		+ continue_btn + '</a>';
+}
+
+function cleanup () {
+	if(sessionStorage.getItem('connected') == 'true' && connected) {
+		sessionStorage.setItem('connected', 'false');
+	}
 }
