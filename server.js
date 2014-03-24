@@ -230,8 +230,29 @@ return function() {
 function guess_handler(socket) {
 return function(data) {
 	var game = game_data[socket.game_id];
-	var partner_guesses = socket.partner ? 
-		socket.partner.guesses : game.ai_guesses[game.cur_image];
+	var partner_guesses = null;
+	if(socket.partner) {
+		partner_guesses = socket.partner.guesses;
+	} else if (game.ai_guesses) {
+		partner_guesses = game.ai_guesses[game.cur_image];
+	} else {
+		log_data('error, no ai guesses', 
+			socket.game_id,
+			socket.uuid,
+			null,
+			{}
+		);
+		
+		broadcast_message(socket, 'add points');
+	
+		game.cur_image++;
+		if(game.cur_image < game.images.length) {
+			send_cur_image(socket, game);
+		} else {
+			end_game(socket);
+		}
+		return;
+	}
 
 	socket.guesses.push(data.guess);
 
@@ -271,7 +292,6 @@ return function(data) {
 			image_url: game.images[game.cur_image]
 		}
 	);
-
 
 	broadcast_message(socket, 'add points');
 	
@@ -628,8 +648,6 @@ function save_flag(image_id) {
 		var query = 'UPDATE images'
 			+ ' SET flag_count = flag_count + 1'
 			+ ' WHERE img_id = $1;';
-
-		console.log(query, image_id);
 
 		client.query(query, [image_id], function(err, data) {
 			done();
