@@ -290,7 +290,7 @@ function hide_timed_buttons() {
 	skip_appear = setTimeout(function() {
 		document.getElementById('flag_link').style.display = 'inline-block';
 		document.getElementById('skip_btn').style.display = 'inline-block';
-	}, 7000);
+	}, 5000);
 }
 
 function show_placeholder() {
