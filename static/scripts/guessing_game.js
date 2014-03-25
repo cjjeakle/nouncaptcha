@@ -107,6 +107,10 @@ socket.on('new image', function(data) {
 
 	wants_skip = false;
 	hide_timed_buttons();
+
+	var input_box = document.getElementById('guesses');
+	input_box.focus();
+	window.location.hash = '#guesses';
 });
 
 socket.on('image flagged', function(data) {
