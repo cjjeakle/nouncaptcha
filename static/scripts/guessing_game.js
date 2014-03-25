@@ -96,6 +96,7 @@ socket.on('add points', function(data) {
 
 socket.on('new image', function(data) {
 	update_image(data.image);
+	display_message('');
 	clear_data('guesses');
 	clear_data('taboo');
 	for (var i = 0; i < data.taboo.length; ++i) {
@@ -207,7 +208,6 @@ function send_guess() {
 		return;
 	}
 
-	display_message('');
 	guesses.push(user_guess);
 	add_data('guesses', user_guess);
 	socket.emit('guess', {guess: user_guess});
