@@ -39,10 +39,10 @@ block append content
 			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess', spellcheck='true', autocapitalize='off', autocorrect='on', autofocus='autofocus')
 			br
 			a(href = 'javascript:send_guess();', id = 'submit_btn').btn.btn-sm.btn-success
-				| Submit
+				| Submit Guess
 			|     
 			a(href = 'javascript:request_skip();', id = 'skip_btn', title = '-250 points', style = 'display: none').btn.btn-sm.btn-success
-				| Skip
+				| Skip Image
 			br
 			div(id = 'notifications', style = 'display: none;').callout
 				br

@@ -26,6 +26,11 @@ var flickrOptions = {
 	access_token_secret: process.env.FLICKR_ACCESS_TOKEN_SECRET
 };
 
+var request = require('request').defaults({ encoding: null });
+
+var AWS = require('aws-sdk');
+AWS.config.region = '';
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
@@ -90,38 +95,23 @@ app.post('/submit_game_survey', routes.submit_game_survey(pg));
 //////////////////////////////// Socket Handlers ///////////////////////////////
 
 
-// list of sockets waiting to be paired
-var waiter = null;
-
-// A map of ip addresses currently in game
-var connected_ips = {};
-
 // map of a user UID to an array of images and taboo words. 
 // (also contains a list of guesses and timings in single player)
 var game_data = {};
 
 io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
-	/*
-	var handshake = socket.handshake;
-	socket.ip = handshake.headers['x-forwarded-for'] || handshake.address.address;
-	*/
 
 	check_and_get_images();
-	
-	socket.on('waiting', partner_handler(socket));
 
-	socket.on('start single player', start_single_player(socket));
+	start_game(socket);
 
-	socket.on('player ready', ready_handler(socket));
-	
 	socket.on('guess', guess_handler(socket));
 
 	socket.on('flag image', flag_handler(socket));
 
 	socket.on('request skip', skip_handler(socket));
 
-	///// Close Connections /////
 	socket.on('disconnect', function() {
 		log_data('disconnect', 
 			socket.game_id,
@@ -129,103 +119,12 @@ io.sockets.on('connection', function (socket) {
 			null,
 			null
 		);
-
-		/*
-		// erase from connected ips if this is their game connection
-		if(socket.first_connection) {
-			delete connected_ips[socket.ip];
-		}
-		*/
-
-		// delete waiter if this user is waiting
-		if(waiter && waiter.uuid == socket.uuid) {
-			waiter = null;
-		}
-
-		if(socket.partner) {
-			socket.partner.emit('partner disconnect', {});
-		}
-
-		// If user is in a game, and not partnered or partner has disconnected, 
-		// delete the game
-		if(socket.game_id && (!socket.partner || !socket.partner.manager.connected)) {
-			console.log('deleting game');
-			delete game_data[socket.game_id];
-		}
 	});
 });
 
 
 ////////////////////////// Socket Handler Functions ////////////////////////////
 
-///// Partnering Handler /////
-function partner_handler(socket) {
-return function() {
-	/*
-	if(connected_ips[socket.ip] && !socket.first_connection) {
-		socket.emit('already connected', {});
-		return;
-	} else {
-		connected_ips[socket.ip] = true;
-	}
-	socket.first_connection = true;
-	*/
-
-	// Let the waiting user know their max wait time
-	socket.emit('wait time', {time: process.env.MAX_WAIT});
-
-	emit_token(socket);
-
-	log_data('connect',
-		null,
-		socket.uuid,
-		null,
-		null
-	);
-
-	if(waiter) {
-		var temp = waiter;
-		partner_up(socket, waiter);
-		waiter = null;
-	} else {
-		waiter = socket;
-	}
-}
-}
-
-function start_single_player(socket) {
-return function() {
-	if(waiter && waiter.uuid == socket.uuid) {
-		waiter = null;
-		partner_up(socket, null);
-	}
-}
-}
-
-function ready_handler(socket) {
-return function() {
-	var game = game_data[socket.game_id];
-
-	if(socket.partner && !socket.partner.ready) {
-		socket.ready = true;
-		return;
-	}
-
-	// Put the paired players in game
-	socket.emit('start game', {time: 150});
-	socket.emit('new image', {
-		image: game.images[game.cur_image],
-		taboo: game.taboo[game.cur_image]
-	});
-	if(socket.partner) {
-		socket.partner.emit('start game', {time: 150});
-		socket.partner.emit('new image', {
-			image: game.images[game.cur_image],
-			taboo: game.taboo[game.cur_image]
-		});
-	}
-}
-}
 
 function guess_handler(socket) {
 return function(data) {
@@ -394,6 +293,44 @@ return function() {
 
 ////////////////////////// Socket Helper Functions /////////////////////////////
 
+function start_game(socket) {
+	pg.connect(PG_URL, function(err, client, done) {
+		if (err) {
+			broadcast_message(player1, 'database error');
+			return console.error('Error establishing connection to client', err);
+		}
+
+		query = 'INSERT INTO game_tokens (uuid, token) VALUES($1, $2)';
+		var token_ = uuid.v4();
+
+		client.query(query, [socket.uuid, token_], function(err, data) {
+			done();
+			if (err) {
+				return console.error('error running query (save token)', err);
+				res.send(500, 'Database error.');
+			}
+			socket.emit('token', {
+				token: token_,
+				uuid: socket.uuid
+			});
+		});
+	});
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function broadcast_message (socket, msg) {
 	if(socket){
 		socket.emit(msg, {});
@@ -468,30 +405,6 @@ function partner_up(socket1, socket2) {
 	}
 
 	prepare_game(socket1, socket2, game);
-}
-
-function emit_token(socket) {
-	pg.connect(PG_URL, function(err, client, done) {
-		if (err) {
-			broadcast_message(player1, 'database error');
-			return console.error('Error establishing connection to client', err);
-		}
-
-		query = 'INSERT INTO game_tokens (uuid, token) VALUES($1, $2)';
-		var token_ = uuid.v4();
-
-		client.query(query, [socket.uuid, token_], function(err, data) {
-			done();
-			if (err) {
-				return console.error('error running query (save token)', err);
-				res.send(500, 'Database error.');
-			}
-			socket.emit('token', {
-				token: token_,
-				uuid: socket.uuid
-			});
-		});
-	});
 }
 
 function prepare_game (player1, player2, game) {
@@ -723,7 +636,6 @@ function log_data(event, game_id, uuid1, uuid2, data) {
 }
 
 function check_and_get_images() {
-	// TODO: Safe-search/High popularity, attribution, flagging
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
@@ -746,45 +658,88 @@ function check_and_get_images() {
 
 function get_flickr_images() {
 	Flickr.authenticate(flickrOptions, function(error, flickr) {
-		flickr.photos.getRecent({
-			user_id: flickr.options.user_id,
-			safe_search: 1,
+		var prev_search
+		flickr.photos.search({
+			sort: 'interestingness-desc',		// Interesting images first
+			license: [1, 2, 3, 4, 5, 6],		// Attribution licenses
+			privacy_filter: 1,					// Public images only
+			safe_search: 1,						// Safe (rather than moderate/restricted)
+			content_type: 7,					// Only photos and "Other"
+			media: 'photos',
 			page: 1,
-			per_page: 15
+			per_page: 1
 		}, function(err, result) {
 			if(err) {
 				console.log('error: ', err);
 				return;
 			}
-			var images = [];
+
 			result.photos.photo.forEach(function(image) {
-				if(image.ispublic) {
-					var url = 'http://farm' + image.farm + '.staticflickr.com/' 
-					+ image.server + '/' + image.id + '_' + image.secret + '.jpg';
-					images.push(url);
-				}
+				var url = 'http://farm' + image.farm + '.staticflickr.com/' 
+				+ image.server + '/' + image.id + '_' + image.secret + '.jpg';
+
+				flickr.photos.getInfo({
+					user_id: flickr.options.user_id,
+					photo_id: image.id
+				}, function (err, result2) {
+					if(result2.photo.usage.candownload == 1 && 
+						result2.photo.usage.canshare == 1 &&
+						result2.photo.license > 0 &&
+						result2.photo.license < 7) {
+						var attr_url = result2.photo.urls.url[0]._content;
+						//store_image(url, attr_url);
+					}
+				});
 			});
-			save_images(images);
 		});
 	});	
 }
 
-function save_images(images) {
+function store_image(url, attr_url) {
+	request.get(url, function (err, res, body) {
+		if(err) {
+			console.log('error grabbing image');
+			return;
+		}
+
+		image = new Buffer(body);
+		var s3bucket = new AWS.S3();
+
+		var s3_id = uuid.v4();
+		s3_id += '.jpg';
+
+		s3bucket.createBucket(function() {
+			data = {
+				Bucket: process.env.S3_BUCKET_NAME,
+				Key: s3_id,
+				ContentLength: image.length,
+				Body: image
+			};
+			console.log(data);
+			// Put the object into the bucket.
+			s3bucket.putObject(data, function(err, data) {
+				if (err) {
+					console.log('Error uploading data', err);
+					return;
+				}
+				console.log('Successful image upload');
+				var s3_url = 'https://' + process.env.S3_BUCKET_NAME + '.s3.amazonaws.com/'+ s3_id;
+				index_image(s3_url, attr_url);
+			});
+		});
+	});	
+};
+
+function index_image(s3_url, attr_url) {
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'INSERT INTO images(url, attribution_url, skip_count, flag_count) VALUES'
-		for(var i = 0; i < images.length; i++) {
-			if(i > 0) {
-				query += ',';
-			}
-			query += ' ($' + (i + 1) + ',' + 'null' +', 0, 0)'
-		}
-		query += ';';
+		var query = 'INSERT INTO images(url, attribution_url, skip_count, flag_count)'
+		 + ' VALUES ($1, $2, 0, 0);'
 
-		client.query(query, images, function(err, data) {
+		client.query(query, [s3_url, attr_url], function(err, data) {
 			done();
 			if (err) {
 				return console.error('error running query (save images)', err);

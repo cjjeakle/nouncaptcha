@@ -30,7 +30,10 @@
     "socket.io": "~0.9.16",
     "connect": "~2.14.2",
     "flickrapi": "~0.3.13",
-    "node-uuid": "~1.4.1"
+    "node-uuid": "~1.4.1",
+    "aws-sdk": "~2.0.0-rc12",
+    "request": "~2.34.0",
+    "aws-api": "~0.2.3"
   },
   "engines": {
     "node": "0.10.x"
