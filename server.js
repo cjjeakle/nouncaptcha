@@ -111,6 +111,7 @@ io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
 	socket.playing = true;
 	socket.guesses = [];
+	socket.images_seen = [];
 
 	start_game(socket);
 
@@ -216,7 +217,11 @@ return function(data) {
 }
 
 function flag_handler(socket) {
-return function() {
+return function(data) {
+	if(socket.image.img_id != data.img_id) {
+		return;
+	}
+
 	socket.emit('image flagged');
 
 	log_data('flagged', 
@@ -233,7 +238,11 @@ return function() {
 }
 
 function skip_handler(socket) {
-return function() {
+return function(data) {
+	if(socket.image.img_id != data.img_id) {
+		return;
+	}
+
 	log_data('skip', 
 		socket.uuid,
 		{
@@ -290,8 +299,11 @@ function send_prompt(socket) {
 		}
 
 		var query = 'SELECT * FROM images'
-			+ ' WHERE skip_count < ' + max_flags + ' AND flag_count <' + max_flags 
-			+ ' ORDER BY RANDOM() LIMIT 1;'
+			+ ' WHERE skip_count < ' + max_flags + ' AND flag_count <' + max_flags; 
+			for(var i = 0; i < socket.images_seen.length; ++i) {
+				query += ' AND img_id != ' + socket.images_seen[i];
+			}
+		query += ' ORDER BY RANDOM() LIMIT 1;'
 
 		client.query(query, function(err, data) {
 			if (err) {
@@ -305,6 +317,7 @@ function send_prompt(socket) {
 			}
 
 			socket.image = {};
+			socket.images_seen.push(data.rows[0].img_id);
 			socket.image.img_id = data.rows[0].img_id;
 			socket.image.url = data.rows[0].url;
 			socket.image.attribution_url = data.rows[0].attribution_url;

@@ -4,11 +4,18 @@ var taboo_list = [];
 var guesses = [];
 var score = 0;
 var images = 0;
-var game_time = 150;
 var skip_appear;
 var match_confirmed = false;
 var just_skipped = false;
 var just_flagged = false;
+var cur_img_id = '';
+
+var max_images = 15; 				// max number of images per game
+var game_time = 150;				// starting time allotment
+var match_bonus_points = 500;		// added points for a match
+var match_bonus_time = 15;			// added time for a match
+var skip_penalty_points = -25;		// subtracted points for a skip
+var button_timeout = 4000;			// ms required for skip and flag buttons to appear
 
 ///// Socket Handlers /////
 
@@ -28,14 +35,15 @@ socket.on('new image', function(data) {
 	}
 
 	images++;
-	if(images == 15) {
+	if(images == max_images) {
 		socket.emit('last image');
 	}
 
-	document.getElementById('pic').src = data.image.url;
-	document.getElementById('attribution').href = data.image.attribution_url;
 	clear_data('guesses');
 	clear_data('taboo');
+	cur_img_id = data.image.img_id;
+	document.getElementById('pic').src = data.image.url;
+	document.getElementById('attribution').href = data.image.attribution_url;
 
 	for (var i = 0; i < data.image.taboo.length; ++i) {
 		add_data('taboo', data.image.taboo[i]);
@@ -51,11 +59,11 @@ socket.on('new image', function(data) {
 	window.location.hash = '#guesses';
 
 	if (match_confirmed) {
-		display_message('Nice work, you guessed your partner\'s thoughts!<br/>+500 points and +15 seconds.');
+		display_message('Nice work, you guessed your partner\'s thoughts!<br/>+'+match_bonus_points+' points and +'+match_bonus_time+' seconds.');
 	} else if(just_skipped) {
-		display_message('Your team has skipped an image, -75 points.');
+		display_message('Your team has skipped an image, '+skip_penalty_points+' points.');
 	} else if (just_flagged) {
-		display_message('The previous image has been flagged.<br/>+500 points, but no extra time.');
+		display_message('The previous image has been flagged.<br/>+'+match_bonus_points+' points, but no extra time.');
 	} else {
 		display_message('');
 	}
@@ -66,23 +74,22 @@ socket.on('new image', function(data) {
 
 socket.on('add points', function(data) {
 	check_done();
-	add_points(500);
-	game_time += 15;
+	add_points(match_bonus_points);
+	game_time += match_bonus_time;
+	match_confirmed = true;
 	image_loading();
 });
 
 socket.on('image flagged', function(data) {
 	check_done();
-	display_message('The previous image has been flagged.');
-	add_points(500);
+	add_points(match_bonus_points);
 	just_flagged = true;
 	image_loading();
 });
 
 socket.on('image skipped', function(data) {
 	check_done();
-	add_points(-75);
-	display_message('Your team has skipped an image, -75 points.');
+	add_points(skip_penalty_points);
 	just_skipped = true;
 	image_loading();
 });
@@ -102,7 +109,7 @@ function add_points(points) {
 }
 
 function check_done() {
-	if(images == 15) {
+	if(images == max_images) {
 		end_game();
 	}
 }
@@ -185,7 +192,7 @@ function flag_image() {
 	var msg = 'Are you sure you would like to flag this image?';
 	var choice = confirm (msg); 
 	if(choice) {
-		socket.emit('flag image', {});
+		socket.emit('flag image', {img_id: cur_img_id});
 	}
 }
 
@@ -198,7 +205,7 @@ function request_skip() {
 	}
 	wants_skip = true;
 	display_message('Your partner has been told you would like to skip.');
-	socket.emit('request skip');
+	socket.emit('request skip', {img_id: cur_img_id});
 }
 
 function alert_message(msg) {
@@ -259,7 +266,7 @@ function hide_timed_buttons() {
 	skip_appear = setTimeout(function() {
 		document.getElementById('flag_link').style.display = 'inline-block';
 		document.getElementById('skip_btn').style.display = 'inline-block';
-	}, 5000);
+	}, button_timeout);
 }
 
 function show_placeholder() {
@@ -271,10 +278,12 @@ function show_placeholder() {
 }
 
 function image_loading () {
-
+	document.getElementById('loading').style.display = 'inline-block';
 } 
 
 function image_done_loading() {
-
+	setTimeout(function() {
+		document.getElementById('loading').style.display = 'none';
+	}, 500);	
 }
 

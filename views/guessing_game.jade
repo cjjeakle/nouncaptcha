@@ -8,6 +8,9 @@ block append content
 			h1 The Guessing Game
 			div(id='placeholder_message')
 				|Please wait to connect with a game...
+	div(id = 'loading').loading
+		div(style='text-align: center;').row.jumbotron.loading-text
+			|Loading new image...
 	div(style = 'text-align: center;').jumbotron.game
 		h2 The Guessing Game
 		|Guess some <font color = 'red'>Nouns</font> your Partner is Thinking of
@@ -23,7 +26,7 @@ block append content
 			h4 Score:
 				div(style = 'display:inline-block', id = 'score') 0
 			br
-		div.col-md-6.col-sm-12
+		div.col-md-8.col-sm-12
 			a(id = 'attribution', target = '_blank', title = "Click for image source")
 				img(src = '', id = 'pic').img-responsive.center-block
 			a(href = 'javascript:flag_image()', id = 'flag_link', style = 'display: none')
@@ -35,15 +38,17 @@ block append content
 			a(href = 'javascript:send_guess();', id = 'submit_btn').btn.btn-sm.btn-success
 				| Submit Guess
 			|     
-			a(href = 'javascript:request_skip();', id = 'skip_btn', title = '-75 points', style = 'display: none').btn.btn-sm.btn-success
+			a(href = 'javascript:request_skip();', id = 'skip_btn', title = '-25 points', style = 'display: none').btn.btn-sm.btn-success
 				| Skip Image
 			br
 			div(id = 'notifications', style = 'display: none;').callout
 				br
-		div.col-md-2.col-sm-6
+		div.col-md-2.col-sm-6.centered
 			h3 Guesses:
 			div(style = 'display:inline-block', id = 'guesses')
-		div.col-md-2.col-sm-6
+			br
+			|-----
+			.row
 			h3 Off-Limits:
 			div(style = 'display:inline-block', id = 'taboo')
 		.row
