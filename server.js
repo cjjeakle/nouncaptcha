@@ -112,6 +112,14 @@ io.sockets.on('connection', function (socket) {
 
 	socket.on('request skip', skip_handler(socket));
 
+	socket.on('last image', function() {
+		socket.playing = false;
+	});
+
+	socket.on('game_over', function() {
+		socket.playing = false;
+	});
+
 	socket.on('disconnect', function() {
 		log_data('disconnect', 
 			socket.uuid,

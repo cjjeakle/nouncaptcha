@@ -1,13 +1,14 @@
 var socket = io.connect('');
-var wants_skip = false;
 var playing = false;
-var connected = false;
 var taboo_list = [];
 var guesses = [];
 var score = 0;
 var images = 0;
 var game_time = 150;
 var skip_appear;
+var match_confirmed = false;
+var just_skipped = false;
+var just_flagged = false;
 
 ///// Socket Handlers /////
 
@@ -22,9 +23,6 @@ socket.on('token', function(data) {
 });
 
 socket.on('new image', function(data) {
-	if(images > 0) {
-		display_message('Nice work, you guessed your partner\'s thoughts!<br/>+500 points and +15 seconds.');
-	}
 	if(!playing) {
 		start_game();
 	}
@@ -36,7 +34,6 @@ socket.on('new image', function(data) {
 
 	document.getElementById('pic').src = data.image.url;
 	document.getElementById('attribution').href = data.image.attribution_url;
-	display_message('');
 	clear_data('guesses');
 	clear_data('taboo');
 
@@ -52,6 +49,17 @@ socket.on('new image', function(data) {
 	var input_box = document.getElementById('guesses');
 	input_box.focus();
 	window.location.hash = '#guesses';
+
+	if (match_confirmed) {
+		display_message('Nice work, you guessed your partner\'s thoughts!<br/>+500 points and +15 seconds.');
+	} else if(just_skipped) {
+		display_message('Your team has skipped an image, -75 points.');
+	} else if (just_flagged) {
+		display_message('The previous image has been flagged.<br/>+500 points, but no extra time.');
+	} else {
+		display_message('');
+	}
+	match_confirmed = just_skipped = just_flagged = false;
 });
 
 socket.on('add points', function(data) {
@@ -64,12 +72,14 @@ socket.on('image flagged', function(data) {
 	check_done();
 	display_message('The previous image has been flagged.');
 	add_points(500);
+	just_flagged = true;
 });
 
 socket.on('image skipped', function(data) {
 	check_done();
 	add_points(-75);
 	display_message('Your team has skipped an image, -75 points.');
+	just_skipped = true;
 });
 
 socket.on('database error', function() {
@@ -84,19 +94,6 @@ socket.on('database error', function() {
 function add_points(points) {
 	score = score + points;
 	document.getElementById('score').innerHTML = score;
-}
-
-function game_error(msg) {
-	playing = false;
-	localStorage.setItem('game_finished', true);
-	document.getElementById('guess').disabled = true;
-	var choice = confirm(msg + 
-		'\nYour final score is: ' + score + ' points.' +
-		'\n\n' + continue_message);
-	if(choice) {
-		window.location.href = link;
-	}
-	show_placeholder();
 }
 
 function check_done() {
@@ -115,6 +112,7 @@ function end_game() {
 		greeting = 'Great job!\n';
 		punctuation = '!';
 	}
+	greeting += 'You helped classify ' + images + ' images in this round.\n';
 	var choice = confirm (greeting + 
 		'Your final score is: ' + score + ' points' + punctuation +
 		'\n\n' + continue_message);
