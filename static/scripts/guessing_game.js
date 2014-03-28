@@ -60,12 +60,15 @@ socket.on('new image', function(data) {
 		display_message('');
 	}
 	match_confirmed = just_skipped = just_flagged = false;
+
+	image_done_loading();
 });
 
 socket.on('add points', function(data) {
 	check_done();
 	add_points(500);
 	game_time += 15;
+	image_loading();
 });
 
 socket.on('image flagged', function(data) {
@@ -73,6 +76,7 @@ socket.on('image flagged', function(data) {
 	display_message('The previous image has been flagged.');
 	add_points(500);
 	just_flagged = true;
+	image_loading();
 });
 
 socket.on('image skipped', function(data) {
@@ -80,6 +84,7 @@ socket.on('image skipped', function(data) {
 	add_points(-75);
 	display_message('Your team has skipped an image, -75 points.');
 	just_skipped = true;
+	image_loading();
 });
 
 socket.on('database error', function() {
@@ -264,3 +269,12 @@ function show_placeholder() {
 		+ '<a href = \"' + link + '\" class = "btn btn-sm btn-success">'
 		+ continue_btn + '</a>';
 }
+
+function image_loading () {
+
+} 
+
+function image_done_loading() {
+
+}
+

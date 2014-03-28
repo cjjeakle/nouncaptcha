@@ -9,7 +9,7 @@ flag_count INT DEFAULT 0,
 PRIMARY KEY (img_id)
 );
 
-CREATE TABLE image_guesses (
+CREATE TABLE guesses (
 guess_id SERIAL,
 img_id INT,
 guesses JSON,

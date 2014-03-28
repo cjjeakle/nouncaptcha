@@ -248,7 +248,7 @@ return function() {
 			socket.partner_guess_id
 		);
 		socket.emit('image skipped');
-		if(socket.guesses) {
+		if(socket.guesses.length) {
 			expire_guesses(socket.partner_guess_id);
 			save_guesses(socket.image.img_id, socket.guesses);
 		}
@@ -301,7 +301,7 @@ function send_prompt(socket) {
 			socket.image.url = data.rows[0].url;
 			socket.image.attribution_url = data.rows[0].attribution_url;
 
-			query = 'SELECT * FROM image_guesses'
+			query = 'SELECT * FROM guesses'
 				+ ' where img_id = $1 and skip_count < 3' 
 				+ ' ORDER BY RANDOM() LIMIT 1;';
 
@@ -415,7 +415,7 @@ function expire_guesses(guess_id) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'DELETE FROM image_guesses WHERE guess_id = $1;';
+		var query = 'DELETE FROM guesses WHERE guess_id = $1;';
 
 		client.query(query, [guess_id], function(err, data) {
 			done();
@@ -432,7 +432,7 @@ function save_guesses (image_id, guesses) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'INSERT INTO image_guesses (img_id, guesses) VALUES ($1, $2);';
+		var query = 'INSERT INTO guesses (img_id, guesses) VALUES ($1, $2);';
 		guesses = JSON.stringify(guesses);
 
 		client.query(query, [image_id, guesses], function(err, data) {
@@ -492,7 +492,7 @@ function image_skipped (image_id, partner_guess_id) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'UPDATE image_guesses'
+		var query = 'UPDATE guesses'
 			+ ' SET skip_count = skip_count + 1'
 			+ ' WHERE guess_id = $1;';
 
