@@ -94,6 +94,18 @@ app.post('/submit_game_survey', routes.submit_game_survey(pg));
 
 //////////////////////////////// Socket Handlers ///////////////////////////////
 
+// Number of ms to wait before a "seed game" will accept its final guess
+var seed_timeout = 7000;
+// Min guesses to automatically progress through a "seed round"
+var min_seed_guesses = 5;
+// Number of ms to wait before a skip is approved
+var skip_delay = 1500;
+// Number of times a tag must occur to be considered "taboo"
+var taboo_count = 5;
+// Max number of skips an image can have and be used in the game
+var max_skips = 3;
+// Max number of flags an image can have and be used in the game
+var max_flags = 3;
 
 // map of a user UID to an array of images and taboo words. 
 // (also contains a list of guesses and timings in single player)
@@ -168,7 +180,7 @@ return function(data) {
 		return;
 	} else if (!partner_guesses && 
 		!socket.wait_over &&
-		socket.guesses.length < 5) {
+		socket.guesses.length < min_seed_guesses) {
 		// Make the player guess at least 5 times or wait 
 		// for wait_over to be set to true
 		return;
@@ -236,9 +248,9 @@ return function() {
 			image_url: socket.image.url
 		}
 	);
-
+	
+	// Make the player wait to discourage skipping
 	socket.skip = true;
-	// Make the player wait 1.5 sec to discourage skipping
 	socket.skip_timeout = setTimeout(function() {
 		if(!socket.skip) {
 			return;
@@ -253,7 +265,7 @@ return function() {
 			save_guesses(socket.image.img_id, socket.guesses);
 		}
 		send_prompt(socket);
-	}, 1500);
+	}, skip_delay);
 }
 }
 
@@ -282,7 +294,7 @@ function send_prompt(socket) {
 		}
 
 		var query = 'SELECT * FROM images'
-			+ ' WHERE skip_count < 3 AND flag_count < 3'
+			+ ' WHERE skip_count < ' + max_flags + ' AND flag_count <' + max_flags 
 			+ ' ORDER BY RANDOM() LIMIT 1;'
 
 		client.query(query, function(err, data) {
@@ -302,7 +314,7 @@ function send_prompt(socket) {
 			socket.image.attribution_url = data.rows[0].attribution_url;
 
 			query = 'SELECT * FROM guesses'
-				+ ' where img_id = $1 and skip_count < 3' 
+				+ ' where img_id = $1' 
 				+ ' ORDER BY RANDOM() LIMIT 1;';
 
 			client.query(query, [socket.image.img_id], function(err, data2) {
@@ -319,8 +331,8 @@ function send_prompt(socket) {
 					socket.partner_guess_id = data2.rows[0].guess_id;
 				}
 
-				query = 'SELECT t.noun, t.img_id FROM tags t'
-				+ ' WHERE t.img_id = $1 AND t.count >= 5';
+				query = 'SELECT noun, img_id FROM tags'
+				+ ' WHERE img_id = $1 AND count >= ' + taboo_count;
 				
 				client.query(query, [socket.image.img_id], function(err, data3) {
 					done();
@@ -346,7 +358,7 @@ function send_prompt(socket) {
 
 					socket.match_timeout = setTimeout(function() {
 						socket.wait_over = true;
-					}, 9000);
+					}, seed_timeout);
 				});
 			});
 		});
@@ -480,29 +492,6 @@ function image_skipped (image_id, partner_guess_id) {
 			}
 		});
 	});
-
-	if(!partner_guess_id) {
-		// Do not attempt to increment partner skip count if 
-		// there is no partner!
-		return;
-	}
-
-	pg.connect(PG_URL, function(err, client, done) {
-		if (err) {
-			return console.error('Error establishing connection to client', err);
-		}
-
-		var query = 'UPDATE guesses'
-			+ ' SET skip_count = skip_count + 1'
-			+ ' WHERE guess_id = $1;';
-
-		client.query(query, [partner_guess_id], function(err, data) {
-			done();
-			if (err) {
-				return console.error('error running query (image skip)', err);
-			}
-		});
-	});
 }
 
 function log_data(event, uuid, content) {
@@ -529,7 +518,8 @@ function check_and_get_images() {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'SELECT COUNT(*) count FROM images WHERE skip_count < 3 AND flag_count < 3;';
+		var query = 'SELECT COUNT(*) count FROM images WHERE skip_count < '
+			+ max_skips+' AND flag_count < ' + max_flags + ';';
 
 		client.query(query, function(err, data) {
 			done();

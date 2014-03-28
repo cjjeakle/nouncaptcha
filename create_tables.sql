@@ -13,7 +13,6 @@ CREATE TABLE guesses (
 guess_id SERIAL,
 img_id INT,
 guesses JSON,
-skip_count INT DEFAULT 0,
 PRIMARY KEY (guess_id),
 FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE
 );
