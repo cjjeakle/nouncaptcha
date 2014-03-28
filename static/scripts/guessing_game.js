@@ -5,7 +5,7 @@ var connected = false;
 var taboo_list = [];
 var guesses = [];
 var score = 0;
-var game_time = 0;
+var game_time = 150;
 var skip_appear;
 
 ///// Socket Handlers /////
@@ -14,95 +14,26 @@ alert('In this game, be sure to only respond with nouns.'
 	+ '\n(nouns are people, places, and things.)' +
 	'\n\n eg: car or tire, not driving (verb) or fast (adjective).');
 
-
-function connected_msg() {
-	var message = 'This IP address is already in a game or is being paired. Please close this window.';
-	alert(message + '\n\nIf you got this message in error, refresh the page or restart your browser.');
-	document.getElementById('placeholder_message').innerHTML = message;
-}
-
-/*
-// Commented because of buggy behavior
-var already_connected = sessionStorage.getItem('connected');
-if(!already_connected || already_connected == 'false') {
-	
-	sessionStorage.setItem('connected', 'true');
-	connected = true;
-} else {
-	connected_msg();
-}
-*/
-
-socket.emit('waiting', {});
-
-socket.on('already connected', function() {
-	connected_msg();
-});
-
 socket.on('token', function(data) {
 	localStorage.setItem('game_finished', false);
 	localStorage.setItem('token', data.token);
 	localStorage.setItem('uuid', data.uuid);
 });
 
-socket.on('wait time', function (data) {
-	var time = data.time;
-	document.getElementById('time').innerHTML = seconds_to_clock(time);
-	setInterval(function() {
-		if(time > 0) {
-			time--;
-		}
-		// It takes ~1 second to start single player, so request a game with some buffer time
-		if (time < 3 && !playing) {
-			socket.emit('start single player', {});
-		}
-		document.getElementById('time').innerHTML = seconds_to_clock(time);
-	}, 1000);
-});
-
-socket.on('game ready', function(data) {
-	document.getElementById('placeholder_message').innerHTML = 'Waiting for partner to respond...';
-	alert('Partner found!');
-	socket.emit('player ready');
-});
-
-socket.on('start game', function(data) {
-	playing = true;
-	document.getElementById('placeholder').style.display = 'none';
-
-	game_time = data.time;
-	var prev_time = new Date();
-	document.getElementById('timer').innerHTML = seconds_to_clock(game_time);
-	
-	setInterval(function() {
-		var cur_time = new Date();
-		game_time -= (cur_time - prev_time) / 1000;
-		prev_time = cur_time;
-
-		if(game_time > 0) {
-			document.getElementById('timer').innerHTML = seconds_to_clock(Math.floor(game_time));
-		} else if (playing) {
-			socket.emit('game over', {});
-			end_game();
-		}
-	}, 1000);
-});
-
-socket.on('add points', function(data) {
-	add_points(500);
-	game_time += 15;
-	display_message('Nice work, you guessed your partner\'s thoughts!');
-});
-
 socket.on('new image', function(data) {
-	update_image(data.image);
+	if(!playing) {
+		start_game();
+	}
+	document.getElementById('pic').src = data.image.url;
+	document.getElementById('attribution').src = data.image.attribution_url;
 	display_message('');
 	clear_data('guesses');
 	clear_data('taboo');
-	for (var i = 0; i < data.taboo.length; ++i) {
-		add_data('taboo', data.taboo[i]);
+
+	for (var i = 0; i < data.image.taboo.length; ++i) {
+		add_data('taboo', data.image.taboo[i]);
 	}
-	taboo = data.taboo;
+	taboo = data.image.taboo;
 	guesses = [];
 
 	wants_skip = false;
@@ -111,6 +42,12 @@ socket.on('new image', function(data) {
 	var input_box = document.getElementById('guesses');
 	input_box.focus();
 	window.location.hash = '#guesses';
+});
+
+socket.on('add points', function(data) {
+	add_points(500);
+	game_time += 15;
+	display_message('Nice work, you guessed your partner\'s thoughts!');
 });
 
 socket.on('image flagged', function(data) {
@@ -146,9 +83,7 @@ socket.on('database error', function() {
 
 
 ///// Socket Helper Functions /////
-function update_image(link) {
-	document.getElementById('pic').src = link;
-}
+
 
 function add_points(points) {
 	score = score + points;
@@ -188,8 +123,30 @@ function end_game() {
 }
 
 
-
 ///// In-Document Helper Functions /////
+
+
+function start_game() {
+	playing = true;
+	document.getElementById('placeholder').style.display = 'none';
+
+	var prev_time = new Date();
+	document.getElementById('timer').innerHTML = seconds_to_clock(game_time);
+	
+	setInterval(function() {
+		var cur_time = new Date();
+		game_time -= (cur_time - prev_time) / 1000;
+		prev_time = cur_time;
+
+		if(game_time > 0) {
+			document.getElementById('timer').innerHTML = seconds_to_clock(Math.floor(game_time));
+		} else if (playing) {
+			socket.emit('game over', {});
+			end_game();
+		}
+	}, 1000);
+}
+
 function send_guess() {
 	if(!playing) {
 		return;
@@ -268,11 +225,12 @@ function clear_data (id) {
 function check_enter(e)
 {
 	// look for window.event in case event isn't passed in
-	if (typeof e == 'undefined' && window.event) { e = window.event; }
+	if (typeof e == 'undefined' && window.event) { 
+		e = window.event; 
+	}
 	
 	// key code 13 is enter
-	if (e.keyCode == 13)
-	{
+	if (e.keyCode == 13) {
 		send_guess();
 	}
 }
@@ -306,12 +264,3 @@ function show_placeholder() {
 		+ '<a href = \"' + link + '\" class = "btn btn-sm btn-success">'
 		+ continue_btn + '</a>';
 }
-
-/*
-// Commented because of buggy behavior
-function cleanup () {
-	if(sessionStorage.getItem('connected') == 'true' && connected) {
-		sessionStorage.setItem('connected', 'false');
-	}
-}
-*/

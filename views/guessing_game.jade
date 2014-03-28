@@ -7,17 +7,10 @@ block append content
 		div(style='text-align: center;').row.jumbotron
 			h1 The Guessing Game
 			div(id='placeholder_message')
-				|Please wait to connect with a partner.
-				br
-				|The maximum wait is:
-				div(id='time', style = 'display: inline-block;')
-				|.
-				br
-				br
-				|(Feel free to browse in another tab, this page will alert you when ready.)
+				|Please wait to connect with a game...
 	div(style = 'text-align: center;').jumbotron.game
 		h2 The Guessing Game
-		|Guess a <font color = 'red'>Noun</font> your Partner is Thinking of
+		|Guess a <font color = 'red'>Nouns</font> your Partner is Thinking of
 		br
 		|(a <font color = 'red'>Noun</font> is a person, place, or thing)
 		br
@@ -31,7 +24,8 @@ block append content
 				div(style = 'display:inline-block', id = 'score') 0
 			br
 		div.col-md-6.col-sm-12
-			img(src = '', id = 'pic').img-responsive.center-block
+			a(id = 'attribution', target = '_blank')
+				img(src = '', id = 'pic').img-responsive.center-block
 			a(href = 'javascript:flag_image()', id = 'flag_link', style = 'display: none')
 				| Flag inappropriate/broken
 			br

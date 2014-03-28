@@ -2,7 +2,7 @@
  * HTTP handlers for non-nested directories
  */
 
-var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTGRESQL_CYAN_URL;
+var PG_URL = process.env.HEROKU_POSTGRESQL_CYAN_URL;
 
 exports.game = function(pg) {
 return function(req, res) {

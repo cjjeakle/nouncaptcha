@@ -3,7 +3,7 @@
 CREATE TABLE images (
 img_id SERIAL,
 url TEXT UNIQUE,
-attribution_url TEXT,
+attribution_url TEXT UNIQUE,
 skip_count INT,
 flag_count INT,
 PRIMARY KEY (img_id)
@@ -12,8 +12,8 @@ PRIMARY KEY (img_id)
 CREATE TABLE image_guesses (
 guess_id SERIAL,
 img_id INT,
-taboo JSON,
 guesses JSON,
+skip_count INT,
 PRIMARY KEY (guess_id),
 FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE
 );
@@ -30,9 +30,7 @@ CREATE TABLE game_log (
 log_id SERIAL,
 time TIMESTAMP,
 event TEXT,
-game_id TEXT,
-uuid1 TEXT,
-uuid2 TEXT,
+uuid TEXT,
 data JSON,
 PRIMARY KEY (log_id)
 );
