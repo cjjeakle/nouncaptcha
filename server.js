@@ -230,7 +230,7 @@ return function() {
 	);
 
 	socket.skip = true;
-	// Make the player wait 2.5 sec to discourage skipping
+	// Make the player wait 1.5 sec to discourage skipping
 	socket.skip_timeout = setTimeout(function() {
 		if(!socket.skip) {
 			return;
@@ -245,7 +245,7 @@ return function() {
 			save_guesses(socket.image.img_id, socket.guesses);
 		}
 		send_prompt(socket);
-	}, 2500);
+	}, 1500);
 }
 }
 
