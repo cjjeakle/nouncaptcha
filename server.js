@@ -521,6 +521,12 @@ function log_data(event, uuid, content) {
 	});
 }
 
+
+/*
+ * The Following functions were used to initially grab images for the game, but are not currently in use
+ */
+
+
 function check_and_get_images() {
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {

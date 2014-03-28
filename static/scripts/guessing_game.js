@@ -118,12 +118,15 @@ function end_game() {
 	playing = false;
 	localStorage.setItem('game_finished', true);
 	document.getElementById('guess').disabled = true;
+	document.getElementById('pic').src = '';
 	var greeting = ''
 	var punctuation = '.';
 	if(score >= 500) {
 		greeting = 'Great job!\n';
 		punctuation = '!';
 	}
+	show_placeholder();
+
 	greeting += 'You helped classify ' + images + ' images in this round.\n';
 	var choice = confirm (greeting + 
 		'Your final score is: ' + score + ' points' + punctuation +
@@ -131,7 +134,6 @@ function end_game() {
 	if(choice) {
 		window.location.href = link;
 	}
-	show_placeholder();
 }
 
 
