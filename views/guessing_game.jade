@@ -24,7 +24,7 @@ block append content
 				div(style = 'display:inline-block', id = 'score') 0
 			br
 		div.col-md-6.col-sm-12
-			a(id = 'attribution', target = '_blank')
+			a(id = 'attribution', target = '_blank', title = "Click for image source")
 				img(src = '', id = 'pic').img-responsive.center-block
 			a(href = 'javascript:flag_image()', id = 'flag_link', style = 'display: none')
 				| Flag inappropriate/broken
@@ -35,7 +35,7 @@ block append content
 			a(href = 'javascript:send_guess();', id = 'submit_btn').btn.btn-sm.btn-success
 				| Submit Guess
 			|     
-			a(href = 'javascript:request_skip();', id = 'skip_btn', title = '-250 points', style = 'display: none').btn.btn-sm.btn-success
+			a(href = 'javascript:request_skip();', id = 'skip_btn', title = '-75 points', style = 'display: none').btn.btn-sm.btn-success
 				| Skip Image
 			br
 			div(id = 'notifications', style = 'display: none;').callout

@@ -102,6 +102,7 @@ var game_data = {};
 io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
 	socket.playing = true;
+	socket.guesses = [];
 
 	start_game(socket);
 
@@ -157,24 +158,41 @@ return function(data) {
 		partner_guesses.indexOf(data.guess) == -1) {
 		// This guess was not in the partner's guesses
 		return;
-	} else if (!partner_guesses) {
+	} else if (!partner_guesses && 
+		!socket.wait_over &&
+		socket.guesses.length < 5) {
+		// Make the player guess at least 5 times or wait 
+		// for wait_over to be set to true
 		return;
 	}
 	
-	save_match(socket.image.img_id, data.guess);
-	// TODO: Save guess vector
-
-	log_data('match', 
-		socket.uuid,
-		{
-			guesses: socket.guesses,
-			partner: partner_guesses,
-			taboo: socket.image.taboo,
-			match: data.guess,
-			image_id: socket.image.img_id,
-			image_url: socket.image.url
-		}
-	);
+	if(socket.partner_guesses) {
+		save_match(socket.image.img_id, data.guess);
+		log_data('match', 
+			socket.uuid,
+			{
+				guesses: socket.guesses,
+				partner: partner_guesses,
+				taboo: socket.image.taboo,
+				match: data.guess,
+				image_id: socket.image.img_id,
+				image_url: socket.image.url
+			}
+		);
+	} else {
+		log_data('seed guesses generated', 
+			socket.uuid,
+			{
+				guesses: socket.guesses,
+				taboo: socket.image.taboo,
+				image_id: socket.image.img_id,
+				image_url: socket.image.url
+			}
+		);
+	}
+	
+	expire_guesses(socket.partner_guess_id);
+	save_guesses(socket.image.img_id, socket.guesses);
 
 	socket.emit('add points');
 	send_prompt(socket);
@@ -204,16 +222,28 @@ return function() {
 		socket.uuid,
 		{
 			guesses: socket.guesses,
-			partner: partner_guesses,
+			partner: socket.partner_guesses,
 			taboo: socket.image.taboo,
 			image_id: socket.image.img_id,
 			image_url: socket.image.url
 		}
 	);
 
+	socket.skip = true;
 	// Make the player wait 2.5 sec to discourage skipping
-	setTimeout(function() {
+	socket.skip_timeout = setTimeout(function() {
+		if(!socket.skip) {
+			return;
+		}
+		image_skipped(
+			socket.image.img_id, 
+			socket.partner_guess_id
+		);
 		socket.emit('image skipped');
+		if(socket.guesses) {
+			expire_guesses(socket.partner_guess_id);
+			save_guesses(socket.image.img_id, socket.guesses);
+		}
 		send_prompt(socket);
 	}, 2500);
 }
@@ -224,10 +254,19 @@ return function() {
 
 
 function send_prompt(socket) {
+	if(socket.skip_timeout){
+		clearTimeout(socket.skip_timeout);
+		socket.skip_timeout = null;
+	}
+	if(socket.match_timeout){
+		clearTimeout(socket.match_timeout);
+	}
 	if(!socket.playing) {
 		// If player is done, do not emit a new prompt
 		return;
 	}
+	socket.guesses = [];
+
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			socket.emit('database error');
@@ -235,7 +274,7 @@ function send_prompt(socket) {
 		}
 
 		var query = 'SELECT * FROM images'
-			+ ' WHERE skip_count < 3 AND flag_count < 2'
+			+ ' WHERE skip_count < 3 AND flag_count < 3'
 			+ ' ORDER BY RANDOM() LIMIT 1;'
 
 		client.query(query, function(err, data) {
@@ -266,6 +305,7 @@ function send_prompt(socket) {
 
 				if(!data2.rows.length) {
 					socket.partner_guesses = null;
+					socket.wait_over = false;
 				} else {
 					socket.partner_guesses = data2.rows[0].guesses;
 					socket.partner_guess_id = data2.rows[0].guess_id;
@@ -295,6 +335,10 @@ function send_prompt(socket) {
 						socket.uuid,
 						null
 					);
+
+					socket.match_timeout = setTimeout(function() {
+						socket.wait_over = true;
+					}, 9000);
 				});
 			});
 		});
@@ -354,6 +398,26 @@ function save_match (image_id, match) {
 	});
 }
 
+function expire_guesses(guess_id) {
+	if(!guess_id) {
+		return;
+	}
+	pg.connect(PG_URL, function(err, client, done) {
+		if (err) {
+			return console.error('Error establishing connection to client', err);
+		}
+
+		var query = 'DELETE FROM image_guesses WHERE guess_id = $1;';
+
+		client.query(query, [guess_id], function(err, data) {
+			done();
+			if (err) {
+				return console.error('error running query (expire guesses)', err);
+			}
+		});
+	});
+}
+
 function save_guesses (image_id, guesses) {
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
@@ -361,8 +425,9 @@ function save_guesses (image_id, guesses) {
 		}
 
 		var query = 'INSERT INTO image_guesses (img_id, guesses) VALUES ($1, $2);';
-		var inputs = [image_id, guesses];
-		client.query(query, inputs, function(err, data) {
+		guesses = JSON.stringify(guesses);
+
+		client.query(query, [image_id, guesses], function(err, data) {
 			done();
 			if (err) {
 				return console.error('error running query (save guesses)', err);
@@ -456,7 +521,7 @@ function check_and_get_images() {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'SELECT COUNT(*) count FROM images WHERE skip_count < 3 AND flag_count < 2;';
+		var query = 'SELECT COUNT(*) count FROM images WHERE skip_count < 3 AND flag_count < 3;';
 
 		client.query(query, function(err, data) {
 			done();
