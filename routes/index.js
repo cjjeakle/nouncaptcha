@@ -85,9 +85,9 @@ return function(req, res) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'INSERT INTO game_survey (time, uuid, language, english, country, state, age, sex, education,' 
+		var query = 'INSERT INTO game_survey (uuid, language, english, country, state, age, sex, education,' 
 			+ ' input, enjoyed, followed_rules, nouns_only, image_quality, how_found, suggestions, comments)'
-			+ ' VALUES (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16);'
+			+ ' VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16);'
 
 		client.query(query, input, function(err, data) {
 			if (err) {
