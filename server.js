@@ -107,10 +107,6 @@ var max_skips = 3;
 // Max number of flags an image can have and be used in the game
 var max_flags = 3;
 
-// map of a user UID to an array of images and taboo words. 
-// (also contains a list of guesses and timings in single player)
-var game_data = {};
-
 io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
 	socket.playing = true;
