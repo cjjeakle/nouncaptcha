@@ -362,7 +362,9 @@ function send_prompt(socket) {
 
 					log_data('starting',
 						socket.uuid,
-						null
+						{
+							image: socket.image
+						}
 					);
 
 					socket.match_timeout = setTimeout(function() {
