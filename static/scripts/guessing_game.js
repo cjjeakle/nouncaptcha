@@ -73,8 +73,8 @@ socket.on('new image', function(data) {
 
 	image_done_loading();
 
-	window.location.hash = '#guesses';
-	var input_box = document.getElementById('guesses');
+	window.location.hash = '#guess';
+	var input_box = document.getElementById('guess');
 	input_box.focus();
 	input_box.select();
 });

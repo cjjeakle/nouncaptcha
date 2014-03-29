@@ -16,7 +16,6 @@ WHERE l.event = 'starting'
 GROUP BY t.token, s.response_id 
 ORDER BY s.time DESC;
 
-
 SELECT i.url, t.noun, t.count 
 FROM images i 
 INNER JOIN tags t 
