@@ -19,6 +19,8 @@ var button_timeout = 4000;			// ms required for skip and flag buttons to appear
 
 ///// Socket Handlers /////
 
+socket.emit('start game');
+
 alert('In this game, be sure to only respond with nouns.'
 	+ '\n(nouns are people, places, and things.)' +
 	'\n\n eg: car or tire, not driving (verb) or fast (adjective).');
