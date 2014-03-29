@@ -1,4 +1,4 @@
-var socket = io.connect('');
+var socket = io.connect();
 var playing = false;
 var taboo_list = [];
 var guesses = [];
@@ -54,10 +54,6 @@ socket.on('new image', function(data) {
 	wants_skip = false;
 	hide_timed_buttons();
 
-	var input_box = document.getElementById('guesses');
-	input_box.focus();
-	window.location.hash = '#guesses';
-
 	if (match_confirmed) {
 		display_message('Nice work, you guessed your partner\'s thoughts!<br/>+'+match_bonus_points+' points and +'+match_bonus_time+' seconds.');
 	} else if(just_skipped) {
@@ -70,6 +66,11 @@ socket.on('new image', function(data) {
 	match_confirmed = just_skipped = just_flagged = false;
 
 	image_done_loading();
+
+	window.location.hash = '#guesses';
+	var input_box = document.getElementById('guesses');
+	input_box.focus();
+	input_box.select();
 });
 
 socket.on('add points', function(data) {

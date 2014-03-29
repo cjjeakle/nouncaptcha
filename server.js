@@ -15,7 +15,7 @@ var logfmt = require('logfmt');
 var routes = require('./routes');
 var path = require('path');
 var pg = require('pg').native;
-var PG_URL = process.env.HEROKU_POSTGRESQL_CYAN_URL;
+var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTGRESQL_CYAN_URL;
 
 var Flickr = require("flickrapi");
 var flickrOptions = {
@@ -299,7 +299,7 @@ function send_prompt(socket) {
 		}
 
 		var query = 'SELECT * FROM images'
-			+ ' WHERE skip_count < ' + max_flags + ' AND flag_count <' + max_flags; 
+			+ ' WHERE skip_count < ' + max_skips + ' AND flag_count <' + max_flags; 
 			for(var i = 0; i < socket.images_seen.length; ++i) {
 				query += ' AND img_id != ' + socket.images_seen[i];
 			}
@@ -388,9 +388,8 @@ function save_match (image_id, match) {
 				+ ' SELECT $1, $2'
 				+ ' WHERE NOT EXISTS'
 				+ ' (select 1 from tags WHERE img_id = $1 AND noun = $2);'
-		var inputs = [image_id, match.toString()];
 		
-		client.query(query, inputs, function(err, data) {
+		client.query(query, [image_id, match], function(err, data) {
 			if (err) {
 				return console.error('error running query (save match)', err);
 			}
@@ -398,18 +397,24 @@ function save_match (image_id, match) {
 			// Increment count of either the inserted tag or the existing one
 			query = 'UPDATE tags'
 				+ ' SET count = count + 1'
-				+ ' WHERE img_id = $1 AND noun = $2;';
+				+ ' WHERE img_id = $1 AND noun = $2'
+				+ ' RETURNING count;';
 			
-			client.query(query, inputs, function(err, data) {
+			client.query(query, [image_id, match], function(err, data2) {
 				if (err) {
 					return console.error('error running query (increment tags)', err);
+				}
+
+				if(data2.rows.length && data2.rows[0].count == taboo_count) {
+					// If there is a new taboo tag, existing guesses are invalid
+					clear_guesses(image_id);
 				}
 
 				query = 'UPDATE images'
 					+ ' SET skip_count = skip_count - 1'
 					+ ' WHERE img_id = $1 AND skip_count > 0;';
 
-				client.query(query, [image_id], function(err, data) {
+				client.query(query, [image_id], function(err, data3) {
 					if (err) {
 						return console.error('error running query (decrement skip)', err);
 					}
@@ -417,7 +422,7 @@ function save_match (image_id, match) {
 						+ ' SET flag_count = 0'
 						+ ' WHERE img_id = $1;';
 
-					client.query(query, [image_id], function(err, data) {
+					client.query(query, [image_id], function(err, data4) {
 						done();
 						if (err) {
 							return console.error('error running query (reset flags)', err);
@@ -429,6 +434,26 @@ function save_match (image_id, match) {
 	});
 }
 
+// Remove all of an image's guess vectors, used when a new taboo word is added
+// so that guess vectors of taboo words don't frustrate users
+function clear_guesses(img_id) {
+	pg.connect(PG_URL, function(err, client, done) {
+		if (err) {
+			return console.error('Error establishing connection to client', err);
+		}
+
+		var query = 'DELETE FROM guesses WHERE img_id = $1;';
+
+		client.query(query, [img_id], function(err, data) {
+			done();
+			if (err) {
+				return console.error('error running query (expire guesses)', err);
+			}
+		});
+	});
+}
+
+// Delete the specified guess vector
 function expire_guesses(guess_id) {
 	if(!guess_id) {
 		return;
@@ -449,6 +474,7 @@ function expire_guesses(guess_id) {
 	});
 }
 
+// Save a new guess vector for a given image
 function save_guesses (image_id, guesses) {
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
