@@ -19,9 +19,10 @@ var pg = require('pg').native;
 var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTGRESQL_CYAN_URL;
 
 var grab_images = require('./grab_images');
-var log_data = require('./logger').log_data;
+var game_log = require('./game_logger').game_log;
 var game_handlers = require('./game_handlers');
-var cap_handlers = require('./CAPTCHA_handlers');
+var cap_log = require('./cap_logger').cap_log;
+var cap_handlers = require('./cap_handlers');
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -94,12 +95,12 @@ io.sockets.on('connection', function (socket) {
 
 	socket.on('disconnect', function() {
 		if(socket.game_mode) {
-			log_data('game disconnect', 
+			game_log('game disconnect', 
 				socket.uuid,
 				null
 			);
 		} else if (socket.CAPTCHA_mode) {
-			log_data('CAPTCHA disconnect', 
+			cap_log('CAPTCHA disconnect', 
 				socket.uuid,
 				null
 			);

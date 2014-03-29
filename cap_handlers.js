@@ -7,8 +7,11 @@ var pg = require('pg').native;
 var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTGRESQL_CYAN_URL;
 
 var uuid = require('node-uuid');
-var log_data = require('./logger').log_data;
+var cap_log = require('./cap_logger').cap_log;
 
 exports.start_CAPTCHA = function(socket) {
-
+return function(data) {
+	// Stuff goes here
 }
+}
+

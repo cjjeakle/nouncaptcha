@@ -7,7 +7,7 @@ var pg = require('pg').native;
 var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTGRESQL_CYAN_URL;
 
 var uuid = require('node-uuid');
-var log_data = require('./logger').log_data;
+var game_log = require('./game_logger').game_log;
 
 // Number of ms to wait before a "seed game" will accept its final guess
 var seed_timeout = 7000;
@@ -36,7 +36,7 @@ return function(data) {
 	socket.guesses = [];
 	socket.images_seen = [];
 
-	log_data('new game',
+	game_log('new game',
 		socket.uuid,
 		null
 	);
@@ -85,7 +85,7 @@ return function(data) {
 	
 	if(socket.partner_guesses) {
 		save_match(socket.image.img_id, data.guess);
-		log_data('match', 
+		game_log('match', 
 			socket.uuid,
 			{
 				guesses: socket.guesses,
@@ -97,7 +97,7 @@ return function(data) {
 			}
 		);
 	} else {
-		log_data('seed guesses generated', 
+		game_log('seed guesses generated', 
 			socket.uuid,
 			{
 				guesses: socket.guesses,
@@ -124,7 +124,7 @@ return function(data) {
 
 	socket.emit('image flagged');
 
-	log_data('flagged', 
+	game_log('flagged', 
 		socket.uuid,
 		{
 			image_id: socket.image.img_id,
@@ -143,7 +143,7 @@ return function(data) {
 		return;
 	}
 
-	log_data('skip', 
+	game_log('skip', 
 		socket.uuid,
 		{
 			guesses: socket.guesses,
@@ -263,7 +263,7 @@ function send_prompt(socket) {
 						image: socket.image
 					});
 
-					log_data('starting',
+					game_log('starting',
 						socket.uuid,
 						{
 							image: socket.image
