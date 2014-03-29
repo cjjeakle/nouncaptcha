@@ -18,7 +18,7 @@ var skip_delay = 1500;
 // Number of times a tag must occur to be considered "taboo"
 var taboo_count = 5;
 // Max number of skips an image can have and be used in the game
-var max_skips = 3;
+var max_skips = 5;
 // Max number of flags an image can have and be used in the game
 var max_flags = 3;
 
