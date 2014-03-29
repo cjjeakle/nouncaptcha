@@ -25,6 +25,10 @@ alert('In this game, be sure to only respond with nouns.'
 	+ '\n(nouns are people, places, and things.)' +
 	'\n\n eg: car or tire, not driving (verb) or fast (adjective).');
 
+socket.on('average score', function(data) {
+	document.getElementById('average').innerHTML = data.average;
+})
+
 socket.on('token', function(data) {
 	localStorage.setItem('game_finished', false);
 	localStorage.setItem('token', data.token);
@@ -118,6 +122,7 @@ function check_done() {
 }
 
 function end_game() {
+	socket.emit('score', {score: score});
 	playing = false;
 	localStorage.setItem('game_finished', true);
 	document.getElementById('guess').disabled = true;

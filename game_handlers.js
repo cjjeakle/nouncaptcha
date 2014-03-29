@@ -22,6 +22,10 @@ var max_skips = 5;
 // Max number of flags an image can have and be used in the game
 var max_flags = 3;
 
+// The running score total, and running game count
+var total_score = 0;
+var game_count = 0;
+
 
 
 /////////////////////////// Socket Event Functions /////////////////////////////
@@ -59,6 +63,9 @@ return function(data) {
 			socket.emit('token', {
 				token: token_,
 				uuid: socket.uuid
+			});
+			socket.emit('average score', {
+				average: game_count ? (total_score / game_count) : 0
 			});
 			send_prompt(socket);
 		});
@@ -172,6 +179,11 @@ return function(data) {
 		send_prompt(socket);
 	}, skip_delay);
 }
+}
+
+exports.score_handler = function(data) {
+	total_score += data.score;
+	game_count++;
 }
 
 

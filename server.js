@@ -78,6 +78,7 @@ app.post('/submit_game_survey', routes.submit_game_survey(pg));
 io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
 	
+
 	// Game events
 	socket.on('start game', game_handlers.start_game(socket));
 	socket.on('guess', game_handlers.guess_handler(socket));
@@ -89,6 +90,7 @@ io.sockets.on('connection', function (socket) {
 	socket.on('game_over', function() {
 		socket.playing = false;
 	});
+	socket.on('score', game_handlers.score_handler);
 
 	//CAPTCHA events
 	socket.on('start CAPTCHA', cap_handlers.start_CAPTCHA(socket));

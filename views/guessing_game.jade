@@ -23,8 +23,15 @@ block append content
 			h4 Time Remaining: 
 				div(style = 'display:inline-block', id = 'timer')
 			|------
-			h4 Score:
+			h4 Score: 
+				|  
 				div(style = 'display:inline-block', id = 'score') 0
+				|  points
+			|------
+			h4 Global Average:
+				|  
+				div(style = 'display:inline-block', id = 'average') 0
+				|  points		
 			br
 		div.col-md-8.col-sm-12
 			a(id = 'attribution', target = '_blank', title = "Click for image source")
@@ -43,7 +50,7 @@ block append content
 			br
 			div(id = 'notifications', style = 'display: none;').callout
 				br
-		div.col-md-2.col-sm-6.centered
+		div.col-md-2.centered
 			h3 Guesses:
 			div(style = 'display:inline-block', id = 'guesses')
 			br
