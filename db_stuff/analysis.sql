@@ -37,7 +37,6 @@ ORDER BY t.img_id DESC;
 /*
 \echo 'Total number of taboo tags per image'
 SELECT img_id, count(*) FROM tags
-WHERE count >= 5
 GROUP BY img_id
 ORDER by count(*) DESC;
 */
