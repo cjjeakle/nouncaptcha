@@ -108,7 +108,7 @@ socket.on('database error', function() {
 
 socket.on('connection error', function() {
 	show_placeholder();
-	alert('There has been a connection error, please refresh the page');
+	alert('There has been a connection error, please refresh the page.');
 });
 
 
@@ -132,7 +132,7 @@ function end_game() {
 	localStorage.setItem('game_finished', true);
 	
 	show_placeholder();
-	
+
 	var greeting = ''
 	var punctuation = '.';
 	if(score >= 500) {
