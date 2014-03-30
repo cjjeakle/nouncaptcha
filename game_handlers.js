@@ -75,6 +75,10 @@ return function(data) {
 
 exports.guess_handler = function(socket) {
 return function(data) {
+	if(!socket.guesses) {
+		socket.emit('database error');
+		return;
+	}
 	socket.guesses.push(data.guess);
 	
 	var partner_guesses = socket.partner_guesses;
