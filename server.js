@@ -29,10 +29,6 @@ app.set('view engine', 'jade');
 
 io.set('transports', [
 	'websocket'
-	, 'flashsocket'
-	, 'htmlfile'
-	, 'xhr-polling'
-	, 'jsonp-polling'
 ]);
 
 app.use(logfmt.requestLogger());
