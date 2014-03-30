@@ -23,8 +23,8 @@ var max_skips = 5;
 var max_flags = 3;
 
 // The running score total, and running game count
-var total_score = 0;
-var game_count = 0;
+var total_score = 5950;
+var game_count = 1;
 
 
 
