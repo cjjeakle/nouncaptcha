@@ -75,15 +75,16 @@ return function(data) {
 
 exports.guess_handler = function(socket) {
 return function(data) {
-	if(!socket.guesses) {
-		// Prevent crash if dyno goes idle.
+	if(!socket.game_mode) {
+		// Prevent server crashing from Dyno idleing
 		socket.emit('database error');
 		game_log('game issues?',
 			socke.uuid,
-			null
+			{action: 'guess_handler'}
 		);
 		return;
 	}
+
 	socket.guesses.push(data.guess);
 	
 	var partner_guesses = socket.partner_guesses;
@@ -134,6 +135,19 @@ return function(data) {
 
 exports.flag_handler = function(socket) {
 return function(data) {
+	if(!socket.game_mode) {
+		// Prevent server crashing from Dyno idleing
+		socket.emit('database error');
+		game_log('game issues?',
+			socke.uuid,
+			{action: 'flag_handler'}
+		);
+		return;
+	}
+	if(!socket.game_mode) {
+		socket.emit('database error');
+		return;
+	} 
 	if(socket.image.img_id != data.img_id) {
 		return;
 	}
@@ -155,6 +169,15 @@ return function(data) {
 
 exports.skip_handler = function(socket) {
 return function(data) {
+	if(!socket.game_mode) {
+		// Prevent server crashing from Dyno idleing
+		socket.emit('database error');
+		game_log('game issues?',
+			socke.uuid,
+			{action: 'skip_handler'}
+		);
+		return;
+	}
 	if(socket.image.img_id != data.img_id) {
 		return;
 	}
@@ -191,6 +214,16 @@ return function(data) {
 }
 
 exports.score_handler = function(data) {
+	if(!socket.game_mode) {
+		// Prevent server crashing from Dyno idleing
+		socket.emit('database error');
+		game_log('game issues?',
+			socke.uuid,
+			{action: 'score_handler'}
+		);
+		return;
+	}
+	
 	total_score += data.score;
 	game_count++;
 }
@@ -203,15 +236,6 @@ exports.score_handler = function(data) {
 
 
 function send_prompt(socket) {
-	if(!socket.images_seen) {
-		// Prevent server crashing from Dyno idleing
-		socket.emit('database error');
-		game_log('game issues?',
-			socke.uuid,
-			null
-		);
-		return;
-	}
 	if(socket.skip_timeout){
 		clearTimeout(socket.skip_timeout);
 		socket.skip_timeout = null;
