@@ -1,0 +1,7 @@
+extends layout
+
+block append content
+	div.jumbotron.game
+		h2 The Noun CAPTCHA
+		div(id = 'noun_captcha')
+	script(src='/socket.io/socket.io.js')

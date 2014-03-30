@@ -105,6 +105,9 @@ exports.game_debrief = function(req, res) {
 	res.render('game_survey_debrief');
 }
 
+exports.cap = function(req, res) {
+	res.render('captcha');
+}
 
 
 

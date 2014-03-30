@@ -63,6 +63,7 @@ app.get('/start_game_survey', routes.game_info);
 app.get('/game_test', routes.game_test);
 app.get('/game_survey', routes.game_survey);
 app.get('/game_survey_debrief', routes.game_debrief);
+app.get('/captcha', routes.cap);
 
 // Post requests
 app.post('/submit_game_survey', routes.submit_game_survey(pg));

@@ -12,7 +12,7 @@ exports.cap_log = function(event, uuid, content) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		var query = 'INSERT INTO game_log (event, uuid, data)'
+		var query = 'INSERT INTO cap_log (event, uuid, data)'
 			+ ' VALUES ($1, $2, $3);';
 
 		client.query(query, [event, uuid, content], function(err, data) {

@@ -1,5 +1,9 @@
 -- The setup procedure for db
 
+
+----- GAME + CAPTCHA DB STUFF -----
+-----------------------------------
+
 CREATE TABLE images (
 img_id SERIAL,
 url TEXT UNIQUE,
@@ -70,4 +74,45 @@ PRIMARY KEY (count)
 
 INSERT INTO game_count (count)
 VALUES (0);
+
+
+----- CAPTCHA ONLY DB STUFF -----
+---------------------------------
+
+CREATE TABLE cap_log (
+log_id SERIAL,
+time TIMESTAMP DEFAULT now(),
+event TEXT,
+uuid TEXT,
+data JSON,
+PRIMARY KEY (log_id)
+);
+
+CREATE TABLE cap_survey (
+response_id SERIAL,
+time TIMESTAMP DEFAULT now(),
+uuid TEXT,
+language TEXT,
+english BOOLEAN,
+country TEXT,
+state TEXT,
+age INT DEFAULT 0,
+sex TEXT,
+education TEXT,
+input TEXT,
+enjoyed BOOLEAN,
+understood BOOLEAN,
+image_quality BOOLEAN,
+how_found TEXT,
+suggestions TEXT,
+comments TEXT,
+PRIMARY KEY (response_id)
+);
+
+CREATE TABLE cap_tokens (
+token_id SERIAL,
+uuid TEXT,
+token TEXT,
+PRIMARY KEY (token_id)
+);
 
