@@ -6,7 +6,9 @@ SELECT l1.log_id, l1.uuid FROM game_log l1
 LEFT JOIN game_log l2
 ON l1.uuid = l2.uuid AND l2.event like '%disconnect%'
 WHERE l1.event = 'new game' AND l2.event IS NULL
-AND l1.log_id != 356 AND l1.log_id != 1233 AND l1.log_id != 1219 AND l1.log_id != 1544
+AND l1.log_id != 356 AND l1.log_id != 1233 
+AND l1.log_id != 1219 AND l1.log_id != 1544 
+and l1.log_id != 1667
 ORDER BY l1.log_id DESC;
 
 /*
