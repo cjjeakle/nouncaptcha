@@ -86,7 +86,7 @@ io.sockets.on('connection', function (socket) {
 	socket.on('game_over', function() {
 		socket.playing = false;
 	});
-	socket.on('score', game_handlers.score_handler);
+	socket.on('score', game_handlers.score_handler(socket));
 
 
 	//CAPTCHA events

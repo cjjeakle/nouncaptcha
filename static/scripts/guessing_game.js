@@ -106,6 +106,11 @@ socket.on('database error', function() {
 	end_game();
 });
 
+socket.on('connection error', function() {
+	show_placeholder();
+	alert('There has been a connection error, please refresh the page');
+});
+
 
 ///// Socket Helper Functions /////
 
@@ -125,15 +130,15 @@ function end_game() {
 	socket.emit('score', {score: score});
 	playing = false;
 	localStorage.setItem('game_finished', true);
-	document.getElementById('guess').disabled = true;
-	document.getElementById('pic').src = '';
+	
+	show_placeholder();
+	
 	var greeting = ''
 	var punctuation = '.';
 	if(score >= 500) {
 		greeting = 'Great job!\n';
 		punctuation = '!';
 	}
-	show_placeholder();
 
 	greeting += 'You helped classify ' + images + ' images in this round.\n';
 	var choice = confirm (greeting + 
@@ -280,6 +285,9 @@ function hide_timed_buttons() {
 }
 
 function show_placeholder() {
+	document.getElementById('guess').disabled = true;
+	document.getElementById('pic').src = '';
+
 	document.getElementById('placeholder').style.display = '';
 	document.getElementById('placeholder_message').innerHTML = 
 		'Game over. Your final score was: ' + score + '.<br/><br/>'

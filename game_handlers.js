@@ -75,13 +75,7 @@ return function(data) {
 
 exports.guess_handler = function(socket) {
 return function(data) {
-	if(!socket.game_mode) {
-		// Prevent server crashing from Dyno idleing
-		socket.emit('database error');
-		game_log('game issues?',
-			socket.uuid,
-			{action: 'guess_handler'}
-		);
+	if(error_handler(socket)) {
 		return;
 	}
 
@@ -135,13 +129,7 @@ return function(data) {
 
 exports.flag_handler = function(socket) {
 return function(data) {
-	if(!socket.game_mode) {
-		// Prevent server crashing from Dyno idleing
-		socket.emit('database error');
-		game_log('game issues?',
-			socket.uuid,
-			{action: 'flag_handler'}
-		);
+	if(error_handler(socket)) {
 		return;
 	}
 	if(!socket.game_mode) {
@@ -169,16 +157,7 @@ return function(data) {
 
 exports.skip_handler = function(socket) {
 return function(data) {
-	if(!socket.game_mode) {
-		// Prevent server crashing from Dyno idleing
-		socket.emit('database error');
-		game_log('game issues?',
-			socket.uuid,
-			{action: 'skip_handler'}
-		);
-		return;
-	}
-	if(socket.image.img_id != data.img_id) {
+	if(error_handler(socket)) {
 		return;
 	}
 
@@ -213,27 +192,34 @@ return function(data) {
 }
 }
 
-exports.score_handler = function(data) {
-	if(!socket.game_mode) {
-		// Prevent server crashing from Dyno idleing
-		socket.emit('database error');
-		game_log('game issues?',
-			socket.uuid,
-			{action: 'score_handler'}
-		);
+exports.score_handler = function(socket) {
+return function(data) {
+	if(error_handler(socket)) {
 		return;
 	}
-	
+
 	total_score += data.score;
 	game_count++;
 }
-
+}
 
 
 ////////////////////// Socket DB Interaction Functions /////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
+function error_handler(socket) {
+	if(!socket.game_mode) {
+		// Prevent server crashing from Dyno idleing
+		socket.emit('connection error');
+		game_log('game issues',
+			socket ? socket.uuid : null,
+			{action: 'flag_handler'}
+		);
+		return true;
+	}
+	return false;
+}
 
 function send_prompt(socket) {
 	if(socket.skip_timeout){
