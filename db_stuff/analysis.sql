@@ -10,19 +10,17 @@ AND l1.log_id != 356 AND l1.log_id != 1233 AND l1.log_id != 1219
 ORDER BY l1.log_id DESC;
 
 \echo 'List of most recent 5 survey responses, their token and image count'
-SELECT t.token, s.how_found, count(*)
+SELECT s.time, s.how_found, count(*)
 FROM game_log l 
 INNER JOIN game_survey s 
 ON l.uuid = s.uuid 
-INNER JOIN game_tokens t 
-ON t.uuid = l.uuid 
 WHERE l.event = 'starting'
-GROUP BY t.token, s.response_id 
+GROUP BY s.response_id 
 ORDER BY s.time DESC
 LIMIT 10;
 
 \echo 'Number of survey responses'
-select count(*) - 1 as count from game_survey;
+SELECT count(*) - 1 AS count FROM game_survey;
 
 /*
 \echo 'List of taboo tags and their corresponding image'
@@ -34,9 +32,11 @@ WHERE t.count >= 5
 ORDER BY t.img_id DESC;
 */
 
-\echo 'Total number of taboo tags'
-SELECT count(*) from tags
-where count >= 5;
+\echo 'Total number of taboo tags per image'
+SELECT img_id, count(*) FROM tags
+WHERE count >= 5
+GROUP BY img_id
+ORDER by count(*) DESC;
 
 \echo 'Total number of tags'
 SELECT count(*) from tags;
