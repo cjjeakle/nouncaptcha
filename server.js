@@ -9,6 +9,18 @@ var app = express();
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 
+var url  = require('url');
+
+var RedisStore = require('socket.io/lib/stores/redis')
+var redis  = require('socket.io/node_modules/redis')
+var redisURL = url.parse(process.env.REDISCLOUD_URL);
+var pub = redis.createClient(redisURL.port, redisURL.hostname, {no_ready_check: true});
+var sub = redis.createClient(redisURL.port, redisURL.hostname, {no_ready_check: true});
+var client = redis.createClient(redisURL.port, redisURL.hostname, {no_ready_check: true});
+pub.auth(redisURL.auth.split(":")[1]);
+sub.auth(redisURL.auth.split(":")[1]);
+client.auth(redisURL.auth.split(":")[1]);
+
 var uuid = require('node-uuid');
 
 var logfmt = require('logfmt');
@@ -27,6 +39,12 @@ var cap_handlers = require('./cap_handlers');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+io.set('store', new RedisStore({
+  redis    : redis
+, redisPub : pub
+, redisSub : sub
+, redisClient : client
+}));
 io.set('transports', [
 	'websocket'
 ]);
