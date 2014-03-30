@@ -76,7 +76,12 @@ return function(data) {
 exports.guess_handler = function(socket) {
 return function(data) {
 	if(!socket.guesses) {
+		// Prevent crash if dyno goes idle.
 		socket.emit('database error');
+		game_log('game issues?',
+			socke.uuid,
+			null
+		);
 		return;
 	}
 	socket.guesses.push(data.guess);
@@ -198,6 +203,15 @@ exports.score_handler = function(data) {
 
 
 function send_prompt(socket) {
+	if(!socket.images_seen) {
+		// Prevent server crashing from Dyno idleing
+		socket.emit('database error');
+		game_log('game issues?',
+			socke.uuid,
+			null
+		);
+		return;
+	}
 	if(socket.skip_timeout){
 		clearTimeout(socket.skip_timeout);
 		socket.skip_timeout = null;
