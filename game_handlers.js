@@ -79,7 +79,7 @@ return function(data) {
 		// Prevent server crashing from Dyno idleing
 		socket.emit('database error');
 		game_log('game issues?',
-			socke.uuid,
+			socket.uuid,
 			{action: 'guess_handler'}
 		);
 		return;
@@ -139,7 +139,7 @@ return function(data) {
 		// Prevent server crashing from Dyno idleing
 		socket.emit('database error');
 		game_log('game issues?',
-			socke.uuid,
+			socket.uuid,
 			{action: 'flag_handler'}
 		);
 		return;
@@ -173,7 +173,7 @@ return function(data) {
 		// Prevent server crashing from Dyno idleing
 		socket.emit('database error');
 		game_log('game issues?',
-			socke.uuid,
+			socket.uuid,
 			{action: 'skip_handler'}
 		);
 		return;
@@ -218,7 +218,7 @@ exports.score_handler = function(data) {
 		// Prevent server crashing from Dyno idleing
 		socket.emit('database error');
 		game_log('game issues?',
-			socke.uuid,
+			socket.uuid,
 			{action: 'score_handler'}
 		);
 		return;
