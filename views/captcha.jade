@@ -1,7 +1,8 @@
 extends layout
 
 block append content
-	div.jumbotron.game
-		h2 The Noun CAPTCHA
+	h2 The Noun CAPTCHA
+	div(style = 'text-align: center;')
 		div(id = 'noun_captcha')
 	script(src='/socket.io/socket.io.js')
+	script(src='/scripts/noun_captcha.js')

@@ -110,6 +110,7 @@ io.sockets.on('connection', function (socket) {
 
 	//CAPTCHA events
 	socket.on('start CAPTCHA', cap_handlers.start_CAPTCHA(socket));
+	socket.on('CAPTCHA submission', cap_handlers.submission_handler(socket));
 
 
 	socket.on('disconnect', function() {
@@ -118,7 +119,7 @@ io.sockets.on('connection', function (socket) {
 				socket.uuid,
 				null
 			);
-		} else if (socket.CAPTCHA_mode) {
+		} else if (socket.cap_mode) {
 			cap_log('CAPTCHA disconnect', 
 				socket.uuid,
 				null

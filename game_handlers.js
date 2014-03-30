@@ -57,7 +57,7 @@ return function(data) {
 		client.query(query, [socket.uuid, token_], function(err, data) {
 			done();
 			if (err) {
-				return console.error('error running query (save token)', err);
+				return console.error('error running query (game token)', err);
 				res.send(500, 'Database error.');
 			}
 			socket.emit('token', {
