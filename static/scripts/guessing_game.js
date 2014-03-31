@@ -19,9 +19,13 @@ var button_timeout = 4000;			// ms required for skip and flag buttons to appear
 
 ///// Socket Handlers /////
 
-alert('In this game, be sure to only respond with nouns.'
-	+ '\n(nouns are people, places, and things.)' +
-	'\n\n eg: car or tire, not driving (verb) or fast (adjective).');
+alert('Guessing Game Rules:'
+	+ '\nOnly guess nouns.'
+	+ '\nThe game lasts for '+max_images+' images or until time runs out.'
+	+ '\n\n*Guess nouns until you match with your partner.'
+	+ '\n*If you cant agree on a noun, skip the image.'
+	+ '\n\n-Matches: +'+match_bonus_points+' points and +'+match_bonus_time+' seconds.'
+	+ '\n-Skips: -'+skip_penalty_points+' points and +0 seconds.');
 
 socket.emit('start game');
 
@@ -73,7 +77,9 @@ socket.on('new image', function(data) {
 
 	image_done_loading();
 
-	window.location.hash = '#guess';
+	document.getElementById('progress_bar').style.width = (images / max_images * 100) + '%';
+
+	window.location.hash = '#pic';
 	var input_box = document.getElementById('guess');
 	input_box.focus();
 	input_box.select();
