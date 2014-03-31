@@ -14,9 +14,11 @@ taboo_count = 5;
 // Number of prompt nouns presented
 max_options = 5;
 // Running sum of passed prompts needed to complete the CAPTCHA
-success_threshold = 5;
+success_threshold = 4;
+// Number of attempts required before approval is possible
+min_for_approval = 5;
 // Max times a user can attempt CAPTCHA prompts in the same sequence
-max_attempts = 10;
+max_attempts = 6;
 // Multiplier applied to mistakes in attempts, 1 point is awarded for submission
 // and mistake_count * mistake_weight is subtracted from it. Mistake count has a 
 // max value of max_options
@@ -110,7 +112,8 @@ return function(data) {
 		);
 		socket.emit('CAPTCHA failed')
 		return;
-	} else if(socket.cap_score / success_threshold < 1) {
+	} else if(socket.cap_count < min_for_approval &&
+		socket.cap_score / success_threshold < 1) {
 		send_prompt(socket);
 	} else {
 		socket.emit('CAPTCHA complete');
@@ -150,6 +153,7 @@ function send_prompt(socket) {
 			return console.error('Error establishing connection to client', err);
 		}
 
+		// TODO: Prevent image repetition
 		var query = 'SELECT * FROM images i INNER JOIN tags t'
 			+ ' ON i.img_id = t.img_id'
 			+ ' WHERE t.count >= ' + taboo_count

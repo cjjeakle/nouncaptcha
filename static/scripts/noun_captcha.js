@@ -12,7 +12,7 @@ var expanded = false;
 var choices = [];
 var choice_text = [];
 
-
+// TODO: New image button
 
 // Build the CAPTCHA into the page
 //////////////////////////////////
@@ -74,7 +74,7 @@ container.appendChild(progress_container);
 socket.emit('start CAPTCHA');
 
 socket.on('CAPTCHA prompt', function(data) {
-	instructions.innerHTML = 'Are any nouns below in this image?<br/>'
+	instructions.innerHTML = 'Are any of the listed nouns in this image?<br/>'
 		+ '(click the image to enlarge)<br/><br/>';
 	image.src = data.image.url;
 
