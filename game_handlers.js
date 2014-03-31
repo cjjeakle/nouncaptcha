@@ -26,6 +26,12 @@ var max_flags = 3;
 var total_score = 5950;
 var game_count = 1;
 
+// The lowest and highest img_id image that will be displayed in the game. 
+// Use to limit the presented set size and maximize tag coverage.
+// Note: postgres serial min value is 1, 0 is just a better default val I feel.
+var min_img_id = 0;
+var max_img_id = 50;
+
 
 
 /////////////////////////// Socket Event Functions /////////////////////////////
@@ -119,8 +125,13 @@ return function(data) {
 		);
 	}
 	
+	/*
+	 * Experiment, commenting this out to see how leaving
+	 * successful guess lists in play works. Then only
+	 * skipped guess lists are expired.
 	expire_guesses(socket.partner_guess_id);
 	save_guesses(socket.image.img_id, socket.guesses);
+	*/
 
 	socket.emit('add points');
 	send_prompt(socket);
@@ -210,7 +221,7 @@ function error_handler(socket) {
 		socket.emit('connection error');
 		game_log('game issues',
 			socket ? socket.uuid : null,
-			{action: 'flag_handler'}
+			{action: 'game_mode'}
 		);
 		return true;
 	}
@@ -238,7 +249,8 @@ function send_prompt(socket) {
 		}
 
 		var query = 'SELECT * FROM images'
-			+ ' WHERE skip_count < ' + max_skips + ' AND flag_count <' + max_flags; 
+			+ ' WHERE skip_count < ' + max_skips + ' AND flag_count <' + max_flags
+			+ ' AND img_id >= ' + min_img_id + ' AND img_id <= ' + max_img_id; 
 			for(var i = 0; i < socket.images_seen.length; ++i) {
 				query += ' AND img_id != ' + socket.images_seen[i];
 			}
