@@ -47,7 +47,7 @@ return function(data) {
 
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
-			broadcast_message(player1, 'database error');
+			socket.emit('connection error');
 			return console.error('Error establishing connection to client', err);
 		}
 
@@ -58,7 +58,7 @@ return function(data) {
 			done();
 			if (err) {
 				return console.error('error running query (game token)', err);
-				res.send(500, 'Database error.');
+				socket.emit('connection error');
 			}
 			socket.emit('token', {
 				token: token_,
@@ -132,10 +132,6 @@ return function(data) {
 	if(error_handler(socket)) {
 		return;
 	}
-	if(!socket.game_mode) {
-		socket.emit('database error');
-		return;
-	} 
 	if(socket.image.img_id != data.img_id) {
 		return;
 	}
@@ -237,7 +233,7 @@ function send_prompt(socket) {
 
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
-			socket.emit('database error');
+			socket.emit('connection error');
 			return console.error('Error establishing connection to client', err);
 		}
 
@@ -250,12 +246,12 @@ function send_prompt(socket) {
 
 		client.query(query, function(err, data) {
 			if (err) {
-				socket.emit('database error');
+				socket.emit('connection error');
 				return console.error('error running query (get images)', err);
 			}
 
 			if(!data.rows.length) {
-				socket.emit('database error');
+				socket.emit('connection error');
 				return console.error('no images available (get images)', err);;
 			}
 
@@ -271,7 +267,7 @@ function send_prompt(socket) {
 
 			client.query(query, [socket.image.img_id], function(err, data2) {
 				if (err) {
-					socket.emit('database error');
+					socket.emit('connection error');
 					return console.error('error running query (get guesses)', err);
 				}
 
@@ -289,7 +285,7 @@ function send_prompt(socket) {
 				client.query(query, [socket.image.img_id], function(err, data3) {
 					done();
 					if (err) {
-						socket.emit('database error');
+						socket.emit('connection error');
 						return console.error('error running query (get taboo)', err);
 					}
 

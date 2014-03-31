@@ -26,6 +26,28 @@ LIMIT 10;
 \echo 'Number of survey responses'
 SELECT count(*) - 1 AS count FROM game_survey;
 
+\echo 'Number of games that were not played for survey'
+select count(temp.*)  from (
+	select 1 from game_log l 
+	left join game_survey s on l.uuid = s.uuid 
+	where l.event = 'match' or l.event = 'seed guesses generated' 
+	group by l.uuid, s.response_id 
+	having s.response_id is null
+) as temp;
+
+\echo 'Total count of games played'
+select count(distinct uuid) from game_log
+where event = 'match' or event = 'seed guesses generated';
+
+\echo 'Users who did not play the game'
+select * from (
+	select s1.response_id, s1.uuid, s1.how_found from game_survey s1
+	except
+	select distinct s.response_id, s.uuid, s.how_found from game_survey s 
+	inner join game_log l on l.uuid = s.uuid 
+	where l.event = 'match' or l.event = 'seed guesses generated'
+) as temp order by temp.response_id;
+
 /*
 \echo 'List of taboo tags and their corresponding image'
 SELECT i.url, t.noun, t.count 

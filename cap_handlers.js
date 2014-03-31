@@ -9,6 +9,22 @@ var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTG
 var uuid = require('node-uuid');
 var cap_log = require('./cap_logger').cap_log;
 
+// Tag count required to be used
+taboo_count = 5;
+// Number of prompt nouns presented
+max_options = 5;
+// Running sum of passed prompts needed to complete the CAPTCHA
+success_threshold = 5;
+// Max times a user can attempt CAPTCHA prompts in the same sequence
+max_attempts = 10;
+// Multiplier applied to mistakes in attempts, 1 point is awarded for submission
+// and mistake_count * mistake_weight is subtracted from it. Mistake count has a 
+// max value of max_options
+mistake_weight = 1;
+// Maximum number of times in a row a tag can be misattributed to an image before being
+// disregarded.
+max_contention = 3;
+
 
 /////////////////////////// Socket Event Functions /////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -17,7 +33,7 @@ var cap_log = require('./cap_logger').cap_log;
 exports.start_CAPTCHA = function(socket) {
 return function(data) {
 	socket.cap_count = 0;
-	socket.success_count = 0;
+	socket.cap_score = 0;
 	socket.cap_mode = true;
 
 	cap_log('new CAPTCHA',
@@ -27,7 +43,7 @@ return function(data) {
 
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
-			broadcast_message(player1, 'database error');
+			broadcast_message(player1, 'connection error');
 			return console.error('Error establishing connection to client', err);
 		}
 
@@ -38,14 +54,11 @@ return function(data) {
 			done();
 			if (err) {
 				return console.error('error running query (cap token)', err);
-				res.send(500, 'Database error.');
+				socket.emit('connection error');
 			}
-			socket.emit('token', {
+			socket.emit('cap token', {
 				token: token_,
 				uuid: socket.uuid
-			});
-			socket.emit('average score', {
-				average: game_count ? (total_score / game_count) : 0
 			});
 			send_prompt(socket);
 		});
@@ -59,7 +72,56 @@ return function(data) {
 	if(error_handler(socket)) {
 		return;
 	}
-	//YOLO
+
+	socket.cap_count++;
+	var mistake_count = 0;
+	data.choices.forEach(function(choice) {
+		if(!socket.cap_answers[choice]) {
+			mistake_count++;
+			mark_contentious(socket.cap_image.img_id, choice);
+		}
+	});
+	data.not_chosen.forEach(function(choice) {
+		if(socket.cap_answers[choice]) {
+			mistake_count++;
+		} else {
+			not_contentious(socket.cap_image.img_id, choice);
+		}
+	});
+	socket.cap_score += 1 - (mistake_count * mistake_weight);
+
+	cap_log('submission', 
+		socket.uuid,
+		{
+			image: socket.cap_image,
+			prompts: socket.cap_prompts,
+			answers: socket.cap_answers,
+			chosen: data.chosen,
+			not_chosen: data.not_chosen,
+			attempt_count: socket.cap_count,
+			score: socket.cap_score
+		}
+	);
+
+	if(socket.cap_count == max_attempts) {
+		cap_log('failed',
+			socket.uuid,
+			null
+		);
+		socket.emit('CAPTCHA failed')
+		return;
+	} else if(socket.cap_score / success_threshold < 1) {
+		send_prompt(socket);
+	} else {
+		socket.emit('CAPTCHA complete');
+		cap_log('sucess',
+			socket.uuid,
+			null
+		);
+		return;
+	}
+
+	
 }
 }
 
@@ -69,15 +131,164 @@ return function(data) {
 
 
 function error_handler(socket) {
-	if(!socket.game_mode) {
+	if(!socket.cap_mode) {
 		// Prevent server crashing from Dyno idleing
 		socket.emit('connection error');
-		game_log('game issues',
+		cap_log('game issues',
 			socket ? socket.uuid : null,
-			{action: 'flag_handler'}
+			{action: 'connection error'}
 		);
 		return true;
 	}
 	return false;
 }
 
+function send_prompt(socket) {
+	pg.connect(PG_URL, function(err, client, done) {
+		if (err) {
+			broadcast_message(player1, 'connection error');
+			return console.error('Error establishing connection to client', err);
+		}
+
+		var query = 'SELECT * FROM images i INNER JOIN tags t'
+			+ ' ON i.img_id = t.img_id'
+			+ ' WHERE t.count >= ' + taboo_count
+			+ ' ORDER BY random() LIMIT 1;';
+
+		client.query(query, function(err, data) {
+			if (err || !data.rows.length) {
+				return console.error('error running query (cap image)', err);
+				res.send(500, 'connection error.');
+			}
+
+			var img_id = data.rows[0].img_id;
+			socket.cap_image = {
+				img_id: img_id,
+				url: data.rows[0].url,
+				attr: data.rows[0].attribution_url
+			}
+
+			query = 'SELECT * FROM tags t '
+				+ 'WHERE t.img_id = $1 AND t.count >= ' + taboo_count
+				+ 'LIMIT trunc(random() * (' + max_options + ' + 1));';
+
+			client.query(query, [img_id], function(err, data2) {
+				if (err) {
+					return console.error('error running query (cap valid tag)', err);
+					res.send(500, 'connection error.');
+				}
+
+				var nouns_needed = max_options - data2.rowCount;
+				socket.cap_correct_count = data2.rowCount;
+				socket.cap_prompts = [];
+				socket.cap_answers = {};
+				data2.rows.forEach(function(row) {
+					socket.cap_prompts.push(row.noun);
+					socket.cap_answers[row.noun] = true;
+				});
+
+				query = 'SELECT * FROM ('
+					+ ' SELECT DISTINCT noun FROM tags t '
+					+ ' WHERE t.count > 1 AND NOT EXISTS ('
+					+ ' SELECT 1 FROM tags WHERE img_id = $1'
+					+ ' AND noun like \'%\'||t.noun||\'%\''
+					+ ' UNION SELECT 1 FROM contentious_tags WHERE img_id = $1'
+					+ ' AND noun like \'%\'||t.noun||\'%\''
+					+ ' AND count >= ' + max_contention + ')'
+					+ ' ) as temp ORDER BY random() limit $2;';
+
+				client.query(query, [img_id, nouns_needed], function(err, data3) {
+					done();
+					if (err) {
+						return console.error('error running query (cap invalid tag)', err);
+						res.send(500, 'connection error.');
+					}
+
+					data3.rows.forEach(function(row) {
+						socket.cap_prompts.push(row.noun);
+					});
+
+					var percentage = socket.cap_count / (max_attempts - 1) * 100;
+
+					socket.cap_prompts = shuffle(socket.cap_prompts);
+					socket.emit('CAPTCHA prompt', {
+						image: socket.cap_image,
+						prompts: socket.cap_prompts,
+						completion: percentage
+					});
+
+					cap_log('new prompt',
+						socket.uuid,
+						{
+							image: socket.cap_image,
+							prompts: socket.cap_prompts
+						}
+					);
+				});
+			});
+		});
+	});
+}
+
+function mark_contentious(img_id, noun) {
+	pg.connect(PG_URL, function(err, client, done) {
+		if (err) {
+			broadcast_message(player1, 'connection error');
+			return console.error('Error establishing connection to client', err);
+		}
+
+		query = 'INSERT INTO contentious_tags (img_id, noun)' 
+			+' SELECT $1, $2'
+			+' WHERE NOT EXISTS'
+			+' (SELECT 1 FROM contentious_tags where img_id = $1 AND noun = $2);';
+
+		client.query(query, [img_id, noun], function(err, data) {
+			if (err) {
+				return console.error('error running query (mark contentious)', err);
+				socket.emit('connection error');
+			}
+			query = 'UPDATE contentious_tags'
+				+ ' SET count = count + 1'
+				+ ' WHERE img_id = $1 AND noun like \'%\'||$2||\'%\''
+				+ ' RETURNING count;';
+
+			client.query(query, [img_id, noun], function(err, data) {
+				done();
+				if (err) {
+					return console.error('error running query (mark contentious)', err);
+					socket.emit('connection error');
+				}
+			});
+		});
+	});
+}
+
+function not_contentious(img_id, noun) {
+	pg.connect(PG_URL, function(err, client, done) {
+		if (err) {
+			broadcast_message(player1, 'connection error');
+			return console.error('Error establishing connection to client', err);
+		}
+
+		query = 'UPDATE contentious_tags'
+				+ ' SET count = count - 1'
+				+ ' WHERE img_id = $1 AND noun = $2'
+				+ ' RETURNING count;';
+
+		client.query(query, [img_id, noun], function(err, data) {
+			done();
+			if (err) {
+				return console.error('error running query (not contentious)', err);
+				socket.emit('connection error');
+			}
+		});
+	});
+}
+
+//+ Jonas Raoni Soares Silva
+//@ http://jsfromhell.com/array/shuffle [v1.0]
+//link: http://dzone.com/snippets/array-shuffle-javascript
+function shuffle(o){
+    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    return o;
+};

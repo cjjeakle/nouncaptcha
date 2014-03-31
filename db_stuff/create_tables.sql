@@ -79,6 +79,14 @@ VALUES (0);
 ----- CAPTCHA ONLY DB STUFF -----
 ---------------------------------
 
+CREATE TABLE contentious_tags (
+img_id INT,
+noun TEXT,
+count INT DEFAULT 0,
+PRIMARY KEY (img_id, noun),
+FOREIGN KEY (img_id) REFERENCES images ON DELETE CASCADE
+);
+
 CREATE TABLE cap_log (
 log_id SERIAL,
 time TIMESTAMP DEFAULT now(),
