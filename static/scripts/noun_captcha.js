@@ -97,6 +97,7 @@ socket.on('CAPTCHA prompt', function(data) {
 		choice_div.appendChild(choice_text[i]);
 	}
 	progress_bar.style.width = data.completion + '%';
+	submit.style.display = '';
 });
 
 socket.on('CAPTCHA complete', function(data) {
@@ -144,6 +145,7 @@ function send_CAPTCHA() {
 	if(error) {
 		return;
 	}
+	submit.style.display = 'none';
 	chosen = [];
 	not_chosen = [];
 	choices.forEach(function(choice) {
