@@ -12,7 +12,7 @@ var expanded = false;
 var choices = [];
 var choice_text = [];
 
-// TODO: New image button
+// TODO: New image button (refresh)
 
 // Build the CAPTCHA into the page
 //////////////////////////////////

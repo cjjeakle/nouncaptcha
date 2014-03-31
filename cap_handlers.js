@@ -37,6 +37,7 @@ return function(data) {
 	socket.cap_count = 0;
 	socket.cap_score = 0;
 	socket.cap_mode = true;
+	socket.cap_images = [];
 
 	cap_log('new CAPTCHA',
 		socket.uuid,
@@ -156,16 +157,20 @@ function send_prompt(socket) {
 		// TODO: Prevent image repetition
 		var query = 'SELECT * FROM images i INNER JOIN tags t'
 			+ ' ON i.img_id = t.img_id'
-			+ ' WHERE t.count >= ' + taboo_count
-			+ ' ORDER BY random() LIMIT 1;';
+			+ ' WHERE t.count >= ' + taboo_count;
+		for(var i = 0; i < socket.cap_images.length; ++i) {
+			query += ' AND i.img_id != $' + (i + 1); 
+		}
+		query += ' ORDER BY random() LIMIT 1;';
 
-		client.query(query, function(err, data) {
+		client.query(query, socket.cap_images, function(err, data) {
 			if (err || !data.rows.length) {
 				return console.error('error running query (cap image)', err);
 				res.send(500, 'connection error.');
 			}
 
 			var img_id = data.rows[0].img_id;
+			socket.cap_images.push(img_id);
 			socket.cap_image = {
 				img_id: img_id,
 				url: data.rows[0].url,
