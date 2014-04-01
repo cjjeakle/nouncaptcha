@@ -14,11 +14,11 @@ taboo_count = 5;
 // Number of prompt nouns presented
 max_options = 5;
 // Running sum of passed prompts needed to complete the CAPTCHA
-success_threshold = 4;
+success_threshold = 3;
 // Number of attempts required before approval is possible
-min_for_approval = 5;
+min_for_approval = 3;
 // Max times a user can attempt CAPTCHA prompts in the same sequence
-max_attempts = 6;
+max_attempts = 5;
 // Multiplier applied to mistakes in attempts, 1 point is awarded for submission
 // and mistake_count * mistake_weight is subtracted from it. Mistake count has a 
 // max value of max_options
@@ -106,14 +106,15 @@ return function(data) {
 		}
 	);
 
+	console.log(socket.cap_count, socket.cap_score);
+
 	if(socket.cap_count == max_attempts) {
 		cap_log('failed',
 			socket.uuid,
 			null
 		);
 		socket.emit('CAPTCHA failed')
-		return;
-	} else if(socket.cap_count < min_for_approval &&
+	} else if(socket.cap_count < min_for_approval ||
 		socket.cap_score / success_threshold < 1) {
 		send_prompt(socket);
 	} else {
@@ -122,10 +123,7 @@ return function(data) {
 			socket.uuid,
 			null
 		);
-		return;
 	}
-
-	
 }
 }
 
