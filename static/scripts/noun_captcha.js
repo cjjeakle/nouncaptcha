@@ -36,7 +36,7 @@ container.appendChild(instructions);
 // Prompt image
 var image = document.createElement('img');
 image.className = 'img-responsive center-block'
-image.setAttribute('style', 'max-height: 250px; max-width: 300px;')
+image.setAttribute('style', 'max-height: 300px; max-width: 250px;')
 image.setAttribute('onclick', 'toggle_image_size();')
 container.appendChild(image);
 container.appendChild(document.createElement('br'));
@@ -191,7 +191,7 @@ function send_CAPTCHA() {
 
 function toggle_image_size() {
 	if(expanded) {
-		image.setAttribute('style', 'max-height: 250px; max-width: 300px;');
+		image.setAttribute('style', 'max-height: 300px; max-width: 250px;');
 	} else {
 		image.setAttribute('style', 'max-height: 700px; max-width: 700px;')
 	}
