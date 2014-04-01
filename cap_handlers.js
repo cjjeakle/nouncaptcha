@@ -12,7 +12,7 @@ var cap_log = require('./cap_logger').cap_log;
 // Tag count required to be used
 taboo_count = 5;
 // Number of prompt nouns presented
-max_options = 5;
+max_options = 6;
 // Running sum of passed prompts needed to complete the CAPTCHA
 success_threshold = 3;
 // Number of attempts required before approval is possible

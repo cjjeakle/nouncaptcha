@@ -78,9 +78,7 @@ socket.on('CAPTCHA prompt', function(data) {
 		+ '(click the image to enlarge)<br/><br/>';
 	image.src = data.image.url;
 
-	while (choice_div.hasChildNodes()) {
-		choice_div.removeChild(choice_div.lastChild);
-	}
+	// Create the checkboxes and noun labels for the CAPTCHA
 	choices = [];
 	choice_text = [];
 	for(var i = 0; i < data.prompts.length; ++i) {
@@ -92,10 +90,29 @@ socket.on('CAPTCHA prompt', function(data) {
 		choice_text[i].innerHTML = ' ' + data.prompts[i] + '<br/>';
 	}
 
+	// Build the noun options grid
+	choice_table = document.createElement('table');
+	choice_table.setAttribute('style', 'border-collapse:separate; border-spacing:1em;');
+	var cur_row = document.createElement('tr');
 	for(var i = 0; i < choices.length; ++i) {
-		choice_div.appendChild(choices[i]);
-		choice_div.appendChild(choice_text[i]);
+		var cur_col = document.createElement('td');
+		cur_col.appendChild(choices[i]);
+		cur_col.appendChild(choice_text[i]);
+		cur_row.appendChild(cur_col);
+		if(i % 2){
+			choice_table.appendChild(cur_row);
+			cur_row = document.createElement('tr');
+		}
 	}
+	if(choices.length % 2) {
+		choice_table.appendChild(cur_row);
+	}
+	while (choice_div.hasChildNodes()) {
+		choice_div.removeChild(choice_div.lastChild);
+	}
+	choice_div.appendChild(choice_table);
+
+	// Set the progress bar percentage and make the submit button show again
 	progress_bar.style.width = data.completion + '%';
 	submit.style.display = '';
 });
