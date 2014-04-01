@@ -39,6 +39,7 @@ select count(temp.*)  from (
 select count(distinct uuid) from game_log
 where event = 'match' or event = 'seed guesses generated';
 
+/*
 \echo 'Users who did not play the game'
 select * from (
 	select s1.response_id, s1.uuid, s1.how_found from game_survey s1
@@ -47,7 +48,7 @@ select * from (
 	inner join game_log l on l.uuid = s.uuid 
 	where l.event = 'match' or l.event = 'seed guesses generated'
 ) as temp order by temp.response_id;
-
+*/
 /*
 \echo 'List of taboo tags and their corresponding image'
 SELECT i.url, t.noun, t.count 
