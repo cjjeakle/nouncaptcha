@@ -108,7 +108,8 @@ return function(data) {
 
 	console.log(socket.cap_count, socket.cap_score);
 
-	if(socket.cap_count == max_attempts) {
+	if(socket.cap_count == max_attempts && 
+		socket.cap_score / success_threshold < 1) {
 		cap_log('failed',
 			socket.uuid,
 			null
