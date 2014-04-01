@@ -45,8 +45,10 @@ container.appendChild(document.createElement('br'));
 var choice_parent = document.createElement('div');
 choice_parent.style['text-align'] = 'center';
 var choice_div = document.createElement('div');
-choice_div.style.display = 'inline-block';
 choice_div.style['text-align'] = 'left';
+choice_div.style['padding-left'] = '2em';
+choice_div.style['padding-right'] = '2em';
+
 choice_parent.appendChild(choice_div);
 container.appendChild(choice_parent);
 
@@ -90,27 +92,31 @@ socket.on('CAPTCHA prompt', function(data) {
 		choice_text[i].innerHTML = ' ' + data.prompts[i] + '<br/>';
 	}
 
-	// Build the noun options grid
-	choice_table = document.createElement('table');
-	choice_table.setAttribute('style', 'border-collapse:separate; border-spacing:1em;');
-	var cur_row = document.createElement('tr');
-	for(var i = 0; i < choices.length; ++i) {
-		var cur_col = document.createElement('td');
-		cur_col.appendChild(choices[i]);
-		cur_col.appendChild(choice_text[i]);
-		cur_row.appendChild(cur_col);
-		if(i % 2){
-			choice_table.appendChild(cur_row);
-			cur_row = document.createElement('tr');
-		}
-	}
-	if(choices.length % 2) {
-		choice_table.appendChild(cur_row);
-	}
 	while (choice_div.hasChildNodes()) {
 		choice_div.removeChild(choice_div.lastChild);
 	}
-	choice_div.appendChild(choice_table);
+
+	// Build the noun options grid
+	var row = document.createElement('div');
+	row.className = 'row';
+	choice_div.appendChild(row);
+	for(var i = 0; i < choices.length; ++i) {
+		col = document.createElement('div');
+		col.className = 'col-xs-6';
+		col.appendChild(choices[i]);
+		col.appendChild(choice_text[i]);
+		row.appendChild(col);
+		if(i % 2) {
+			choice_div.appendChild(row);
+			row = document.createElement('div');
+			row.className = 'row';
+			row.setAttribute('style', 'margin-top: 10px;');
+		}
+	}
+	row = document.createElement('div');
+	row.className = 'row';
+	row.setAttribute('style', 'margin-top: 10px;');
+	choice_div.appendChild(row);
 
 	// Set the progress bar percentage and make the submit button show again
 	progress_bar.style.width = data.completion + '%';
