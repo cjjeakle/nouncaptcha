@@ -119,7 +119,7 @@ return function(data) {
 		send_prompt(socket);
 	} else {
 		socket.emit('CAPTCHA complete');
-		cap_log('sucess',
+		cap_log('success',
 			socket.uuid,
 			null
 		);
