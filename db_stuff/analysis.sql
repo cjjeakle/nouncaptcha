@@ -8,20 +8,21 @@ ON l1.uuid = l2.uuid AND l2.event like '%disconnect%'
 WHERE l1.event = 'new game' AND l2.event IS NULL
 AND l1.log_id != 356 AND l1.log_id != 1233 
 AND l1.log_id != 1219 AND l1.log_id != 1544 
-and l1.log_id != 1667
+AND l1.log_id != 1667 AND l1.log_id != 2130
+AND l1.log_id != 2140
 ORDER BY l1.log_id DESC;
 
-/*
 \echo 'List of most recent 5 survey responses, their token and image count'
 SELECT s.time, s.how_found, count(*)
 FROM game_log l 
 INNER JOIN game_survey s 
 ON l.uuid = s.uuid 
+INNER JOIN game_tokens t
+on t.uuid = s.uuid
 WHERE l.event = 'starting'
-GROUP BY s.response_id 
+GROUP BY s.response_id, t.token 
 ORDER BY s.time DESC
-LIMIT 10;
-*/
+LIMIT 5;
 
 \echo 'Number of survey responses'
 SELECT count(*) - 1 AS count FROM game_survey;
@@ -61,10 +62,14 @@ ORDER BY t.img_id DESC;
 
 /*
 \echo 'Total number of taboo tags per image'
-SELECT img_id, count(*) FROM tags
-GROUP BY img_id
+SELECT i.img_id, count(*) FROM tags t
+INNER JOIN images i
+ON t.img_id = i.img_id
+WHERE t.count >= 5
+GROUP BY i.img_id
 ORDER by count(*) DESC;
 */
+
 
 \echo 'Number of images with taboo tags'
 SELECT count(DISTINCT img_id) FROM tags

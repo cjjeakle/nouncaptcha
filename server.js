@@ -82,6 +82,7 @@ app.get('/game_test', routes.game_test);
 app.get('/game_survey', routes.game_survey);
 app.get('/game_survey_debrief', routes.game_debrief);
 app.get('/captcha', routes.cap);
+app.get('/start_captcha_survey', function(req, res) {res.redirect('/captcha');})
 
 // Post requests
 app.post('/submit_game_survey', routes.submit_game_survey(pg));
