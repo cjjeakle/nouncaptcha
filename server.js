@@ -73,7 +73,7 @@ server.listen(port, function() {
 
 
 // Get requests
-app.get('/', function(req, res) {res.redirect('/start_game_survey');});
+app.get('/', routes.index);
 app.get('/game', routes.game(pg));
 app.get('/game_HIT', routes.game_HIT);
 app.get('/game_HIT_debrief', routes.game_HIT_debrief);

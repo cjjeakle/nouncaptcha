@@ -4,6 +4,10 @@
 
 var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTGRESQL_CYAN_URL;
 
+exports.index = function(req, res) {
+	res.render('index');
+}
+
 exports.game = function(pg) {
 return function(req, res) {
 	pg.connect(PG_URL, function(err, client, done) {

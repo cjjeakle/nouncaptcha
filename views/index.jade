@@ -1,0 +1,45 @@
+extends layout
+
+block append content	
+	.col-md-10.col-md-offset-1.jumbotron.briefing.centered
+		h1 Welcome to nouncaptcha
+		.text-muted
+			|A CAPTCHA powered by an image tagging game
+		br
+		br
+		.row
+		.col-md-8.col-md-offset-2
+			|Nouncaptcha is a senior thesis project created by a Michigan undergrad.
+			br
+			br
+			|  The project's goal is to build on the ESP game, and recent research on image-based
+			|  CAPTCHAs, to create a highly usable, mobile friendly CAPTCHA. You can help the project
+			|  by giving feedback at the links below.
+		.row
+		br
+		br
+		|Test out 'The Guessing Game', which powers nouncaptcha.
+		.row.centered
+			a(href = '/start_game_survey').btn.btn-success
+				|Try the Game + Survey
+		br
+		|Test out nouncaptcha itself.
+		.row.centered
+			a(href = '/start_captcha_survey').btn.btn-success
+				|Try the CAPTCHA + Survey
+		.row
+	.row
+	.col-sm-3.col-sm-offset-2.centered
+		|Try the game without a survey:
+		br
+		a(href = '/game').btn.btn-success
+			|Try the Game
+		br
+		
+	.col-sm-3.col-sm-offset-2.centered
+		|Try the CAPTCHA without a survey:
+		br
+		a(href = '/captcha').btn.btn-success
+			|Try nouncaptcha
+	.row
+
