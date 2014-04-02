@@ -50,6 +50,7 @@ select * from (
 	where l.event = 'match' or l.event = 'seed guesses generated'
 ) as temp order by temp.response_id;
 */
+
 /*
 \echo 'List of taboo tags and their corresponding image'
 SELECT i.url, t.noun, t.count 
@@ -60,15 +61,14 @@ WHERE t.count >= 5
 ORDER BY t.img_id DESC;
 */
 
-/*
-\echo 'Total number of taboo tags per image'
+
+\echo 'top 5 taboo tag cardinalities'
 SELECT i.img_id, count(*) FROM tags t
 INNER JOIN images i
 ON t.img_id = i.img_id
 WHERE t.count >= 5
 GROUP BY i.img_id
-ORDER by count(*) DESC;
-*/
+ORDER by count(*) DESC limit 5;
 
 
 \echo 'Number of images with taboo tags'

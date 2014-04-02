@@ -14,9 +14,9 @@ taboo_count = 5;
 // Number of prompt nouns presented
 max_options = 6;
 // Running sum of passed prompts needed to complete the CAPTCHA
-success_threshold = 3;
+success_threshold = 2;
 // Number of attempts required before approval is possible
-min_for_approval = 3;
+min_for_approval = 2;
 // Max times a user can attempt CAPTCHA prompts in the same sequence
 max_attempts = 5;
 // Multiplier applied to mistakes in attempts, 1 point is awarded for submission
