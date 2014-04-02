@@ -95,7 +95,11 @@ app.post('/submit_game_survey', routes.submit_game_survey(pg));
 
 io.sockets.on('connection', function (socket) {
 	socket.uuid = uuid.v4();
-
+	socket.on('set uuid', function(data) {
+		socket.uuid = data.uuid;
+		socket.emit('uuid recieved');
+	});
+	
 
 	// Game events
 	socket.on('start game', game_handlers.start_game(socket));

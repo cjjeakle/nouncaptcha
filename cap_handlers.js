@@ -76,7 +76,6 @@ return function(data) {
 		return;
 	}
 
-	socket.cap_count++;
 	var mistake_count = 0;
 	data.choices.forEach(function(choice) {
 		if(!socket.cap_answers[choice]) {
@@ -214,10 +213,11 @@ function send_prompt(socket) {
 						socket.cap_prompts.push(row.noun);
 					});
 
+					socket.cap_count++;
 					var percentage = socket.cap_count / min_for_approval * 60;
 					if(socket.cap_count > min_for_approval) {
-						percentage = 60;
-						percentage += socket.cap_count / max_attempts * 40; 
+						percentage = 50;
+						percentage += socket.cap_count / max_attempts * 50; 
 					}
 
 					socket.cap_prompts = shuffle(socket.cap_prompts);
