@@ -16,7 +16,7 @@ max_options = 6;
 // Running sum of passed prompts needed to complete the CAPTCHA
 success_threshold = 2;
 // Number of attempts required before approval is possible
-min_for_approval = 2;
+min_for_approval = success_threshold;
 // Max times a user can attempt CAPTCHA prompts in the same sequence
 max_attempts = 5;
 // Multiplier applied to mistakes in attempts, 1 point is awarded for submission
@@ -105,8 +105,6 @@ return function(data) {
 			score: socket.cap_score
 		}
 	);
-
-	console.log(socket.cap_count, socket.cap_score);
 
 	if(socket.cap_count == max_attempts && 
 		socket.cap_score / success_threshold < 1) {
@@ -216,7 +214,11 @@ function send_prompt(socket) {
 						socket.cap_prompts.push(row.noun);
 					});
 
-					var percentage = socket.cap_count / (max_attempts - 1) * 100;
+					var percentage = socket.cap_count / min_for_approval * 60;
+					if(socket.cap_count > min_for_approval) {
+						percentage = 60;
+						percentage += socket.cap_count / max_attempts * 40; 
+					}
 
 					socket.cap_prompts = shuffle(socket.cap_prompts);
 					socket.emit('CAPTCHA prompt', {
