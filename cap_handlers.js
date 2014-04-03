@@ -98,7 +98,7 @@ return function(data) {
 			image: socket.cap_image,
 			prompts: socket.cap_prompts,
 			answers: socket.cap_answers,
-			chosen: data.chosen,
+			chosen: data.choices,
 			not_chosen: data.not_chosen,
 			attempt_count: socket.cap_count,
 			score: socket.cap_score
