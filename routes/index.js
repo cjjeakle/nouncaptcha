@@ -182,7 +182,7 @@ exports.captcha_survey = function(req, res) {
 }
 
 exports.submit_captcha_survey = function(req, res) {
-	// PG Stuff to store the responses
+	// TODO: This stuff
 	var uuid = req.body.uuid;
 	var data = req.body;
 	var input = [

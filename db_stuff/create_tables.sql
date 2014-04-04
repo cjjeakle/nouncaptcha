@@ -55,7 +55,6 @@ followed_rules BOOLEAN,
 nouns_only BOOLEAN,
 image_quality BOOLEAN,
 how_found TEXT,
-suggestions TEXT,
 comments TEXT,
 PRIMARY KEY (response_id)
 );
@@ -157,8 +156,13 @@ input TEXT,
 enjoyed BOOLEAN,
 understood BOOLEAN,
 image_quality BOOLEAN,
+prefer_check BOOLEAN,
+cap_obv BOOLEAN,
+recap_obv BOOLEAN,
+easier INT DEFAULT 0,
+faster INT DEFAULT 0,
+preferable INT DEFAULT 0,
 how_found TEXT,
-suggestions TEXT,
 comments TEXT,
 PRIMARY KEY (response_id)
 );

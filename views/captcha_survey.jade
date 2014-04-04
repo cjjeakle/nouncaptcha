@@ -9,13 +9,15 @@ block append content
 			h2 Exit Survey
 		br
 		form(name = 'cap_survey', method = 'POST', action = '/submit_captcha_survey')
-			.col-md-6
-				|What is your native language? 
+			.col-md-5.col-md-offset-1
+				b
+					|What is your native language? 
 				br
 				input(type = 'text', name = 'language')
 				br
 				br
-				|Do you speak english?
+				b
+					|Do you speak english?
 				br
 				input(type = 'radio', name = 'english', value = 'TRUE')
 				|  Yes
@@ -24,21 +26,25 @@ block append content
 				|  No
 				br
 				br
-				|What country are you in?
+				b
+					|What country are you in?
 				br
 				input(type = 'text', name = 'country')
 				br
-				|If in the US, what state are you in?
+				b
+					|If in the US, what state are you in?
 				br
 				input(type = 'text', name = 'state')
 				br
 				br
-				|What is your age?
+				b
+					|What is your age?
 				br
 				input(type = 'number', name = 'age', min = '0', value = '0')
 				br
 				br
-				|What is your gender?
+				b
+					|What is your gender?
 				br
 				input(type = 'radio', name = 'sex', value = 'Male')
 				|  Male
@@ -47,7 +53,8 @@ block append content
 				|  Female
 				br
 				br
-				|How much education do you have (or are getting)?
+				b
+					|How much education do you have (or are getting)?
 				br
 				input(type = 'radio', name = 'education', value = 'Less that HS')
 				|  Less than High School
@@ -63,8 +70,9 @@ block append content
 				br
 				input(type = 'radio', name = 'education', value = 'Greater than BS')
 				|  Greater than Bachelor's Degree
-			.col-md-6
-				|What type of input did you use?
+			.col-md-5
+				b
+					|What type of input did you use?
 				br
 				input(type = 'radio', name = 'input', value = 'Keyboard and Mouse')
 				|  Keyboard and Mouse
@@ -78,34 +86,18 @@ block append content
 					|     
 				br
 				br
-				|Did you enjoy the game?
+				b
+					|Did you understand nouncaptcha's instructions?
 				br
-				input(type = 'radio', name = 'enjoyed', value = 'TRUE')
+				input(type = 'radio', name = 'understood', value = 'TRUE')
 				|  Yes
 				br
-				input(type = 'radio', name = 'enjoyed', value = 'FALSE')
+				input(type = 'radio', name = 'understood', value = 'FALSE')
 				|  No
 				br
 				br
-				|Did you follow the game's instructions?
-				br
-				input(type = 'radio', name = 'followed_rules', value = 'TRUE')
-				|  Yes
-				br
-				input(type = 'radio', name = 'followed_rules', value = 'FALSE')
-				|  No
-				br
-				br
-				|Did you only provide nouns in your responses?
-				br
-				input(type = 'radio', name = 'nouns_only', value = 'TRUE')
-				|  Yes
-				br
-				input(type = 'radio', name = 'nouns_only', value = 'FALSE')
-				|  No
-				br
-				br
-				|Were the images large enough and easy to understand?
+				b
+					|Were the images large enough and easy to understand?
 				br
 				input(type = 'radio', name = 'image_quality', value = 'TRUE')
 				|  Yes
@@ -114,27 +106,122 @@ block append content
 				|  No
 				br
 				br
-				|How did you find this survey?
+				b
+					|Which style of CAPTCHA did you prefer?
+				br
+				input(type = 'radio', name = 'prefer_check', value = 'TRUE')
+				|  Checkboxes
+				br
+				input(type = 'radio', name = 'prefer_check', value = 'FALSE')
+				|  Text input
+				br
+				br
+				b
+					|Did the answers to the check box CAPTCHA seem obvious?
+				input(type = 'radio', name = 'cap_obv', value = 'TRUE')
+				|  Yes
+				br
+				input(type = 'radio', name = 'cap_obv', value = 'FALSE')
+				|  No
+				br
+				br
+				b
+					|Did the answers to the reCAPTCHA prompts seem obvious?
+				br
+				input(type = 'radio', name = 'recap_obv', value = 'TRUE')
+				|  Yes
+				br
+				input(type = 'radio', name = 'recap_obv', value = 'FALSE')
+				|  No
+				br
+				br
+				b
+					|Which CAPTCHA was easier?
+				br 
+				.text-muted
+					|(the button closest to an option means it was much easier,
+					|  toward the middle means both are similar)
+				|Nouncaptcha
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'easier', value = '1')
+				|&nbsp;&nbsp;
+				input(type = 'radio', name = 'easier', value = '2')
+				|&nbsp;&nbsp;
+				input(type = 'radio', name = 'easier', value = '3')
+				|&nbsp;&nbsp;
+				input(type = 'radio', name = 'easier', value = '4')
+				|&nbsp;&nbsp;
+				input(type = 'radio', name = 'easier', value = '5')
+				|&nbsp;&nbsp;&nbsp;
+				|reCAPTCHA
+				br
+				br
+				b
+					|Which CAPTCHA was faster?
+				br 
+				.text-muted
+					|(the button closest to an option means it was much faster,
+					|  toward the middle means both are similar)
+				|Nouncaptcha
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'faster', value = '1')
+				|&nbsp;&nbsp;
+				input(type = 'radio', name = 'faster', value = '2')
+				|&nbsp;&nbsp;
+				input(type = 'radio', name = 'faster', value = '3')
+				|&nbsp;&nbsp;
+				input(type = 'radio', name = 'faster', value = '4')
+				|&nbsp;&nbsp;
+				input(type = 'radio', name = 'faster', value = '5')
+				|&nbsp;&nbsp;&nbsp;
+				|reCAPTCHA
+				br
+				br
+				b
+					|Which CAPTCHA would you rather use for both mobile and desktop computing?
+				br 
+				.text-muted
+					|(the button closest to an option means it is more preferable,
+					|  toward the middle means both are similar)
+				|Nouncaptcha
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'preferable', value = '1')
+				|&nbsp;&nbsp;
+				input(type = 'radio', name = 'preferable', value = '2')
+				|&nbsp;&nbsp;
+				input(type = 'radio', name = 'preferable', value = '3')
+				|&nbsp;&nbsp;
+				input(type = 'radio', name = 'preferable', value = '4')
+				|&nbsp;&nbsp;
+				input(type = 'radio', name = 'preferable', value = '5')
+				|&nbsp;&nbsp;&nbsp;
+				|reCAPTCHA
+				br
+				br
+			.row
+			br
+			br
+			.col-md-6.col-md-offset-3.centered
+				b
+					|How did you come across this survey?
 				br
 				input(type = 'text', name = 'how_found')
 				br
-			.row
-			br
-			br
-			.col-md-6
-				|Do you have any suggestions or input on the game?
 				br
-				textarea(name = 'suggestions')
-			.col-md-6
-				|Leave any additional comments here.
+				b
+					|Do you have any suggestions, comments, or input for nouncaptcha?
 				br
 				textarea(name = 'comments')
-				br
-				br
 			.row
 			input(type = 'text', id = 'uuid', name = 'uuid').hide
+			input(type = 'text', id = 'recap_data', name = 'recap_data').hide
+			input(type = 'text', id = 'prac_data', name = 'prac_data').hide
+			input(type = 'text', id = 'cap_data', name = 'cap_data').hide
 			script.
-				document.getElementById('uuid').value = localStorage.getItem('uuid');
+				document.getElementById('uuid').value = localStorage.getItem('cap_uuid');
+				document.getElementById('recap_data').value = localStorage.getItem('recap_data');
+				document.getElementById('prac_data').value = localStorage.getItem('prac_data');
+				document.getElementById('cap_data').value = localStorage.getItem('cap_data');
 			.centered
 				input(type = 'submit', value = 'submit').btn.btn-lg.btn-success
 			br
