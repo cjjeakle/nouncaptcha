@@ -1,0 +1,83 @@
+extends layout
+
+block append content	
+	script.
+		if(typeof(Storage)=="undefined")
+		{
+			alert('Your browser does not support local storage. ' +
+				' You will need that feature for the survey to work properly.\n\n' + 
+				'Please enable web storage or download the latest version of Chrome, Firefox, or IE.')
+		}
+	.jumbotron.briefing
+		h1 nouncaptcha Usability Study
+		br
+		.row
+		div.col-lg-4.col-lg-offset-1
+			br
+			h3 Procedure:
+			br
+			ol
+				li
+					|You will try 3 reCAPTCHA prompts
+				br
+				li
+					|You will practice 5 mini-nouncaptchas
+				br
+				li
+					|You will try a real nouncaptcha
+				br
+				li
+					|You will take a 1-page survey on your experience.
+			li
+				b
+					|Expected time commitment: 6 minutes.
+			br
+		div.col-lg-4.col-lg-offset-2
+			br
+			h3 Survey Info:
+			br
+			li
+				|Please note that this survey is part of an IRB exempt 
+				|  study by a University of Michigan student.
+			br
+			li
+				|You may end your participation at any time if you wish to do so,
+				|  and may refuse to answer any survey question you feel the need to.
+			br
+			li
+				|If you have any questions, 
+				|  or if you need help solving a technical difficulty, please contact:
+				a(href='mailto:nouncaptcha@umich.edu')
+					|  nouncaptcha@umich.edu
+				|.
+			br
+		.row
+		div.col-lg-4.col-lg-offset-1
+			br
+			h3 User Requirements:
+			br
+			li
+				|You must be 18 years or older to participate in this study. 
+			br
+			li
+				|You must be using a modern browser (Chrome, Firefox, IE 8+).
+			br
+		div.col-lg-4.col-lg-offset-2
+			br
+			h3 Game Background:
+			br
+			li
+				|nouncaptcha is inspired by a combination of the
+				a(href = 'http://server251.theory.cs.cmu.edu/cgi-bin/esp-pix/esp-pix', target = '_blank')
+					|  ESP-PIX CAPTCHA
+				|, and
+				a(href = 'http://research.microsoft.com/en-us/um/redmond/projects/asirra/', target = '_blank')
+					|  Microsoft's Asirra CAPTCHA
+			br
+		.row
+	.row
+	.centered
+		|Press the button below to continue:
+		br
+		a(href = '/recaptcha_test').btn.btn-success
+			|Continue to Survey

@@ -11,8 +11,9 @@ var error = false;
 var expanded = false;
 var choices = [];
 var choice_text = [];
-var cap_data = {};
-var start = new Date();
+var prac_data = [];
+var prac_log = [];
+var start;
 
 // Build the CAPTCHA into the page
 //////////////////////////////////
@@ -73,10 +74,13 @@ container.appendChild(progress_container);
 // Socket Interaction
 /////////////////////
 
-socket.emit('start CAPTCHA');
+socket.emit('set uuid', localStorage.getItem('cap_uuid'));
+socket.on('uuid recieved', function(data) {
+	socket.emit('start CAPTCHA');
+});
 
 socket.on('CAPTCHA prompt', function(data) {
-	instructions.innerHTML = 'Are any of the listed nouns in this image?<br/>'
+	instructions.innerHTML = 'Check all nouns in the image, there may be none.<br/>'
 		+ '(click the image to enlarge)<br/><br/>';
 	image.src = data.image.url;
 
@@ -126,45 +130,12 @@ socket.on('CAPTCHA prompt', function(data) {
 	// Set the progress bar percentage and make the submit button show again
 	progress_bar.style.width = data.completion + '%';
 	submit.style.display = '';
+
+	start = new Date();
+	prac_data.push(data);
 });
 
-socket.on('CAPTCHA complete', function(data) {
-	while (container.hasChildNodes()) {
-		container.removeChild(container.lastChild);
-	}
-	container.appendChild(header);
-	container.appendChild(document.createElement('br'));
-	var msg = document.createElement('textNode');
-	msg.innerHTML = 'Success! <br/><br/>';
-	container.appendChild(msg);
-	var continue_btn = document.createElement('a');
-	continue_btn.className = 'btn btn-sm btn-success';
-	continue_btn.innerHTML = 'continue';
-	continue_btn.href = link;
-	container.appendChild(continue_btn);
-	container.appendChild(progress_container);
-	progress_bar.style.width = '100%';
-	save_data(true);
-});
-
-socket.on('CAPTCHA failed', function(data) {
-	while (container.hasChildNodes()) {
-		container.removeChild(container.lastChild);
-	}
-	container.appendChild(header);
-	container.appendChild(document.createElement('br'));
-	var msg = document.createElement('textNode');
-	msg.innerHTML = 'Try again! <br/><br/>';
-	container.appendChild(msg);
-	var continue_btn = document.createElement('a');
-	continue_btn.className = 'btn btn-sm btn-info';
-	continue_btn.innerHTML = 'continue';
-	continue_btn.href = link;
-	container.appendChild(continue_btn);
-	container.appendChild(progress_container);
-	progress_bar.style.width = '100%';
-	save_data(false);
-});
+socket.on('practice done', end_prac);
 
 socket.on('connection error', function(data) {
 	alert('nouncaptcha:\nThere has been a connection error.');
@@ -185,9 +156,27 @@ function send_CAPTCHA() {
 			not_chosen.push(choice.value);
 		}
 	});
+
+	var cur_data = prac_data[prac_data.length - 1];
+	var score = 1;
+	chosen.forEach(function(choice) {
+		if(!cur_data.answers[choice]) {
+			score--;
+		}
+	});
+	not_chosen.forEach(function(choice) {
+		if(cur_data.answers[choice]) {
+			score--;
+		}
+	});
+
+	cur_data.time = new Date() - start;
+	cur_data.score = score;
+
 	socket.emit('CAPTCHA submission', {
 		choices: chosen, 
-		not_chosen: not_chosen
+		not_chosen: not_chosen,
+		practice: true
 	});
 }
 
@@ -205,10 +194,26 @@ function toggle_image_size() {
 	expanded = !expanded;
 }
 
-function save_data(success_) {
-	localStorage.setItem('cap_data', JSON.stringify({
-		time: new Date() - start,
-		success: success_
-	}));
+function end_prac (data) {
+	while (container.hasChildNodes()) {
+		container.removeChild(container.lastChild);
+	}
+	container.appendChild(header);
+	container.appendChild(document.createElement('br'));
+	var msg = document.createElement('textNode');
+	msg.innerHTML = 'You\'re ready for the real thing! <br/><br/>';
+	container.appendChild(msg);
+	save_data();
+	var continue_btn = document.createElement('a');
+	continue_btn.className = 'btn btn-sm btn-success';
+	continue_btn.innerHTML = 'continue';
+	continue_btn.href = '/captcha_test';
+	container.appendChild(continue_btn);
+	container.appendChild(progress_container);
+	progress_bar.style.width = '100%';
+}
+
+function save_data() {
+	localStorage.setItem('prac_data', JSON.stringify(prac_data));
 }
 

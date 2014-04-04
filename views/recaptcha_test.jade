@@ -1,0 +1,61 @@
+extends layout
+
+block append content
+	script.
+		localStorage.setItem('cap_survey_done', 'true');
+		localStorage.setItem('cap_uuid', '#{uuid}');
+		localStorage.setItem('cap_token', '#{token}');
+		var data = JSON.parse('!{JSON.stringify(prompts)}');
+		var start;
+		var lock = false;
+		var count = 0;
+		function toggle (elt) {
+			if(lock) {
+				return;
+			}
+			var on = document.getElementById('recaptcha' + elt);
+			var off = document.getElementById('activate' + elt);
+			on.style.display = '';
+			off.style.display = 'none';
+			start = new Date();
+			lock  = true;
+			on.focus();
+		}
+		function submit (i) {
+			data[i].time = new Date() - start;
+			data[i].attempt = document.getElementById('input' + i).value;
+			if(!data[i].attempt) {
+				alert('Please attempt the prompt.')
+				return;
+			}
+			document.getElementById('recaptcha' + i).style.display = 'none';
+			lock = false;
+			count++;
+			if(count == '#{prompts.length}') {
+				localStorage.setItem('recap_data', JSON.stringify(data));
+				document.getElementById('next_btn').style.display = '';
+			}
+		}
+	.jumbotron.briefing.centered
+		h2 1. reCAPTCHA prompts
+		|Please try each prompt, one at a time.
+		.row
+		br
+		br
+		.col-sm-6.col-sm-offset-3
+			each val, index in prompts
+				div(id = ('activate' + index))
+					a(href = 'javascript: toggle("#{index}");')
+						|Activate Prompt #{index + 1}
+				div(id = ('recaptcha' + index), style = 'display:none;')
+					img(src = '#{val.url}').img-responsive.center-block
+					br
+					input(type = 'text', id = ('input' + index))
+					a(href = 'javascript:submit(#{index});').btn.btn-xs.btn-success
+						|Submit
+				.row
+				br
+				br
+		.row
+		a(href = '/captcha_practice', id = 'next_btn' style = 'display:none').btn.btn-md.btn-success
+			|Next

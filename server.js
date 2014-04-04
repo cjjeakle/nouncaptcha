@@ -75,20 +75,29 @@ server.listen(port, function() {
 
 
 // Get requests
+///////////////////
 app.get('/', routes.index);
-app.get('/game', routes.game(pg));
+// Game
+app.get('/game', routes.game);
 app.get('/game_HIT', routes.game_HIT);
 app.get('/game_HIT_debrief', routes.game_HIT_debrief);
 app.get('/start_game_survey', routes.game_info);
 app.get('/game_test', routes.game_test);
 app.get('/game_survey', routes.game_survey);
 app.get('/game_survey_debrief', routes.game_debrief);
+// CAPTCHA
 app.get('/captcha', routes.cap);
-app.get('/start_captcha_survey', function(req, res) {res.redirect('/captcha');})
+app.get('/start_captcha_survey', routes.start_captcha_survey);
+app.get('/recaptcha_test', routes.recaptcha_test);
+app.get('/captcha_practice', routes.captcha_practice);
+app.get('/captcha_test', routes.captcha_test);
+app.get('/captcha_survey', routes.captcha_survey);
+app.get('/captcha_debrief', routes.captcha_debrief);
 
 // Post requests
-app.post('/submit_game_survey', routes.submit_game_survey(pg));
-
+///////////////////
+app.post('/submit_game_survey', routes.submit_game_survey);
+app.post('/submit_captcha_survey', routes.submit_captcha_survey);
 
 //////////////////////////////// Socket Handlers ///////////////////////////////
 

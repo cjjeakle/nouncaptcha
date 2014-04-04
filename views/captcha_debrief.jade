@@ -1,0 +1,21 @@
+extends layout
+
+block append content	
+	.jumbotron.col-md-6.col-md-offset-3
+		h2.centered That's all!
+		br
+		|If needed, your completion token is: 
+		br
+		div(id = 'token', style = 'display:inline-block;')
+		script.
+			if(localStorage.getItem('cap_survey_done') == 'true') {
+				document.getElementById('token').innerHTML = localStorage.getItem('cap_token');
+			} else {
+				document.getElementById('token').innerHTML = 
+					'Records indicate you did not complete the entire survey.';
+			}
+		br
+		br
+		a(href = '/').btn.btn-lg.btn-success.center-block
+			|Return to nouncaptcha Home
+	.row

@@ -44,28 +44,7 @@ return function(data) {
 		null
 	);
 
-	pg.connect(PG_URL, function(err, client, done) {
-		if (err) {
-			broadcast_message(player1, 'connection error');
-			return console.error('Error establishing connection to client', err);
-		}
-
-		query = 'INSERT INTO cap_tokens (uuid, token) VALUES($1, $2)';
-		var token_ = uuid.v4();
-
-		client.query(query, [socket.uuid, token_], function(err, data) {
-			done();
-			if (err) {
-				return console.error('error running query (cap token)', err);
-				socket.emit('connection error');
-			}
-			socket.emit('cap token', {
-				token: token_,
-				uuid: socket.uuid
-			});
-			send_prompt(socket);
-		});
-	});
+	send_prompt(socket);
 }
 }
 
@@ -101,9 +80,20 @@ return function(data) {
 			chosen: data.choices,
 			not_chosen: data.not_chosen,
 			attempt_count: socket.cap_count,
-			score: socket.cap_score
+			score: socket.cap_score,
+			practice: data.practice
 		}
 	);
+
+	// Don't evaluate score in practice mode
+	if(data.practice) {
+		if(socket.cap_count == max_attempts) {
+			socket.emit('practice done');
+		} else {
+			send_prompt(socket);
+		}
+		return;
+	}
 
 	if(socket.cap_count == max_attempts && 
 		socket.cap_score / success_threshold < 1) {
@@ -220,10 +210,12 @@ function send_prompt(socket) {
 						percentage += socket.cap_count / max_attempts * 50; 
 					}
 
+					// Remove cap_answers from below in prod, only added to make survey easier
 					socket.cap_prompts = shuffle(socket.cap_prompts);
 					socket.emit('CAPTCHA prompt', {
 						image: socket.cap_image,
 						prompts: socket.cap_prompts,
+						answers: socket.cap_answers,
 						completion: percentage
 					});
 
