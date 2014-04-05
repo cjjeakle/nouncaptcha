@@ -25,7 +25,7 @@ max_attempts = 5;
 mistake_weight = 1;
 // Maximum number of times in a row a tag can be misattributed to an image before being
 // disregarded.
-max_contention = 3;
+max_contention = 2;
 
 
 /////////////////////////// Socket Event Functions /////////////////////////////
