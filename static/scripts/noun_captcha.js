@@ -76,7 +76,7 @@ container.appendChild(progress_container);
 socket.emit('start CAPTCHA');
 
 socket.on('CAPTCHA prompt', function(data) {
-	instructions.innerHTML = 'Are any of the listed nouns in this image?<br/>'
+	instructions.innerHTML = 'Check all nouns in the image, there may be none.<br/>'
 		+ '(click the image to enlarge)<br/><br/>';
 	image.src = data.image.url;
 
@@ -90,10 +90,10 @@ socket.on('CAPTCHA prompt', function(data) {
 		choices[i].style['margin-right'] = '.5em';
 		choices[i].value = data.prompts[i];
 		choice_text.push(document.createElement('a'));
-		choice_text[i].href = 
-			'javascript:' 
-			+ 'var temp = document.getElementById(\'noun' + i + '\');'
-			+ 'temp.checked = !temp.checked;';
+		choice_text[i].setAttribute('onclick', 
+			'var temp = document.getElementById(\'noun' + i + '\');'
+			+ 'temp.checked = !temp.checked;'
+		);
 		choice_text[i].innerHTML = data.prompts[i] + '<br/>';
 	}
 
@@ -154,7 +154,9 @@ socket.on('CAPTCHA failed', function(data) {
 	container.appendChild(header);
 	container.appendChild(document.createElement('br'));
 	var msg = document.createElement('textNode');
-	msg.innerHTML = 'Try again! <br/><br/>';
+	msg.innerHTML = 'It looks like you did not pass the CAPTCHA.'
+		+ ' <br/>Don\'t worry though! Your response will help improve'
+		+ ' nouncaptcha and prevent false negatives. <br/><br/>';
 	container.appendChild(msg);
 	var continue_btn = document.createElement('a');
 	continue_btn.className = 'btn btn-sm btn-info';

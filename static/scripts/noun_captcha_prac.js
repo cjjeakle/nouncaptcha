@@ -94,10 +94,10 @@ socket.on('CAPTCHA prompt', function(data) {
 		choices[i].style['margin-right'] = '.5em';
 		choices[i].value = data.prompts[i];
 		choice_text.push(document.createElement('a'));
-		choice_text[i].href = 
-			'javascript:' 
-			+ 'var temp = document.getElementById(\'noun' + i + '\');'
-			+ 'temp.checked = !temp.checked;';
+		choice_text[i].setAttribute('onclick', 
+			'var temp = document.getElementById(\'noun' + i + '\');'
+			+ 'temp.checked = !temp.checked;'
+		);
 		choice_text[i].innerHTML = data.prompts[i] + '<br/>';
 	}
 

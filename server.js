@@ -92,7 +92,7 @@ app.get('/recaptcha_test', routes.recaptcha_test);
 app.get('/captcha_practice', routes.captcha_practice);
 app.get('/captcha_test', routes.captcha_test);
 app.get('/captcha_survey', routes.captcha_survey);
-app.get('/captcha_debrief', routes.captcha_debrief);
+app.get('/captcha_survey_debrief', routes.captcha_debrief);
 
 // Post requests
 ///////////////////

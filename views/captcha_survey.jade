@@ -1,8 +1,6 @@
 extends layout
 
 block append content
-	script.
-		localStorage.setItem('cap_survey_done', 'true');
 	br
 	.jumbotron
 		.centered
@@ -16,6 +14,7 @@ block append content
 				input(type = 'text', name = 'language')
 				br
 				br
+				br
 				b
 					|Do you speak english?
 				br
@@ -24,6 +23,7 @@ block append content
 				br
 				input(type = 'radio', name = 'english', value = 'FALSE')
 				|  No
+				br
 				br
 				br
 				b
@@ -37,10 +37,12 @@ block append content
 				input(type = 'text', name = 'state')
 				br
 				br
+				br
 				b
 					|What is your age?
 				br
 				input(type = 'number', name = 'age', min = '0', value = '0')
+				br
 				br
 				br
 				b
@@ -51,6 +53,7 @@ block append content
 				br
 				input(type = 'radio', name = 'sex', value = 'Female')
 				|  Female
+				br
 				br
 				br
 				b
@@ -72,6 +75,7 @@ block append content
 				|  Greater than Bachelor's Degree
 				br
 				br
+				br
 				b
 					|What type of input did you use?
 				br
@@ -82,9 +86,10 @@ block append content
 				|  Touch
 				br
 				input(type = 'radio', name = 'input', value = 'Other')
-				|  Other&nbsp;&nbsp;
+				|  Other&nbsp;&nbsp;&nbsp;
 				input(type = 'text', name = 'input_other')
 					|     
+				br
 				br
 				br
 				b
@@ -108,6 +113,7 @@ block append content
 				|  No
 				br
 				br
+				br
 				b
 					|Which style of CAPTCHA did you prefer?
 				br
@@ -116,6 +122,7 @@ block append content
 				br
 				input(type = 'radio', name = 'prefer_check', value = 'FALSE')
 				|  Text input
+				br
 				br
 				br
 				b
@@ -128,6 +135,7 @@ block append content
 				|  No
 				br
 				br
+				br
 				b
 					|Did the answers to the reCAPTCHA prompts seem obvious?
 				br
@@ -138,25 +146,28 @@ block append content
 				|  No
 				br
 				br
+				br
+				br
 				b
 					|Which CAPTCHA was easier?
 				br 
 				.text-muted
 					|(the button closest to an option means it was much easier,
 					|  toward the middle means both are similar)
-				|Nouncaptcha
-				|&nbsp;&nbsp;&nbsp;
-				input(type = 'radio', name = 'easier', value = '1')
-				|&nbsp;&nbsp;
-				input(type = 'radio', name = 'easier', value = '2')
-				|&nbsp;&nbsp;
-				input(type = 'radio', name = 'easier', value = '3')
-				|&nbsp;&nbsp;
-				input(type = 'radio', name = 'easier', value = '4')
-				|&nbsp;&nbsp;
-				input(type = 'radio', name = 'easier', value = '5')
-				|&nbsp;&nbsp;&nbsp;
 				|reCAPTCHA
+				|&nbsp;&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'easier', value = '1')
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'easier', value = '2')
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'easier', value = '3')
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'easier', value = '4')
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'easier', value = '5')
+				|&nbsp;&nbsp;&nbsp;&nbsp;
+				|Nouncaptcha
+				br
 				br
 				br
 				b
@@ -165,19 +176,20 @@ block append content
 				.text-muted
 					|(the button closest to an option means it was much faster,
 					|  toward the middle means both are similar)
-				|Nouncaptcha
-				|&nbsp;&nbsp;&nbsp;
-				input(type = 'radio', name = 'faster', value = '1')
-				|&nbsp;&nbsp;
-				input(type = 'radio', name = 'faster', value = '2')
-				|&nbsp;&nbsp;
-				input(type = 'radio', name = 'faster', value = '3')
-				|&nbsp;&nbsp;
-				input(type = 'radio', name = 'faster', value = '4')
-				|&nbsp;&nbsp;
-				input(type = 'radio', name = 'faster', value = '5')
-				|&nbsp;&nbsp;&nbsp;
 				|reCAPTCHA
+				|&nbsp;&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'faster', value = '1')
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'faster', value = '2')
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'faster', value = '3')
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'faster', value = '4')
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'faster', value = '5')
+				|&nbsp;&nbsp;&nbsp;&nbsp;
+				|Nouncaptcha
+				br
 				br
 				br
 				b
@@ -186,19 +198,20 @@ block append content
 				.text-muted
 					|(the button closest to an option means it is more preferable,
 					|  toward the middle means both are similar)
-				|Nouncaptcha
-				|&nbsp;&nbsp;&nbsp;
-				input(type = 'radio', name = 'preferable', value = '1')
-				|&nbsp;&nbsp;
-				input(type = 'radio', name = 'preferable', value = '2')
-				|&nbsp;&nbsp;
-				input(type = 'radio', name = 'preferable', value = '3')
-				|&nbsp;&nbsp;
-				input(type = 'radio', name = 'preferable', value = '4')
-				|&nbsp;&nbsp;
-				input(type = 'radio', name = 'preferable', value = '5')
-				|&nbsp;&nbsp;&nbsp;
 				|reCAPTCHA
+				|&nbsp;&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'preferable', value = '1')
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'preferable', value = '2')
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'preferable', value = '3')
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'preferable', value = '4')
+				|&nbsp;&nbsp;&nbsp;
+				input(type = 'radio', name = 'preferable', value = '5')
+				|&nbsp;&nbsp;&nbsp;&nbsp;
+				|Nouncaptcha
+				br
 				br
 				br
 			.row
@@ -226,7 +239,7 @@ block append content
 				document.getElementById('prac_data').value = localStorage.getItem('prac_data');
 				document.getElementById('cap_data').value = localStorage.getItem('cap_data');
 			.centered
-				input(type = 'submit', value = 'submit').btn.btn-lg.btn-success
+				input(type = 'submit', value = 'submit', onclick = 'localStorage.setItem("cap_survey_done", "true");').btn.btn-lg.btn-success
 			br
 			br
 		.row

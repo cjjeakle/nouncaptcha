@@ -2,7 +2,7 @@ extends layout
 
 block append content
 	script.
-		localStorage.setItem('cap_survey_done', 'true');
+		localStorage.setItem('cap_survey_done', 'false');
 		localStorage.setItem('cap_uuid', '#{uuid}');
 		localStorage.setItem('cap_token', '#{token}');
 		var data = JSON.parse('!{JSON.stringify(prompts)}');
