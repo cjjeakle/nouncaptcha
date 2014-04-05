@@ -1,3 +1,4 @@
+
 CREATE TABLE recap_prompts (
 	cap_id SERIAL,
 	url TEXT,
@@ -5,7 +6,7 @@ CREATE TABLE recap_prompts (
 	PRIMARY KEY (cap_id)
 );
 
-INSERT INTO recaptcha_prompts (url, solution)
+INSERT INTO recap_prompts (url, solution)
 VALUES ('https://nouncaptcha.s3.amazonaws.com/recaptcha/cap0.jpg', '244452440'),
 	('https://nouncaptcha.s3.amazonaws.com/recaptcha/cap1.jpg', '2446454615'),
 	('https://nouncaptcha.s3.amazonaws.com/recaptcha/cap2.jpg', '12032855469'),
