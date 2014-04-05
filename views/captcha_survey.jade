@@ -2,7 +2,7 @@ extends layout
 
 block append content
 	br
-	.jumbotron
+	.jumbotron.minimal_border
 		.centered
 			h2 4. Exit Survey
 		br
@@ -154,9 +154,9 @@ block append content
 				.text-muted
 					|(the button closest to an option means it was much easier,
 					|  toward the middle means both are similar)
-				.centered
+				div(style = 'white-space:nowrap;').centered
 					|reCAPTCHA
-					|................
+					|........
 					|Nouncaptcha
 					br
 					input(type = 'radio', name = 'easier', value = '1')
@@ -176,9 +176,9 @@ block append content
 				.text-muted
 					|(the button closest to an option means it was much faster,
 					|  toward the middle means both are similar)
-				.centered
+				div(style = 'white-space:nowrap;').centered
 					|reCAPTCHA
-					|................
+					|........
 					|Nouncaptcha
 					br
 					input(type = 'radio', name = 'faster', value = '1')
@@ -198,9 +198,9 @@ block append content
 				.text-muted
 					|(the button closest to an option means it is more preferable,
 					|  toward the middle means both are similar)
-				.centered
+				div(style = 'white-space:nowrap;').centered
 					|reCAPTCHA
-					|................
+					|........
 					|Nouncaptcha
 					br
 					input(type = 'radio', name = 'preferable', value = '1')
