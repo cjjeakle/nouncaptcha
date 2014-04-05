@@ -85,7 +85,7 @@ socket.on('uuid recieved', function(data) {
 });
 
 socket.on('CAPTCHA prompt', function(data) {
-	instructions.innerHTML = 'Check all nouns in the image, there may be none.<br/>'
+	instructions.innerHTML = 'Choose all nouns in the image, there may be none.<br/>'
 		+ '(click the image to enlarge)<br/><br/>';
 	image.src = data.image.url;
 
