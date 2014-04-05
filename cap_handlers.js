@@ -206,8 +206,8 @@ function send_prompt(socket) {
 					socket.cap_count++;
 					var percentage = socket.cap_count / min_for_approval * 60;
 					if(socket.cap_count > min_for_approval) {
-						percentage = 50;
-						percentage += (socket.cap_count - min_for_approval) / max_attempts * 50; 
+						percentage = 60;
+						percentage += (socket.cap_count - min_for_approval) / max_attempts * 40; 
 					}
 
 					// Remove cap_answers from below in prod, only added to make survey easier
