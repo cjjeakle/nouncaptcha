@@ -5,6 +5,8 @@ block append content
 	.jumbotron.minimal_border
 		.centered
 			h2 4. Exit Survey
+		.centered.text-muted
+			|(Reminder: reCAPTCHA was entering text, nouncaptcha was checking boxes)
 		br
 		form(name = 'cap_survey', method = 'POST', action = '/submit_captcha_survey')
 			.col-md-5.col-md-offset-1
