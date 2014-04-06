@@ -1,4 +1,34 @@
+\echo 'user feedback'
+SELECT count(*) count, avg(easier) easier, avg(faster) faster, avg(preferable) preferable
+FROM cap_survey 
+WHERE uuid != '25f0f904-53a9-455d-bcec-b295a939340a' 
+AND uuid != 'c967029f-ee23-447a-a3d6-30448629d496'
+GROUP BY true;
 
+\echo 'passed captcha count'
+select count(*) from cap_survey where cap_pass = TRUE
+AND uuid != '25f0f904-53a9-455d-bcec-b295a939340a' 
+AND uuid != 'c967029f-ee23-447a-a3d6-30448629d496';
+\echo 'failed captcha count'
+select count(*) from cap_survey where cap_pass != TRUE
+AND uuid != '25f0f904-53a9-455d-bcec-b295a939340a' 
+AND uuid != 'c967029f-ee23-447a-a3d6-30448629d496';
+
+\echo 'average prompt score'
+SELECT avg(score) 
+FROM prac_data 
+WHERE uuid != '25f0f904-53a9-455d-bcec-b295a939340a' 
+AND uuid != 'c967029f-ee23-447a-a3d6-30448629d496';
+
+\echo 'score distrib'
+SELECT score, count(*)
+FROM prac_data
+WHERE uuid != '25f0f904-53a9-455d-bcec-b295a939340a' 
+AND uuid != 'c967029f-ee23-447a-a3d6-30448629d496'
+GROUP BY score
+ORDER BY score DESC;
+
+/*
 -- Excluded users never formally disconnected due to error
 -- Appears to be due to Heroku Dyno idleing during their game
 \echo 'List of connected UUIDs'
@@ -39,6 +69,7 @@ select count(temp.*)  from (
 \echo 'Total count of games played'
 select count(distinct uuid) from game_log
 where event = 'match' or event = 'seed guesses generated';
+*/
 
 /*
 \echo 'Users who did not play the game'
@@ -61,7 +92,7 @@ WHERE t.count >= 5
 ORDER BY t.img_id DESC;
 */
 
-
+/*
 \echo 'top 5 taboo tag cardinalities'
 SELECT i.img_id, count(*) FROM tags t
 INNER JOIN images i
@@ -77,3 +108,4 @@ WHERE count >= 5;
 
 \echo 'Total number of tags'
 SELECT count(*) from tags;
+*/

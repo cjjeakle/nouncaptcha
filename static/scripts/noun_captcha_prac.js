@@ -79,7 +79,9 @@ alert('Nouncaptcha instructions:\n\n'
 	+ '*Sometimes all boxes need checking, other times none do.\n\n'
 	+ '*Click the ">>" button to submit.');
 
-socket.emit('set uuid', localStorage.getItem('cap_uuid'));
+if(localStorage.getItem('cap_uuid')) {
+	socket.emit('set uuid', {uuid: localStorage.getItem('cap_uuid')});
+}
 socket.on('uuid recieved', function(data) {
 	socket.emit('start CAPTCHA');
 });

@@ -73,7 +73,12 @@ container.appendChild(progress_container);
 // Socket Interaction
 /////////////////////
 
-socket.emit('start CAPTCHA');
+if(localStorage.getItem('cap_uuid')) {
+	socket.emit('set uuid', {uuid: localStorage.getItem('cap_uuid')});
+	socket.emit('start CAPTCHA');
+} else {
+	socket.emit('start CAPTCHA');
+}
 
 socket.on('CAPTCHA prompt', function(data) {
 	instructions.innerHTML = 'Choose all nouns in the image, there may be none.<br/>'
