@@ -75,7 +75,9 @@ container.appendChild(progress_container);
 
 if(localStorage.getItem('cap_uuid')) {
 	socket.emit('set uuid', {uuid: localStorage.getItem('cap_uuid')});
-	socket.emit('start CAPTCHA');
+	socket.on('uuid recieved', function(data) {
+		socket.emit('start CAPTCHA');
+	});
 } else {
 	socket.emit('start CAPTCHA');
 }
