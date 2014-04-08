@@ -7,6 +7,10 @@ var pg = require('pg').native;
 var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTGRESQL_CYAN_URL;
 
 exports.cap_log = function(event, uuid, content) {
+	// Logging disabled now that testing is over 
+	// (to stay under free DB size limit)
+	return;
+	
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			return console.error('Error establishing connection to client', err);

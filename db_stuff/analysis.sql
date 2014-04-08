@@ -1,32 +1,141 @@
+\echo 'turk users who specified how they found the survey'
+SELECT count(*)
+FROM cap_survey
+WHERE how_found ilike '%turk%';
+
 \echo 'user feedback'
 SELECT count(*) count, avg(easier) easier, avg(faster) faster, avg(preferable) preferable
 FROM cap_survey 
-WHERE uuid != '25f0f904-53a9-455d-bcec-b295a939340a' 
-AND uuid != 'c967029f-ee23-447a-a3d6-30448629d496'
+WHERE uuid NOT IN (
+	SELECT uuid
+	FROM prac_data 
+	GROUP BY uuid
+	HAVING avg(score) < -3
+)
 GROUP BY true;
 
-\echo 'passed captcha count'
-select count(*) from cap_survey where cap_pass = TRUE
-AND uuid != '25f0f904-53a9-455d-bcec-b295a939340a' 
-AND uuid != 'c967029f-ee23-447a-a3d6-30448629d496';
-\echo 'failed captcha count'
-select count(*) from cap_survey where cap_pass != TRUE
-AND uuid != '25f0f904-53a9-455d-bcec-b295a939340a' 
-AND uuid != 'c967029f-ee23-447a-a3d6-30448629d496';
+\echo 'mobile user feedback'
+SELECT count(*) count, avg(easier) easier, avg(faster) faster, avg(preferable) preferable
+FROM cap_survey 
+WHERE input ilike '%touch%' OR input ilike '%phone%' AND uuid NOT IN (
+	SELECT uuid
+	FROM prac_data 
+	GROUP BY uuid
+	HAVING avg(score) < -3
+)
+group by true;
+
+\echo 'touch feedback breakdown'
+SELECT easier, faster, preferable, prefer_check
+FROM cap_survey 
+WHERE input ilike '%touch%' OR input ilike '%phone%' AND uuid NOT IN (
+	SELECT uuid
+	FROM prac_data 
+	GROUP BY uuid
+	HAVING avg(score) < -3
+);
+
+\echo 'Pass and Fail rate for nouncaptcha, respectively'
+SELECT count (*) FROM cap_survey 
+WHERE cap_pass = true AND uuid NOT IN (
+	SELECT uuid
+	FROM prac_data 
+	GROUP BY uuid
+	HAVING avg(score) < -3
+);
+SELECT count (*) FROM cap_survey 
+WHERE cap_pass = false AND uuid NOT IN (
+	SELECT uuid
+	FROM prac_data 
+	GROUP BY uuid
+	HAVING avg(score) < -3
+);
+
+
+\echo 'average captcha time'
+select avg(cap_time) from cap_survey;
 
 \echo 'average prompt score'
-SELECT avg(score) 
-FROM prac_data 
-WHERE uuid != '25f0f904-53a9-455d-bcec-b295a939340a' 
-AND uuid != 'c967029f-ee23-447a-a3d6-30448629d496';
+-- Scores -3 or less appeared to be very unusually bad users
+-- All other users varied between -.8 and 1
+SELECT trunc(avg(score_avg), 5) score_avg, trunc(min(score_avg), 5) score_min, trunc(max(score_avg), 5) score_max, 
+trunc(avg(time_avg), 5) time_avg, trunc(min(time_avg), 5) time_min, trunc(max (time_avg), 5) time_max FROM (
+	SELECT avg(score) score_avg, avg(time) time_avg
+	FROM prac_data 
+	GROUP BY uuid
+	HAVING avg(score) > -3
+) AS temp;
+
+\echo 'count of successful captchas'
+SELECT count (*) FROM (
+	SELECT avg(score) score_avg
+	FROM prac_data 
+	GROUP BY uuid
+	HAVING avg(score) > -3
+) AS temp where score_avg >= (2/5);
+
+\echo 'count of failed captchas'
+SELECT count (*) FROM (
+	SELECT avg(score) score_avg
+	FROM prac_data 
+	GROUP BY uuid
+	HAVING avg(score) > -3
+) AS temp where score_avg < (2/5);
 
 \echo 'score distrib'
 SELECT score, count(*)
 FROM prac_data
-WHERE uuid != '25f0f904-53a9-455d-bcec-b295a939340a' 
-AND uuid != 'c967029f-ee23-447a-a3d6-30448629d496'
+WHERE uuid NOT IN (
+	SELECT uuid
+	FROM prac_data 
+	GROUP BY uuid
+	HAVING avg(score) < -3
+)
 GROUP BY score
 ORDER BY score DESC;
+
+\echo 'ave recap time'
+SELECT avg(time)
+FROM recap_data
+WHERE uuid NOT IN (
+	SELECT uuid
+	FROM prac_data 
+	GROUP BY uuid
+	HAVING avg(score) < -3
+);
+
+select * from prac_data
+WHERE uuid NOT IN (
+	SELECT uuid
+	FROM prac_data 
+	GROUP BY uuid
+	HAVING avg(score) < -3
+) AND UUID IN (
+	SELECT uuid
+	FROM prac_data
+	WHERE score < -1
+)
+order by uuid;
+
+/*
+\echo 'cap count from log'
+select count (distinct l1.uuid) from cap_log l1
+inner join cap_log l2 on l1.uuid = l2.uuid 
+and l1.event = 'new CAPTCHA' 
+and (l2.event = 'success' OR l2.event = 'failed');
+
+\echo 'success count'
+select count (distinct l1.uuid) from cap_log l1
+inner join cap_log l2 on l1.uuid = l2.uuid 
+and l1.event = 'new CAPTCHA' 
+and (l2.event = 'success');
+
+\echo 'failure count'
+select count (distinct l1.uuid) from cap_log l1
+inner join cap_log l2 on l1.uuid = l2.uuid 
+and l1.event = 'new CAPTCHA' 
+and (l2.event = 'failed');
+*/
 
 /*
 -- Excluded users never formally disconnected due to error
