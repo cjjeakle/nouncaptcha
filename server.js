@@ -13,8 +13,8 @@ var io = require('socket.io').listen(server);
 
 var url  = require('url');
 
-var RedisStore = require('socket.io/lib/stores/redis')
-var redis  = require('socket.io/node_modules/redis')
+var RedisStore = require('socket.io/lib/stores/redis');
+var redis  = require('socket.io/node_modules/redis');
 var redisURL = url.parse(process.env.REDISCLOUD_URL);
 var pub = redis.createClient(redisURL.port, redisURL.hostname, {no_ready_check: true});
 var sub = redis.createClient(redisURL.port, redisURL.hostname, {no_ready_check: true});
