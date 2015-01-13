@@ -3,8 +3,7 @@
  */
 
 var pg = require('pg').native;
-// Dev db URL and prod DB url, if DEV does not exist use prod
-var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTGRESQL_CYAN_URL;
+var PG_URL = require('./globals').database_url;
 
 var uuid = require('node-uuid');
 

@@ -17,8 +17,7 @@ var logfmt = require('logfmt');
 var routes = require('./routes');
 var path = require('path');
 var pg = require('pg').native;
-// Dev db URL and prod DB url, if DEV does not exist use prod
-var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTGRESQL_CYAN_URL;
+var PG_URL = require('./globals').database_url;
 
 var grab_images = require('./grab_images');
 var game_log = require('./game_logger').game_log;
