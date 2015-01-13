@@ -1,1 +1,0 @@
-COPY (SELECT * FROM game_survey ORDER BY response_id) TO STDOUT with CSV HEADER;
