@@ -15,8 +15,7 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 * ```apt-get install nodejs-legacy``` (needed for pg-native to install correctly, hopefully this will be unnecessary in the future)
 * ```apt-get install libpq-dev```
 * Set up a postgres database and store its URL in the environment variable ```HEROKU_POSTGRES_CYAN_URL``` or ```dev_database_url```
-    * A starter database is available as a PG dump file under ```db_stuff/basic_database.dump```
-    * Feel free to edit these to whatever makes the most sense (be sure to update the code also)
+   * A starter database is available as a PG dump file under ```db_stuff/basic_database.dump```
 * ```npm install```
 * ```npm install supervisor -g```
 
