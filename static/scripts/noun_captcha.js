@@ -33,11 +33,18 @@ var instructions = document.createElement('textBlock');
 instructions.innerHTML = 'Loading...';
 container.appendChild(instructions);
 
+// Image Source Attribution Link
+var source_link = document.createElement('a');
+source_link.innerHTML = 'Image Source';
+source_link.setAttribute('target', '_blank');
+source_link.style.display = 'none';
+container.appendChild(source_link);
+
 // Prompt image
 var image = document.createElement('img');
-image.className = 'img-responsive center-block'
-image.setAttribute('style', 'max-height: 300px; max-width: 250px;')
-image.setAttribute('onclick', 'toggle_image_size();')
+image.className = 'img-responsive center-block';
+image.setAttribute('style', 'max-height: 300px; max-width: 250px;');
+image.setAttribute('onclick', 'toggle_image_size();');
 container.appendChild(image);
 container.appendChild(document.createElement('br'));
 
@@ -85,7 +92,10 @@ if(localStorage.getItem('cap_uuid')) {
 socket.on('CAPTCHA prompt', function(data) {
 	instructions.innerHTML = 'Choose all nouns in the image, there may be none.<br/>'
 		+ '(click the image to enlarge)<br/><br/>';
+	source_link.style.display = '';
+
 	image.src = data.image.url;
+	source_link.href = data.image.attr;
 
 	// Create the checkboxes and noun labels for the CAPTCHA
 	choices = [];

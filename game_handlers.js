@@ -50,6 +50,7 @@ return function(data) {
 		null
 	);
 
+	/*
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			socket.emit('connection error');
@@ -75,6 +76,7 @@ return function(data) {
 			send_prompt(socket);
 		});
 	});
+	*/
 }
 }
 

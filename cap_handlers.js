@@ -139,7 +139,6 @@ function send_prompt(socket) {
 			return console.error('Error establishing connection to client', err);
 		}
 
-		// TODO: Prevent image repetition
 		var query = 'SELECT * FROM images i INNER JOIN tags t'
 			+ ' ON i.img_id = t.img_id'
 			+ ' WHERE t.count >= ' + taboo_count;
