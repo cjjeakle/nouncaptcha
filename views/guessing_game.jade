@@ -13,9 +13,9 @@ block append content
 			|Loading new image...
 	div(style = 'text-align: center;').jumbotron.game
 		h2 The Guessing Game
-		|Guess some <font color = 'red'>Nouns</font> your Partner is Thinking of
+		|Guess some <font color = 'red'>nouns</font> your partner is thinking of
 		br
-		|(a <font color = 'red'>Noun</font> is a person, place, or thing)
+		|(a <font color = 'red'>noun</font> is a person, place, or thing)
 		br
 		br
 		.row
@@ -44,7 +44,9 @@ block append content
 				| Flag inappropriate/broken
 			br
 			br
-			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess', spellcheck='true', autocapitalize='off', autocorrect='on', autofocus='autofocus')
+			input(type = 'text', onkeypress = 'check_enter(event);', id = 'guess', spellcheck='true', 
+				autocapitalize='off', autocorrect='on', autofocus='autofocus', 
+				size=25, placeholder='What\'s your partner thinking of?')
 			br
 			a(href = 'javascript:send_guess();', id = 'submit_btn').btn.btn-sm.btn-success
 				| Submit Guess

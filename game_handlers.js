@@ -50,6 +50,8 @@ return function(data) {
 		null
 	);
 
+	send_prompt(socket);
+
 	/*
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {

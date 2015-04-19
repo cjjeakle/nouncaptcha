@@ -67,7 +67,6 @@ app.get('/game_test', routes.game_test);
 app.get('/game_survey', routes.game_survey);
 app.get('/game_survey_debrief', routes.game_debrief);
 // CAPTCHA
-app.get('/captcha', routes.cap);
 app.get('/start_captcha_survey', routes.start_captcha_survey);
 app.get('/recaptcha_test', routes.recaptcha_test);
 app.get('/captcha_practice', routes.captcha_practice);

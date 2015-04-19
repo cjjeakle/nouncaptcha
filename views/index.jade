@@ -1,7 +1,7 @@
 extends layout
 
 block append content	
-	.col-md-10.col-md-offset-1.jumbotron.briefing.centered
+	.col-md-10.col-md-offset-1.jumbotron.briefing.centered(style="background-color:rgba(240, 240, 240, .2);")
 		h1 Welcome to nouncaptcha
 		.text-muted
 			|A CAPTCHA powered by an image tagging game
@@ -19,11 +19,13 @@ block append content
 		.row
 		br
 		br
-		|Try out nouncaptcha.
-		.row.centered
-			a(href = '/captcha').btn.btn-success
-				|Try nouncaptcha
-		br
+		script.
+			link = '#{link}'
+		div(style = 'text-align: center;')
+			div(id = 'noun_captcha')
+		script(src='/socket.io/socket.io.js')
+		script(src='/scripts/noun_captcha.js')
+
 		|Try out 'The Guessing Game', which powers nouncaptcha.
 		.row.centered
 			a(href = '/game').btn.btn-success

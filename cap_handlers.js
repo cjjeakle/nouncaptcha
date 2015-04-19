@@ -135,8 +135,8 @@ function error_handler(socket) {
 function send_prompt(socket) {
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
-			broadcast_message(player1, 'connection error');
-			return console.error('Error establishing connection to client', err);
+			socket.emit('connection error');
+			return console.error('Error establishing connection to database client', err);
 		}
 
 		var query = 'SELECT * FROM images i INNER JOIN tags t'
@@ -233,8 +233,8 @@ function send_prompt(socket) {
 function mark_contentious(img_id, noun) {
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
-			broadcast_message(player1, 'connection error');
-			return console.error('Error establishing connection to client', err);
+			socket.emit('connection error');
+			return console.error('Error establishing connection to database client', err);
 		}
 
 		query = 'INSERT INTO contentious_tags (img_id, noun)' 
@@ -266,8 +266,8 @@ function mark_contentious(img_id, noun) {
 function not_contentious(img_id, noun) {
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
-			broadcast_message(player1, 'connection error');
-			return console.error('Error establishing connection to client', err);
+			socket.emit('connection error');
+			return console.error('Error establishing connection to database client', err);
 		}
 
 		query = 'UPDATE contentious_tags'

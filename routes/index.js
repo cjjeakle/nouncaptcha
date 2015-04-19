@@ -7,7 +7,7 @@ var pg = require('pg').native;
 var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTGRESQL_CYAN_URL;
 
 exports.index = function(req, res) {
-	res.render('index');
+	res.render('index', {link: '/'});
 }
 
 
@@ -119,10 +119,6 @@ exports.game_debrief = function(req, res) {
 
 // CAPTCHA Stuff
 ///////////////////////////
-
-exports.cap = function(req, res) {
-	res.render('captcha', {link: '/captcha'});
-}
 
 exports.start_captcha_survey = function(req, res) {
 	res.render('start_captcha_survey');
