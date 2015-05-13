@@ -3,8 +3,6 @@
 //////////////////////////////////// Setup /////////////////////////////////////
 
 
-require('newrelic');
-
 var express = require('express');
 var http = require('http');
 var app = express();
@@ -16,8 +14,6 @@ var uuid = require('node-uuid');
 var logfmt = require('logfmt');
 var routes = require('./routes');
 var path = require('path');
-var pg = require('pg').native;
-var PG_URL = require('./globals').database_url;
 
 var grab_images = require('./grab_images');
 var game_log = require('./game_logger').game_log;
