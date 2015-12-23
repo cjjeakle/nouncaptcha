@@ -15,7 +15,6 @@ var logfmt = require('logfmt');
 var routes = require('./routes');
 var path = require('path');
 
-var grab_images = require('./grab_images');
 var game_log = require('./game_logger').game_log;
 var game_handlers = require('./game_handlers');
 var cap_log = require('./cap_logger').cap_log;
