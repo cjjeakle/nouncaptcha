@@ -5,9 +5,6 @@
 var pg = require('pg').native;
 var PG_URL = require('./globals').database_url;
 
-var uuid = require('node-uuid');
-var cap_log = require('./cap_logger').cap_log;
-
 // Tag count required to be used
 taboo_count = 5;
 // Number of prompt nouns presented
@@ -38,11 +35,6 @@ return function(data) {
 	socket.cap_mode = true;
 	socket.cap_images = [];
 
-	cap_log('new CAPTCHA',
-		socket.uuid,
-		null
-	);
-
 	send_prompt(socket);
 }
 }
@@ -70,20 +62,6 @@ return function(data) {
 	});
 	socket.cap_score += 1 - (mistake_count * mistake_weight);
 
-	cap_log('submission', 
-		socket.uuid,
-		{
-			image: socket.cap_image,
-			prompts: socket.cap_prompts,
-			answers: socket.cap_answers,
-			chosen: data.choices,
-			not_chosen: data.not_chosen,
-			attempt_count: socket.cap_count,
-			score: socket.cap_score,
-			practice: data.practice
-		}
-	);
-
 	// Don't evaluate score in practice mode
 	if(data.practice) {
 		if(socket.cap_count == max_attempts) {
@@ -96,20 +74,12 @@ return function(data) {
 
 	if(socket.cap_count == max_attempts && 
 		socket.cap_score / success_threshold < 1) {
-		cap_log('failed',
-			socket.uuid,
-			null
-		);
 		socket.emit('CAPTCHA failed')
 	} else if(socket.cap_count < min_for_approval ||
 		socket.cap_score / success_threshold < 1) {
 		send_prompt(socket);
 	} else {
 		socket.emit('CAPTCHA complete');
-		cap_log('success',
-			socket.uuid,
-			null
-		);
 	}
 }
 }
@@ -123,10 +93,6 @@ function error_handler(socket) {
 	if(!socket.cap_mode) {
 		// Prevent server crashing from Dyno idleing
 		socket.emit('connection error');
-		cap_log('game issues',
-			socket ? socket.uuid : null,
-			{action: 'connection error'}
-		);
 		return true;
 	}
 	return false;
@@ -216,14 +182,6 @@ function send_prompt(socket) {
 						answers: socket.cap_answers,
 						completion: percentage
 					});
-
-					cap_log('new prompt',
-						socket.uuid,
-						{
-							image: socket.cap_image,
-							prompts: socket.cap_prompts
-						}
-					);
 				});
 			});
 		});

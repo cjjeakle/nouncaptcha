@@ -5,9 +5,6 @@
 var pg = require('pg').native;
 var PG_URL = require('./globals').database_url;
 
-var uuid = require('node-uuid');
-var game_log = require('./game_logger').game_log;
-
 // Number of ms to wait before a "seed game" will accept its final guess
 var seed_timeout = 7000;
 // Min guesses to automatically progress through a "seed round"
@@ -45,40 +42,7 @@ return function(data) {
 	socket.guesses = [];
 	socket.images_seen = [];
 
-	game_log('new game',
-		socket.uuid,
-		null
-	);
-
 	send_prompt(socket);
-
-	/*
-	pg.connect(PG_URL, function(err, client, done) {
-		if (err) {
-			socket.emit('connection error');
-			return console.error('Error establishing connection to client', err);
-		}
-
-		query = 'INSERT INTO game_tokens (uuid, token) VALUES($1, $2)';
-		var token_ = uuid.v4();
-
-		client.query(query, [socket.uuid, token_], function(err, data) {
-			done();
-			if (err) {
-				return console.error('error running query (game token)', err);
-				socket.emit('connection error');
-			}
-			socket.emit('token', {
-				token: token_,
-				uuid: socket.uuid
-			});
-			socket.emit('average score', {
-				average: game_count ? (total_score / game_count) : 0
-			});
-			send_prompt(socket);
-		});
-	});
-	*/
 }
 }
 
@@ -105,36 +69,7 @@ return function(data) {
 	
 	if(socket.partner_guesses) {
 		save_match(socket.image.img_id, data.guess);
-		game_log('match', 
-			socket.uuid,
-			{
-				guesses: socket.guesses,
-				partner: partner_guesses,
-				taboo: socket.image.taboo,
-				match: data.guess,
-				image_id: socket.image.img_id,
-				image_url: socket.image.url
-			}
-		);
-	} else {
-		game_log('seed guesses generated', 
-			socket.uuid,
-			{
-				guesses: socket.guesses,
-				taboo: socket.image.taboo,
-				image_id: socket.image.img_id,
-				image_url: socket.image.url
-			}
-		);
 	}
-	
-	/*
-	 * Experiment, commenting this out to see how leaving
-	 * successful guess lists in play works. Then only
-	 * skipped guess lists are expired.
-	expire_guesses(socket.partner_guess_id);
-	save_guesses(socket.image.img_id, socket.guesses);
-	*/
 
 	socket.emit('add points');
 	send_prompt(socket);
@@ -152,14 +87,6 @@ return function(data) {
 
 	socket.emit('image flagged');
 
-	game_log('flagged', 
-		socket.uuid,
-		{
-			image_id: socket.image.img_id,
-			image_url: socket.image.url
-		}
-	);
-
 	save_flag(socket.image.img_id);
 	send_prompt(socket);
 }
@@ -170,17 +97,6 @@ return function(data) {
 	if(error_handler(socket)) {
 		return;
 	}
-
-	game_log('skip', 
-		socket.uuid,
-		{
-			guesses: socket.guesses,
-			partner: socket.partner_guesses,
-			taboo: socket.image.taboo,
-			image_id: socket.image.img_id,
-			image_url: socket.image.url
-		}
-	);
 	
 	// Make the player wait to discourage skipping
 	socket.skip = true;
@@ -222,10 +138,6 @@ function error_handler(socket) {
 	if(!socket.game_mode) {
 		// Prevent server crashing from Dyno idleing
 		socket.emit('connection error');
-		game_log('game issues',
-			socket ? socket.uuid : null,
-			{action: 'game_mode'}
-		);
 		return true;
 	}
 	return false;
@@ -313,13 +225,6 @@ function send_prompt(socket) {
 					socket.emit('new image', {
 						image: socket.image
 					});
-
-					game_log('starting',
-						socket.uuid,
-						{
-							image: socket.image
-						}
-					);
 
 					socket.match_timeout = setTimeout(function() {
 						socket.wait_over = true;

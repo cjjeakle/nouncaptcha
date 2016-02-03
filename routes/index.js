@@ -4,7 +4,7 @@
 
 var uuid = require('node-uuid');
 var pg = require('pg').native;
-var PG_URL = process.env.HEROKU_POSTGRESQL_WHITE_URL || process.env.HEROKU_POSTGRESQL_CYAN_URL;
+var PG_URL = require('../globals').database_url;
 
 exports.index = function(req, res) {
 	res.render('index', {link: '/'});

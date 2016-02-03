@@ -15,9 +15,7 @@ var logfmt = require('logfmt');
 var routes = require('./routes');
 var path = require('path');
 
-var game_log = require('./game_logger').game_log;
 var game_handlers = require('./game_handlers');
-var cap_log = require('./cap_logger').cap_log;
 var cap_handlers = require('./cap_handlers');
 
 app.set('views', path.join(__dirname, 'views'));
@@ -102,21 +100,6 @@ io.sockets.on('connection', function (socket) {
 	//CAPTCHA events
 	socket.on('start CAPTCHA', cap_handlers.start_CAPTCHA(socket));
 	socket.on('CAPTCHA submission', cap_handlers.submission_handler(socket));
-
-
-	socket.on('disconnect', function() {
-		if(socket.game_mode) {
-			game_log('game disconnect', 
-				socket.uuid,
-				null
-			);
-		} else if (socket.cap_mode) {
-			cap_log('CAPTCHA disconnect', 
-				socket.uuid,
-				null
-			);
-		}
-	});
 });
 
 

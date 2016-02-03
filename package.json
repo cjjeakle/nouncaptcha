@@ -1,27 +1,27 @@
 {
-  "name": "groupCHA",
-  "version": "0.0.0",
-  "description": "An alternative CAPTCHA that has a user identify a grouping for images",
-  "main": "index.js",
+  "name": "nouncaptcha",
+  "version": "0.1.0",
+  "description": "An alternative CAPTCHA that has a user identify the nouns in an image",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/cjjeakle/groupCHA.git"
+    "url": "git://github.com/cjjeakle/nouncaptcha.git"
   },
   "keywords": [
     "CAPTCHA",
-    "groupCHA",
+    "nouncaptcha",
     "example",
     "cjjeakle"
   ],
   "author": "Chris Jeakle",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/cjjeakle/groupCHA/issues"
+    "url": "https://github.com/cjjeakle/nouncaptcha/issues"
   },
-  "homepage": "https://github.com/cjjeakle/groupCHA",
+  "homepage": "www.nouncaptcha.com",
   "dependencies": {
     "logfmt": "~0.18.1",
     "express": "~3.4.8",
