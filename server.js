@@ -11,7 +11,6 @@ var io = require('socket.io').listen(server);
 
 var uuid = require('node-uuid');
 
-var logfmt = require('logfmt');
 var routes = require('./routes');
 var path = require('path');
 
@@ -25,7 +24,6 @@ io.set('transports', [
 	'websocket'
 ]);
 
-app.use(logfmt.requestLogger());
 app.use(express.favicon());
 app.use(express.urlencoded());
 app.use(express.methodOverride());
