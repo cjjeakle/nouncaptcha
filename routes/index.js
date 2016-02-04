@@ -3,7 +3,8 @@
  */
 
 var uuid = require('node-uuid');
-var pg = require('pg').native;
+var pg = require('pg');
+pg.defaults.ssl = true;
 var PG_URL = require('../globals').database_url;
 
 exports.index = function(req, res) {

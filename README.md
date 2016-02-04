@@ -11,11 +11,12 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 
 ##To Get Set Up:
 * Clone this repo
-* ```apt-get install nodejs```
-* ```apt-get install nodejs-legacy``` (needed for pg-native to install correctly, hopefully this will be unnecessary in the future)
-* ```apt-get install libpq-dev```
-* Set up a postgres database and store its URL in the environment variable ```HEROKU_POSTGRES_CYAN_URL``` or ```database_url```
-   * A starter database is available as a PG dump file under ```db_stuff/basic_database.dump```
+* ```sudo apt-get update```
+* ```sudo apt-get install nodejs```
+* Set up a postgres database and store its URL in the environment variable ```DATABASE_URL``` (or do the following to use the default: ```postgres://localhost:5432/nouncaptcha```)
+	* ```sudo apt-get install postgresql postgresql-contrib```
+    * ```sudo -u postgres createdb nouncaptcha``` to assume the postgres user role and create the nouncaptcha DB
+    * ```sudo -u postgres psql nouncaptcha < db_stuff/basic_database.dump``` to import the basic example DB from the provided pgdump file
 * ```npm install```
 * ```npm install supervisor -g```
 

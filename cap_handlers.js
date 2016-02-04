@@ -2,7 +2,8 @@
  * The Following functions handle user interaction with the CAPTCHA
  */
 
-var pg = require('pg').native;
+var pg = require('pg');
+pg.defaults.ssl = true;
 var PG_URL = require('./globals').database_url;
 
 // Tag count required to be used

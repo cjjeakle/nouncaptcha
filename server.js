@@ -36,8 +36,8 @@ app.use(express.static(__dirname + '/static'));
 // Only serve static content from the /public/... directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Listen on the environment's desired port or at 5000
-var port = process.env.PORT || 3000;
+// Listen on the environment's desired port or at 4000
+var port = process.env.PORT || 4000;
 server.listen(port, function() {
 	console.log('Listening on ' + port);
 });
