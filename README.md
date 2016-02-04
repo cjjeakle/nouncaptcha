@@ -21,7 +21,7 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
     * ```sudo -u postgres psql nouncaptcha < db_stuff/basic_database.dump```
     * ```echo "REVOKE CONNECT ON DATABASE nouncaptcha FROM PUBLIC; GRANT CONNECT ON DATABASE nouncaptcha TO nouncaptcha;" | sudo -u postgres psql nouncaptcha```
     * ```echo 'export NOUNCAPTCHA_DB_URL="postgres://nouncaptcha:<password>@localhost:5432/nouncaptcha"' >> ~/.bashrc```
-        * Replace <password> with the one chosen
+        * Replace ```<password>``` with the one chosen
 * ```npm install supervisor -g```
 
 ##To Debug:
