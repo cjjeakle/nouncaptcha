@@ -3,7 +3,6 @@
  */
 
 var pg = require('pg');
-pg.defaults.ssl = true;
 var PG_URL = require('./globals').database_url;
 
 // Number of ms to wait before a "seed game" will accept its final guess

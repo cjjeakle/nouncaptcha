@@ -3,4 +3,4 @@
  */ 
 
 // A convenience method to make changing the desired env var easier
-exports.database_url = process.env.DATABASE_URL || 'postgres://localhost:5432/nouncaptcha';
+exports.database_url = (process.env.NOUNCAPTCHA_DB_URL || process.env.DATABASE_URL) + '?ssl=true';

@@ -13,11 +13,14 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 * Clone this repo
 * ```sudo apt-get update```
 * ```sudo apt-get install nodejs```
-* Set up a postgres database and store its URL in the environment variable ```DATABASE_URL``` (or do the following to use the default: ```postgres://localhost:5432/nouncaptcha```)
-	* ```sudo apt-get install postgresql postgresql-contrib```
-    * ```sudo -u postgres createdb nouncaptcha``` to assume the postgres user role and create the nouncaptcha DB
-    * ```sudo -u postgres psql nouncaptcha < db_stuff/basic_database.dump``` to import the basic example DB from the provided pgdump file
 * ```npm install```
+* Set up a postgres database and store its URL in the environment variable ```DATABASE_URL```
+    * ```sudo apt-get install postgresql postgresql-contrib```
+    * ```sudo -u postgres createuser nouncaptcha --connection-limit=1 --no-createdb --no-createrole --no-superuser --pwprompt``` remember the provided password for later
+    * ```sudo -u postgres createdb nouncaptcha```
+    * ```sudo -u postgres psql nouncaptcha < db_stuff/basic_database.dump```
+    * ```echo "REVOKE CONNECT ON DATABASE nouncaptcha FROM PUBLIC; GRANT CONNECT ON DATABASE nouncaptcha TO nouncaptcha;" | sudo -u postgres psql nouncaptcha```
+    * ```echo 'export NOUNCAPTCHA_DB_URL="postgres://nouncaptcha:<password>@localhost:5432/nouncaptcha"' >> ~/.bashrc``` replace <password> with the one chosen
 * ```npm install supervisor -g```
 
 ##To Debug:

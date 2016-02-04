@@ -24,13 +24,6 @@ io.set('transports', [
 	'websocket'
 ]);
 
-app.use(express.favicon());
-app.use(express.urlencoded());
-app.use(express.methodOverride());
-app.use(express.bodyParser());
-app.use(express.cookieParser());
-app.use(express.session({secret: process.env.SECRET || 'secret', key: 'express.sid'}));
-app.use(app.router);
 app.use(express.static(__dirname + '/static'));
 
 // Only serve static content from the /public/... directory
