@@ -3,13 +3,17 @@
 set -e
 set -o pipefail
 
+#Script command-line options
+declare RUN_UNINSTALL=false;
+declare RUN_INSTALL=false;
+declare -i PORT_ARG=0;
+declare CONFIGURE_AUTOSTART=false;
 #Global App Configuration
 declare APPNAME="nouncaptcha";
 declare APPUUID="2de8adf9-878f-47d5-9a15-e95890a25a76";
 declare RUNFILE="run.sh";
 declare STARTUP_FILES_LOCATION="";
 declare STARTUP_RUNFILE="${APPNAME}_${APPUUID}_start.sh";
-declare -i PORT_ARG=0;
 
 function uninstall {
     echo "Dropping any ${APPNAME} postgres data"
@@ -57,9 +61,9 @@ function install {
     declare DB_URL="postgres://nouncaptcha:${DB_PASS}@localhost:5432/nouncaptcha";
     declare DB_FILE="db_stuff/basic_database.dump";
 
-    if [0 != ${PORT_ARG}];
+    if [${PORT_ARG} -ne 0];
     then 
-        let PORT=${PORT_ARG};
+        PORT=${PORT_ARG};
     fi
 
     echo "Install apt dependencies"
@@ -81,17 +85,16 @@ function install {
     echo "#!/bin/sh" > ${RUNFILE} #Overwrite anything in ${RUNFILE}, or create it
     echo "export ${PORT_VARNAME}=${PORT}" >> ${RUNFILE}
     echo "export ${DB_URL_VARNAME}=\"${DB_URL}\"" >> ${RUNFILE}
-    echo "declare OUTFILE=""" >> ${RUNFILE}
+    echo "declare OUTFILE=\"\"" >> ${RUNFILE}
     echo "while getopts 'sh' option
     do
-        case option in
-            s  ) let OUTFILE=\"> /dev/null\"; ;;
-            h  ) echo \"See readme.md for script arguments and other info.\";;
+        case $option in
+            s  ) OUTFILE=\"> /dev/null\"; ;;
+            h  ) echo \"Help (-h): See readme.md for script arguments and other info.\"; exit; ;;
         esac
     done
     " >> ${RUNFILE}
     echo "forever -w ${APPEXE} ${OUTFILE}" >> ${RUNFILE}
-    chmod +x ${RUNFILE}
 }
 
 function autostart_config {
@@ -99,20 +102,28 @@ function autostart_config {
     chmod +x ${STARTUP_FILES_LOCATION}${STARTUP_RUNFILE}
 }
 
-declare RUN_UNINSTALL=false;
-declare RUN_INSTALL=false;
-declare CONFIGURE_AUTOSTART=false;
 while getopts 'uip:ah' option
 do
     case $option in
-        u ) let RUN_UNINSTALL=true; ;;
-        i ) let RUN_INSTALL=true; ;;
-        p ) let PORT_ARG=${OPTARG}; ;;
-        a ) let CONFIGURE_AUTOSTART=true; ;;
-        h ) echo "See readme.md for script arguments and other info.";;
+        u ) RUN_UNINSTALL=true; ;;
+        i ) RUN_INSTALL=true; ;;
+        p ) PORT_ARG=${OPTARG}; ;;
+        a ) CONFIGURE_AUTOSTART=true; ;;
+        h ) echo "Help (-h): See readme.md for script arguments and other info."; exit; ;;
     esac
 done
 
-((${RUN_UNINSTALL})) && uninstall;
-((${RUN_INSTALL})) && install;
-((${CONFIGURE_AUTOSTART})) && autostart_config;
+if $RUN_UNINSTALL
+then
+    uninstall; 
+fi
+
+if $RUN_INSTALL
+then
+    install; 
+fi
+
+if $CONFIGURE_AUTOSTART
+then
+    autostart_config; 
+fi
