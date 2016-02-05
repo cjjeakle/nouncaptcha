@@ -13,12 +13,12 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 ###Scripted Deployment:
 ```sudo bash deploy.sh```
 * Script Arugments:
-	* ```--uninstall```
-	* ```--install```
-		* ```--port``` sets the port the server will run on (default is 4000)
-		* ```--autostart``` configures the server to run on system start
+	* ```-u``` (uninstall)
+	* ```-i``` (install)
+		* ```-p <int>``` (port) sets the port the server will run on (default is 4000)
+		* ```-a``` (autostart) configures the server to run on system start
 
-example run: ```sudo bash deploy.sh --uninstall --install --autostart --port 80```
+example run: ```sudo bash deploy.sh -u -i -a -p 80```
 
 ###Legacy/Manual Deployment:
 * Clone this repo
@@ -40,7 +40,7 @@ example run: ```sudo bash deploy.sh --uninstall --install --autostart --port 80`
 ##To Debug:
 ```bash run.sh```
 * Script Arguments:
-	* ```--silent``` routes all logging to /dev/null
+	* ```-s``` (silent) routes all logging to /dev/null
 
 (Legacy/Manually deployed) Run: ```forever -w server.js```
 
