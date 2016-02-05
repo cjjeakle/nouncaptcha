@@ -9,7 +9,17 @@ View the live site: www.nouncaptcha.com
 Check out my undergraduate honors thesis on this project: http://deepblue.lib.umich.edu/handle/2027.42/107736
 
 ##To Get Set Up:
+
 ###Scripted Deployment:
+```sudo bash deploy.sh```
+* Script Arugments:
+	* ```--uninstall```
+	* ```--install```
+		* ```--port``` sets the port the server will run on (default is 4000)
+		* ```--autostart``` configures the server to run on system start
+
+example run: ```sudo bash deploy.sh --uninstall --install --autostart --port 80```
+
 ###Legacy/Manual Deployment:
 * Clone this repo
 * ```sudo apt-get update```
@@ -24,11 +34,15 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
     * ```echo "REVOKE CONNECT ON DATABASE nouncaptcha FROM PUBLIC; GRANT CONNECT ON DATABASE nouncaptcha TO nouncaptcha;" | sudo -u postgres psql nouncaptcha```
     * ```echo 'export NOUNCAPTCHA_DB_URL="postgres://nouncaptcha:<password>@localhost:5432/nouncaptcha"' >> ~/.bashrc```
         * Replace <password> with the one chosen
+* Set the port to run on: ```echo 'export NOUNCAPTCHA_PORT=4000' >> ~/.bashrc```
 * ```npm install -g forever```
 
 ##To Debug:
-Run: 
-```forever -w server.js```
+```bash run.sh```
+* Script Arguments:
+	* ```--silent``` routes all logging to /dev/null
+
+(Legacy/Manually deployed) Run: ```forever -w server.js```
 
 ##Notes:
 If installing an old version of this project (such as one of the tagged versions), ```aws-api``` and ```pg-native``` will probably fail to install. 
