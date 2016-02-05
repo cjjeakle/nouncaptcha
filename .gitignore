@@ -1,6 +1,9 @@
 #temp files
 *~
 
+#deployment artifacts
+run.sh
+
 lib-cov
 *.seed
 *.log
