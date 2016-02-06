@@ -11,10 +11,21 @@ declare APPDB="${APPNAME}"
 declare RUNFILE="run";
 declare PROD_RUNFILE="runprod"
 
+function db_exists {
+    if [ `builtin type -p psql` ];
+    then
+        if sudo -u postgres psql $1 -c '' 2>/dev/null;
+        then
+            return 0; #true
+        fi
+    fi
+    return 1; #false
+}
+
 function display_uninstall_warnings {
     if [ -n "$(getent passwd $APPUSER)" ];
     then
-        echo "The user ${APPUSER} will be deleted! (type 'continue' to continue, any other input will exit)"
+        echo "The user \"${APPUSER}\" will be deleted! (type 'continue' to continue, any other input will exit)"
         read input
         if [ "${input}" != "continue" ];
         then
@@ -22,16 +33,13 @@ function display_uninstall_warnings {
         fi
     fi
 
-    if [ `builtin type -p psql` ];
-    then
-        if sudo -u postgres psql ${APPDB} -c '' 2>/dev/null;
+    if db_exists $APPDB;
+    then 
+        echo "The database \"${APPDB}\" will be dropped! (type 'continue' to continue, any other input will exit)"
+        read input
+        if [ "${input}" != "continue" ];
         then
-            echo "The database ${APPDB} will be dropped! (type 'continue' to continue, any other input will exit)"
-            read input
-            if [ "${input}" != "continue" ];
-            then
-                exit;
-            fi
+            exit;
         fi
     fi
 }
@@ -99,6 +107,14 @@ function install {
     if [ "$1" -ne 0 ];
     then 
         PORT=${PORT_ARG};
+    fi
+
+    echo "##########Proactively checking for potential issues##########"
+    echo "############################################################"
+    if db_exists $APPDB;
+    then 
+        echo "The database \"${APPDB}\" already exists, the install script will not work!"
+        exit;
     fi
 
     echo "##########Installing apt dependencies##########"
