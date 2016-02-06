@@ -1,5 +1,5 @@
 /*
- * A central repository for any variables used in multiple files
+ * A central repository for the app's configuration
  */ 
 
 // A convenience method to make changing the desired env var easier

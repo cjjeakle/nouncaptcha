@@ -4,15 +4,11 @@
 
 var uuid = require('node-uuid');
 var pg = require('pg');
-var PG_URL = require('../globals').database_url;
+var PG_URL = require('../config').database_url;
 
 exports.index = function(req, res) {
 	res.render('index', {link: '/'});
 }
-
-
-
-
 
 // Game Stuff
 ///////////////////////////

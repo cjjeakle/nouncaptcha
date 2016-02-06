@@ -3,7 +3,7 @@
  */
 
 var pg = require('pg');
-var PG_URL = require('./globals').database_url;
+var PG_URL = require('./config').database_url;
 
 // Number of ms to wait before a "seed game" will accept its final guess
 var seed_timeout = 7000;

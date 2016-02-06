@@ -30,7 +30,7 @@ app.use(express.static(__dirname + '/static'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Listen on the environment's desired port or at 4000
-var port = require('./globals').port;
+var port = require('./config').port;
 server.listen(port, function() {
 	console.log('Listening on ' + port);
 });

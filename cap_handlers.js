@@ -3,7 +3,7 @@
  */
 
 var pg = require('pg');
-var PG_URL = require('./globals').database_url;
+var PG_URL = require('./config').database_url;
 
 // Tag count required to be used
 taboo_count = 5;
