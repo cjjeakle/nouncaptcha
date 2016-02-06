@@ -17,6 +17,7 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
         * ```-u``` (uninstall)
         * ```-i``` (install)
             * ```-p <int>``` (port) sets the port the server will run on (default is 4000)
+
 ### An example install:
 ```sudo bash deploy -u -i -p 80```
 
@@ -25,6 +26,7 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 ```bash run```
 * Script Arguments:
     * ```-p``` (port) overrides the default port
+
 ###Prod:
 ```bash runprod```
 * Script Arguments:
