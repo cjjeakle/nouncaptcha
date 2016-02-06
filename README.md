@@ -12,7 +12,7 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 ###Scripted Deployment:
 * Clone this repo
 * ```sudo apt-get update```
-* ```sudo bash deploy```
+* ```sudo bash deploy <-u> <-i <-p #>>```
     * Script Arugments:
         * ```-u``` (uninstall)
         * ```-i``` (install)
@@ -23,17 +23,19 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 
 ##Starting the server:
 ###Debugging/development:
+```bash run <-s> <-p>```
+
 (Runs the site as a non-root user named 'nouncaptcha')
 
-```bash run```
 * Script Arguments:
     * ```-s``` (silent) routes all logging to /dev/null
     * ```-p``` (port) overrides the default port
 
 ###Prod:
+```bash runprod <-s> <-p>```
+
 (Runs the site with NODE_ENV=production, as a non-root user named 'nouncaptcha')
 
-```bash runprod```
 * Script Arguments:
     * ```-s``` (silent) routes all logging to /dev/null
     * ```-p``` (port) overrides the default port
