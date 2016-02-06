@@ -17,6 +17,7 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
         * ```-u``` (uninstall)
         * ```-i``` (install)
             * ```-p <int>``` (port) sets the port the server will run on (default is 4000)
+        * ```-z``` (zoom) skip any warnings about deleting users and database data
 
 ### An example install:
 ```sudo bash deploy -u -i -p 8080```

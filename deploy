@@ -3,31 +3,54 @@
 set -e
 set -o pipefail
 
-#Script command-line options
-declare RUN_UNINSTALL=false;
-declare RUN_INSTALL=false;
-declare -i PORT_ARG=0;
 #Global App Configuration
 declare APPNAME="nouncaptcha";
-declare APPUUID="2de8adf9-878f-47d5-9a15-e95890a25a76";
+declare APPUUID="bcbc0664a58044f98960d7de2a4b13a7";
+declare APPUSER="${APPNAME}"
+declare APPDB="${APPNAME}"
 declare RUNFILE="run";
 declare PROD_RUNFILE="runprod"
 
-function uninstall {
-    echo "##########Deleting the App's User##########"
-    echo "############################################################"
-    if [ -n "$(getent passwd $APPNAME)" ]
+function display_uninstall_warnings {
+    if [ -n "$(getent passwd $APPUSER)" ];
     then
-        userdel ${APPNAME}
+        echo "The user ${APPUSER} will be deleted! (type 'continue' to continue, any other input will exit)"
+        read input
+        if [ "${input}" != "continue" ];
+        then
+            exit;
+        fi
+    fi
+
+    if [ `builtin type -p psql` ];
+    then
+        if sudo -u postgres psql ${APPDB} -c '' 2>/dev/null;
+        then
+            echo "The database ${APPDB} will be dropped! (type 'continue' to continue, any other input will exit)"
+            read input
+            if [ "${input}" != "continue" ];
+            then
+                exit;
+            fi
+        fi
+    fi
+}
+
+function uninstall {
+    echo "##########Deleting the App's User (${APPUSER})##########"
+    echo "############################################################"
+    if [ -n "$(getent passwd $APPUSER)" ]
+    then
+        userdel ${APPUSER}
     else
         echo "The app's user could not be found"
     fi
 
-    echo "##########Dropping any ${APPNAME} postgres data##########"
+    echo "##########Dropping any ${APPDB} postgres data##########"
     echo "############################################################"
     if [ `builtin type -p psql` ];
     then
-        echo "DROP DATABASE ${APPNAME}; DROP USER ${APPNAME};" | sudo -u postgres psql
+        echo "DROP DATABASE ${APPDB}; DROP USER ${APPUSER};" | sudo -u postgres psql
     else
         echo "Postgres does not appear to be installed"
     fi
@@ -88,25 +111,25 @@ function install {
     npm install
     npm install -g forever
 
-    echo "##########Creating the App's User Context##########"
+    echo "##########Creating the App's User Context (${APPUSER})##########"
     echo "############################################################"
-    useradd ${APPNAME}
-    echo ${APPNAME}:${PASSWORD} | chpasswd
+    useradd ${APPUSER}
+    echo ${APPUSER}:${PASSWORD} | chpasswd
 
     echo "##########Configuring Postgres##########"
     echo "############################################################"
-    sudo -u postgres createuser ${APPNAME} --connection-limit=1 --no-createdb --no-createrole --no-superuser
-    sudo -u postgres createdb ${APPNAME}
-    echo "ALTER USER ${APPNAME} WITH PASSWORD '${PASSWORD}'" | sudo -u postgres psql $APPNAME
-    echo "REVOKE CONNECT ON DATABASE ${APPNAME} FROM PUBLIC; GRANT CONNECT ON DATABASE ${APPNAME} TO ${APPNAME};" | sudo -u postgres psql ${APPNAME}
-    sudo -u postgres psql ${APPNAME} < $DB_FILE
-    echo "GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO ${APPNAME};" | sudo -u postgres psql ${APPNAME}
+    sudo -u postgres createuser ${APPUSER} --connection-limit=1 --no-createdb --no-createrole --no-superuser
+    sudo -u postgres createdb $APPDB
+    echo "ALTER USER ${APPUSER} WITH PASSWORD '${PASSWORD}'" | sudo -u postgres psql $APPDB
+    echo "REVOKE CONNECT ON DATABASE ${APPDB} FROM PUBLIC; GRANT CONNECT ON DATABASE ${APPDB} TO ${APPUSER};" | sudo -u postgres psql $APPDB
+    sudo -u postgres psql $APPDB < $DB_FILE
+    echo "GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO ${APPUSER};" | sudo -u postgres psql $APPDB
 
     echo "##########Creating the app's runfile (${RUNFILE})##########"
     echo "############################################################"
     #Overwrite anything in ${RUNFILE}, or create it.
     echo "#!/bin/sh
-    echo \"${PASSWORD}\" | su ${APPNAME} -S
+    echo \"${PASSWORD}\" | su ${APPUSER} -S
     export ${PORT_VARNAME}=${PORT};
     export ${DB_URL_VARNAME}=\"${DB_URL}\";
     declare SILENT_MODE=false;
@@ -132,18 +155,29 @@ function install {
     sed -i '2 a export NODE_ENV=\"production\";' ${PROD_RUNFILE};
 }
 
+#Script command-line options
+declare RUN_UNINSTALL=false;
+declare RUN_INSTALL=false;
+declare -i PORT_ARG=0;
+declare ENABLE_UNINSTALL_WARNINGS=true;
+
 while getopts 'uip:h' option
 do
     case $option in
         u ) RUN_UNINSTALL=true; ;;
         i ) RUN_INSTALL=true; ;;
         p ) PORT_ARG=${OPTARG}; ;;
+        z ) ENABLE_UNINSTALL_WARNINGS=false; ;;
         h ) echo "Help (-h): See readme.md for script arguments and other info."; exit; ;;
     esac
 done
 
 if $RUN_UNINSTALL
 then
+    if $ENABLE_UNINSTALL_WARNINGS
+    then
+        display_uninstall_warnings
+    fi
     uninstall; 
 fi
 
