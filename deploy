@@ -14,6 +14,15 @@ declare RUNFILE="run";
 declare PROD_RUNFILE="runprod"
 
 function uninstall {
+    echo "##########Deleting the App's User##########"
+    echo "############################################################"
+    if [ -n "$(getent passwd $APPNAME)" ]
+    then
+        userdel ${APPNAME}
+    else
+        echo "The app's user could not be found"
+    fi
+
     echo "##########Dropping any ${APPNAME} postgres data##########"
     echo "############################################################"
     if [ `builtin type -p psql` ];
@@ -59,9 +68,9 @@ function install {
     declare PORT_VARNAME="NOUNCAPTCHA_PORT";
     declare -i PORT=4000;
     #DB config
-    declare DB_PASS="$(cat /dev/urandom | tr -dc '[:alnum:]' | head -c 32)"; #Generate a strong alphanumeric password from random input
+    declare PASSWORD="$(cat /dev/urandom | tr -dc '[:alnum:]' | head -c 32)"; #Generate a strong alphanumeric password from random input
     declare DB_URL_VARNAME="NOUNCAPTCHA_DB_URL";
-    declare DB_URL="postgres://nouncaptcha:${DB_PASS}@localhost:5432/nouncaptcha";
+    declare DB_URL="postgres://nouncaptcha:${PASSWORD}@localhost:5432/nouncaptcha";
     declare DB_FILE="db_stuff/basic_database.dump";
 
     if [ "$1" -ne 0 ];
@@ -79,18 +88,25 @@ function install {
     npm install
     npm install -g forever
 
+    echo "##########Creating the App's User Context##########"
+    echo "############################################################"
+    useradd ${APPNAME}
+    echo ${APPNAME}:${PASSWORD} | chpasswd
+
     echo "##########Configuring Postgres##########"
     echo "############################################################"
     sudo -u postgres createuser ${APPNAME} --connection-limit=1 --no-createdb --no-createrole --no-superuser
     sudo -u postgres createdb ${APPNAME}
-    echo "ALTER USER ${APPNAME} WITH PASSWORD '${DB_PASS}'" | sudo -u postgres psql $APPNAME
+    echo "ALTER USER ${APPNAME} WITH PASSWORD '${PASSWORD}'" | sudo -u postgres psql $APPNAME
     echo "REVOKE CONNECT ON DATABASE ${APPNAME} FROM PUBLIC; GRANT CONNECT ON DATABASE ${APPNAME} TO ${APPNAME};" | sudo -u postgres psql ${APPNAME}
+    echo "ALTER DEFAULT PRIVILEGES FOR USER ${APPNAME} IN SCHEMA public GRANT SELECT, INSERT, UPDATE ON TABLES TO ${APPNAME};" | sudo -u postgres psql ${APPNAME}
     sudo -u postgres psql ${APPNAME} < $DB_FILE
 
     echo "##########Creating the app's runfile (${RUNFILE})##########"
     echo "############################################################"
     #Overwrite anything in ${RUNFILE}, or create it.
     echo "#!/bin/sh
+    echo \"${PASSWORD}\" | su ${APPNAME} -S
     export ${PORT_VARNAME}=${PORT};
     export ${DB_URL_VARNAME}=\"${DB_URL}\";
     declare SILENT_MODE=false;
@@ -113,7 +129,7 @@ function install {
     echo "############################################################"
     #Use the default runfile to overwrite anything in ${PROD_RUNFILE}, or create it. Then inset the prod env var.
     cat ${RUNFILE} > ${PROD_RUNFILE}
-    sed -i '1 a export NODE_ENV=\"production\";' ${PROD_RUNFILE};
+    sed -i '2 a export NODE_ENV=\"production\";' ${PROD_RUNFILE};
 }
 
 while getopts 'uip:h' option

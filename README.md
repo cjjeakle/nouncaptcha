@@ -19,15 +19,18 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
             * ```-p <int>``` (port) sets the port the server will run on (default is 4000)
 
 ### An example install:
-```sudo bash deploy -u -i -p 80```
+```sudo bash deploy -u -i -p 8080```
 
 ##Starting the server:
 ###Debugging/development:
 ```bash run```
 * Script Arguments:
+    * ```-s``` (silent) routes all logging to /dev/null
     * ```-p``` (port) overrides the default port
 
 ###Prod:
+(Runs the site with NODE_ENV=production)
+
 ```bash runprod```
 * Script Arguments:
     * ```-s``` (silent) routes all logging to /dev/null
