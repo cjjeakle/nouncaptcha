@@ -11,6 +11,14 @@ declare APPDB="${APPNAME}"
 declare RUNFILE="run";
 declare PROD_RUNFILE="runprod"
 
+function user_exists {
+    if [ -n "$(getent passwd $1)" ];
+    then
+        return 0 #true
+    fi
+    return 1 #false
+}
+
 function db_exists {
     if [ `builtin type -p psql` ];
     then
@@ -23,9 +31,9 @@ function db_exists {
 }
 
 function display_uninstall_warnings {
-    if [ -n "$(getent passwd $APPUSER)" ];
+    if user_exists $APPUSER;
     then
-        echo "The user \"${APPUSER}\" will be deleted! (type 'continue' to continue, any other input will exit)"
+        echo "The user named \"${APPUSER}\" will be deleted! (type 'continue' to continue, any other input will exit)"
         read input
         if [ "${input}" != "continue" ];
         then
@@ -35,7 +43,7 @@ function display_uninstall_warnings {
 
     if db_exists $APPDB;
     then 
-        echo "The database \"${APPDB}\" will be dropped! (type 'continue' to continue, any other input will exit)"
+        echo "The database named \"${APPDB}\" will be dropped! (type 'continue' to continue, any other input will exit)"
         read input
         if [ "${input}" != "continue" ];
         then
@@ -111,9 +119,14 @@ function install {
 
     echo "##########Proactively checking for potential issues##########"
     echo "############################################################"
+    if user_exists $APPUSER;
+    then
+        echo "The app's runtime context, a user named \"${APPUSER}\", already exists, the install script will not work!";
+        exit;
+    fi
     if db_exists $APPDB;
     then 
-        echo "The database \"${APPDB}\" already exists, the install script will not work!"
+        echo "A database named \"${APPDB}\" already exists, the install script will not work!";
         exit;
     fi
 
@@ -177,7 +190,7 @@ declare RUN_INSTALL=false;
 declare -i PORT_ARG=0;
 declare ENABLE_UNINSTALL_WARNINGS=true;
 
-while getopts 'uip:h' option
+while getopts 'uip:zh' option
 do
     case $option in
         u ) RUN_UNINSTALL=true; ;;
