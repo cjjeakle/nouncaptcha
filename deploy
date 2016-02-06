@@ -1,0 +1,137 @@
+#!/bin/bash
+#Fail should any operation fail
+set -e
+set -o pipefail
+
+#Script command-line options
+declare RUN_UNINSTALL=false;
+declare RUN_INSTALL=false;
+declare -i PORT_ARG=0;
+#Global App Configuration
+declare APPNAME="nouncaptcha";
+declare APPUUID="2de8adf9-878f-47d5-9a15-e95890a25a76";
+declare RUNFILE="run";
+declare PROD_RUNFILE="runprod"
+
+function uninstall {
+    echo "##########Dropping any ${APPNAME} postgres data##########"
+    echo "############################################################"
+    if [ `builtin type -p psql` ];
+    then
+        echo "DROP DATABASE ${APPNAME}; DROP USER ${APPNAME};" | sudo -u postgres psql
+    else
+        echo "Postgres does not appear to be installed"
+    fi
+
+    echo "##########Removing any installed node libraries##########"
+    echo "############################################################"
+    if [ -d node_modules ];
+    then
+        rm -rf node_modules
+    else
+        echo "No node modules installed, nothing removed"
+    fi
+
+    echo "##########Removing runfile (${RUNFILE})##########"
+    echo "############################################################"
+    if [ -f ${RUNFILE} ];
+    then
+        rm -f ${RUNFILE}
+    else
+        echo "No runfile found, nothing removed"
+    fi
+
+    echo "##########Removing prod runfile (${PROD_RUNFILE})##########"
+    echo "############################################################"
+    if [ -f ${PROD_RUNFILE} ];
+    then
+        rm -f ${PROD_RUNFILE}
+    else
+        echo "No prod runfile found, nothing removed"
+    fi
+}
+
+# Takes one optional argument, which specifies the preferred port to run on (default 4000)
+function install {
+    #File names
+    declare APPEXE="server.js"; #The point of entry for the app
+    #Port config
+    declare PORT_VARNAME="NOUNCAPTCHA_PORT";
+    declare -i PORT=4000;
+    #DB config
+    declare DB_PASS="$(cat /dev/urandom | tr -dc '[:alnum:]' | head -c 32)"; #Generate a strong alphanumeric password from random input
+    declare DB_URL_VARNAME="NOUNCAPTCHA_DB_URL";
+    declare DB_URL="postgres://nouncaptcha:${DB_PASS}@localhost:5432/nouncaptcha";
+    declare DB_FILE="db_stuff/basic_database.dump";
+
+    if [ "$1" -ne 0 ];
+    then 
+        PORT=${PORT_ARG};
+    fi
+
+    echo "##########Installing apt dependencies##########"
+    echo "############################################################"
+    apt-get install nodejs
+    apt-get install postgresql postgresql-contrib
+
+    echo "##########Installing node libraries##########"
+    echo "############################################################"
+    npm install
+    npm install -g forever
+
+    echo "##########Configuring Postgres##########"
+    echo "############################################################"
+    sudo -u postgres createuser ${APPNAME} --connection-limit=1 --no-createdb --no-createrole --no-superuser
+    sudo -u postgres createdb ${APPNAME}
+    echo "ALTER USER ${APPNAME} WITH PASSWORD '${DB_PASS}'" | sudo -u postgres psql $APPNAME
+    echo "REVOKE CONNECT ON DATABASE ${APPNAME} FROM PUBLIC; GRANT CONNECT ON DATABASE ${APPNAME} TO ${APPNAME};" | sudo -u postgres psql ${APPNAME}
+    sudo -u postgres psql ${APPNAME} < $DB_FILE
+
+    echo "##########Creating the app's runfile (${RUNFILE})##########"
+    echo "############################################################"
+    #Overwrite anything in ${RUNFILE}, or create it.
+    echo "#!/bin/sh
+    export ${PORT_VARNAME}=${PORT};
+    export ${DB_URL_VARNAME}=\"${DB_URL}\";
+    declare SILENT_MODE=false;
+    while getopts 'p:sh' option
+    do
+        case \$option in
+            p ) export ${PORT_VARNAME}=\${OPTARG}; ;;
+            s ) SILENT_MODE=true; ;;
+            h ) echo \"Help (-h): See readme.md for script arguments and other info.\"; exit; ;;
+        esac
+    done
+    if \$SILENT_MODE
+    then
+        forever -w ${APPEXE} > /dev/null
+    else
+        forever -w ${APPEXE}
+    fi" > ${RUNFILE}
+
+    echo "##########Creating the app's production runfile (${PROD_RUNFILE})##########"
+    echo "############################################################"
+    #Use the default runfile to overwrite anything in ${PROD_RUNFILE}, or create it. Then inset the prod env var.
+    cat ${RUNFILE} > ${PROD_RUNFILE}
+    sed -i '1 a export NODE_ENV=\"production\";' ${PROD_RUNFILE};
+}
+
+while getopts 'uip:h' option
+do
+    case $option in
+        u ) RUN_UNINSTALL=true; ;;
+        i ) RUN_INSTALL=true; ;;
+        p ) PORT_ARG=${OPTARG}; ;;
+        h ) echo "Help (-h): See readme.md for script arguments and other info."; exit; ;;
+    esac
+done
+
+if $RUN_UNINSTALL
+then
+    uninstall; 
+fi
+
+if $RUN_INSTALL
+then
+    install $PORT_ARG; 
+fi

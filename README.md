@@ -9,40 +9,27 @@ View the live site: www.nouncaptcha.com
 Check out my undergraduate honors thesis on this project: http://deepblue.lib.umich.edu/handle/2027.42/107736
 
 ##To Get Set Up:
-
 ###Scripted Deployment:
-```sudo bash deploy.sh```
-* Script Arugments:
-	* ```-u``` (uninstall)
-	* ```-i``` (install)
-		* ```-p <int>``` (port) sets the port the server will run on (default is 4000)
-		* ```-a``` (autostart) configures the server to run on system start
-
-example run: ```sudo bash deploy.sh -u -i -a -p 80```
-
-###Legacy/Manual Deployment:
 * Clone this repo
 * ```sudo apt-get update```
-* ```sudo apt-get install nodejs```
-* ```npm install```
-* Set up a postgres database and store its URL in the environment variable ```NOUNCAPTCHA_DB_URL``` (preferred) or ```DATABASE_URL``` (fallback)
-    * ```sudo apt-get install postgresql postgresql-contrib```
-    * ```sudo -u postgres createuser nouncaptcha --connection-limit=1 --no-createdb --no-createrole --no-superuser --pwprompt```
-        * Remember the provided password to set it in the connection string below
-    * ```sudo -u postgres createdb nouncaptcha```
-    * ```sudo -u postgres psql nouncaptcha < db_stuff/basic_database.dump```
-    * ```echo "REVOKE CONNECT ON DATABASE nouncaptcha FROM PUBLIC; GRANT CONNECT ON DATABASE nouncaptcha TO nouncaptcha;" | sudo -u postgres psql nouncaptcha```
-    * ```echo 'export NOUNCAPTCHA_DB_URL="postgres://nouncaptcha:<password>@localhost:5432/nouncaptcha"' >> ~/.bashrc```
-        * Replace <password> with the one chosen
-* Set the port to run on: ```echo 'export NOUNCAPTCHA_PORT=4000' >> ~/.bashrc```
-* ```npm install -g forever```
+* ```sudo bash deploy```
+    * Script Arugments:
+        * ```-u``` (uninstall)
+        * ```-i``` (install)
+            * ```-p <int>``` (port) sets the port the server will run on (default is 4000)
+### An example install:
+```sudo bash deploy -u -i -p 80```
 
-##To Debug:
-```bash run.sh```
+##Starting the server:
+###Debugging/development:
+```bash run```
 * Script Arguments:
-	* ```-s``` (silent) routes all logging to /dev/null
-
-(Legacy/Manually deployed) Run: ```forever -w server.js```
+    * ```-p``` (port) overrides the default port
+###Prod:
+```bash runprod```
+* Script Arguments:
+    * ```-s``` (silent) routes all logging to /dev/null
+    * ```-p``` (port) overrides the default port
 
 ##Notes:
 If installing an old version of this project (such as one of the tagged versions), ```aws-api``` and ```pg-native``` will probably fail to install. 

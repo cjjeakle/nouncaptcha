@@ -2,7 +2,8 @@
 *~
 
 #deployment artifacts
-run.sh
+run
+runprod
 
 lib-cov
 *.seed
