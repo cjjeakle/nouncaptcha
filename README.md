@@ -23,22 +23,22 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 
 ##Starting the server:
 ###Debugging/development:
-```bash run <-s> <-p>```
+```bash run <-s> <-p #>```
 
 (Runs the site as a non-root user named 'nouncaptcha')
 
 * Script Arguments:
     * ```-s``` (silent) routes all logging to /dev/null
-    * ```-p``` (port) overrides the default port
+    * ```-p <int>``` (port) overrides the default port
 
 ###Prod:
-```bash runprod <-s> <-p>```
+```bash runprod <-s> <-p #>```
 
 (Runs the site with NODE_ENV=production, as a non-root user named 'nouncaptcha')
 
 * Script Arguments:
     * ```-s``` (silent) routes all logging to /dev/null
-    * ```-p``` (port) overrides the default port
+    * ```-p <int>``` (port) overrides the default port
 
 ##Notes:
 If installing an old version of this project (such as one of the tagged versions), ```aws-api``` and ```pg-native``` will probably fail to install. 
