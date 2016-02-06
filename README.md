@@ -23,13 +23,15 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 
 ##Starting the server:
 ###Debugging/development:
+(Runs the site as a non-root user named 'nouncaptcha')
+
 ```bash run```
 * Script Arguments:
     * ```-s``` (silent) routes all logging to /dev/null
     * ```-p``` (port) overrides the default port
 
 ###Prod:
-(Runs the site with NODE_ENV=production)
+(Runs the site with NODE_ENV=production, as a non-root user named 'nouncaptcha')
 
 ```bash runprod```
 * Script Arguments:
