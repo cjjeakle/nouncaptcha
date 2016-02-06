@@ -99,8 +99,8 @@ function install {
     sudo -u postgres createdb ${APPNAME}
     echo "ALTER USER ${APPNAME} WITH PASSWORD '${PASSWORD}'" | sudo -u postgres psql $APPNAME
     echo "REVOKE CONNECT ON DATABASE ${APPNAME} FROM PUBLIC; GRANT CONNECT ON DATABASE ${APPNAME} TO ${APPNAME};" | sudo -u postgres psql ${APPNAME}
-    echo "ALTER DEFAULT PRIVILEGES FOR USER ${APPNAME} IN SCHEMA public GRANT SELECT, INSERT, UPDATE ON TABLES TO ${APPNAME};" | sudo -u postgres psql ${APPNAME}
     sudo -u postgres psql ${APPNAME} < $DB_FILE
+    echo "GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO ${APPNAME};" | sudo -u postgres psql ${APPNAME}
 
     echo "##########Creating the app's runfile (${RUNFILE})##########"
     echo "############################################################"
