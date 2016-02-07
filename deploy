@@ -134,6 +134,7 @@ function install {
     echo "############################################################"
     apt-get install nodejs
     apt-get install postgresql postgresql-contrib
+    apt-get install screen
 
     echo "##########Installing node libraries##########"
     echo "############################################################"
@@ -158,7 +159,6 @@ function install {
     echo "############################################################"
     #Overwrite anything in ${RUNFILE}, or create it.
     echo "#!/bin/sh
-    echo \"${PASSWORD}\" | su ${APPUSER} -S
     export ${PORT_VARNAME}=${PORT};
     export ${DB_URL_VARNAME}=\"${DB_URL}\";
     declare SILENT_MODE=false;
@@ -179,9 +179,10 @@ function install {
 
     echo "##########Creating the app's production runfile (${PROD_RUNFILE})##########"
     echo "############################################################"
-    #Use the default runfile to overwrite anything in ${PROD_RUNFILE}, or create it. Then inset the prod env var.
-    cat ${RUNFILE} > ${PROD_RUNFILE}
-    sed -i '2 a export NODE_ENV=\"production\";' ${PROD_RUNFILE};
+    #Overwrite anything in ${PROD_RUNFILE}, or create it.
+    declare PWD=$(pwd);
+    echo "#!/bin/sh" > ${PROD_RUNFILE}
+    echo "screen -dmS ${APPNAME} bash -c \"echo '${PASSWORD}' | su ${APPUSER} -S; export NODE_ENV=production; bash ${PWD}/${RUNFILE} -s;\"" >> ${PROD_RUNFILE};
 }
 
 #Script command-line options
