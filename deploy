@@ -1,11 +1,11 @@
 #!/bin/bash
+
 #Fail should any operation fail
 set -e
 set -o pipefail
 
 #Global App Configuration
 declare APPNAME="nouncaptcha";
-declare APPUUID="bcbc0664a58044f98960d7de2a4b13a7";
 declare APPUSER="${APPNAME}"
 declare APPDB="${APPNAME}"
 declare RUNFILE="run";
@@ -52,7 +52,14 @@ function display_uninstall_warnings {
     fi
 }
 
+# Takes one optional argument, $DISABLE_UNINSTALL_WARNINGS
+# If true, uninstall will skip any blocking warnings. Otherwise, the checks are run.
 function uninstall {
+    if !($1)
+    then
+        display_uninstall_warnings
+    fi
+
     echo "##########Deleting the App's User (${APPUSER})##########"
     echo "############################################################"
     if [ -n "$(getent passwd $APPUSER)" ]
@@ -99,7 +106,8 @@ function uninstall {
     fi
 }
 
-# Takes one optional argument, which specifies the preferred port to run on (default 4000)
+# Takes one optional argument, $PORT
+# If set, $PORT specifies the preferred port to run the nodejs HTTP server on (default 4000)
 function install {
     #File names
     declare APPEXE="server.js"; #The point of entry for the app
@@ -114,7 +122,7 @@ function install {
 
     if [ "$1" -ne 0 ];
     then 
-        PORT=${PORT_ARG};
+        PORT=$1;
     fi
 
     echo "##########Proactively checking for potential issues##########"
@@ -158,7 +166,7 @@ function install {
     echo "##########Creating the app's runfile (${RUNFILE})##########"
     echo "############################################################"
     #Overwrite anything in ${RUNFILE}, or create it.
-    echo "#!/bin/sh
+    echo "#!/bin/bash
     export ${PORT_VARNAME}=${PORT};
     export ${DB_URL_VARNAME}=\"${DB_URL}\";
     declare SILENT_MODE=false;
@@ -181,7 +189,7 @@ function install {
     echo "############################################################"
     #Overwrite anything in ${PROD_RUNFILE}, or create it.
     declare PWD=$(pwd);
-    echo "#!/bin/sh" > ${PROD_RUNFILE}
+    echo "#!/bin/bash" > ${PROD_RUNFILE}
     echo "screen -dmS ${APPNAME} bash -c \"echo '${PASSWORD}' | su ${APPUSER} -S; export NODE_ENV=production; bash ${PWD}/${RUNFILE} -s;\"" >> ${PROD_RUNFILE};
 }
 
@@ -189,7 +197,7 @@ function install {
 declare RUN_UNINSTALL=false;
 declare RUN_INSTALL=false;
 declare -i PORT_ARG=0;
-declare ENABLE_UNINSTALL_WARNINGS=true;
+declare DISABLE_UNINSTALL_WARNINGS=false;
 
 while getopts 'uip:zh' option
 do
@@ -197,18 +205,14 @@ do
         u ) RUN_UNINSTALL=true; ;;
         i ) RUN_INSTALL=true; ;;
         p ) PORT_ARG=${OPTARG}; ;;
-        z ) ENABLE_UNINSTALL_WARNINGS=false; ;;
+        z ) DISABLE_UNINSTALL_WARNINGS=true; ;;
         h ) echo "Help (-h): See readme.md for script arguments and other info."; exit; ;;
     esac
 done
 
 if $RUN_UNINSTALL
 then
-    if $ENABLE_UNINSTALL_WARNINGS
-    then
-        display_uninstall_warnings
-    fi
-    uninstall; 
+    uninstall $DISABLE_UNINSTALL_WARNINGS; 
 fi
 
 if $RUN_INSTALL
