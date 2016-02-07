@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#Fail should any operation fail
+#Fail this script should any operation fail
 set -e
 set -o pipefail
 
