@@ -117,7 +117,7 @@ function uninstall {
 # Takes one optional argument, $INSTALL_COMMAND
 # If set, $INSTALL_COMMAND specifies the package manager install command to use when installing packages (default "apt-get install")
 function install_system_packages {
-    declare PACKAGE_INSTALL_CMD="apt-get install";
+    declare PACKAGE_INSTALL_CMD="apt-get --yes install";
 
     if [ "$1" -ne "" ];
     then

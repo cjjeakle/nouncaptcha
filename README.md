@@ -12,17 +12,17 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 ###Scripted Deployment:
 * Clone this repo
 * ```sudo apt-get update```
-* ```sudo bash deploy <-u> <-i <-p #>>```
+* ```sudo bash deploy <-u> <-i <-p #> <-c "">>```
     * Script Arugments:
         * ```-u``` (_U_ninstall)
         * ```-i``` (_I_nstall)
-            * ```-p <int>``` (_P_ort) sets the port the server will run on (default is 4000)
-            * ```-c <str>``` (package manager install _C_ommand) the command needed to install software from the system package manager (default "apt-get install")
+            * ```-p <int>``` (_P_ort) sets the port the server will run on (default 4000)
+            * ```-c <str>``` (install _C_ommand) the command needed to install software from the system package manager (default "apt-get --yes install")
         * ```-z``` (_Z_oom) skip any warnings about deleting users, dropping database data, and/or modifying database data
         	* These warnings are safe to ignore within the app's own context, but the deploy script is cautious to warn of potential data modification should you be using any conflicting names
 
 ### An example install:
-```sudo bash deploy -uip 8080 -c "apt-get install"```
+```sudo bash deploy -uip 8080 -c "apt-get -y install"```
 
 ##Starting the server:
 ###Debugging/development:
