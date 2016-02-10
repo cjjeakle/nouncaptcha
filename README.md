@@ -14,22 +14,23 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 * ```sudo apt-get update```
 * ```sudo bash deploy <-u> <-i <-p #>>```
     * Script Arugments:
-        * ```-u``` (uninstall)
-        * ```-i``` (install)
-            * ```-p <int>``` (port) sets the port the server will run on (default is 4000)
-        * ```-z``` (zoom) skip any warnings about deleting users, dropping database data, and/or modifying database data
+        * ```-u``` (_U_ninstall)
+        * ```-i``` (_I_nstall)
+            * ```-p <int>``` (_P_ort) sets the port the server will run on (default is 4000)
+            * ```-c <str>``` (package manager install _C_ommand) the command needed to install software from the system package manager (default "apt-get install")
+        * ```-z``` (_Z_oom) skip any warnings about deleting users, dropping database data, and/or modifying database data
         	* These warnings are safe to ignore within the app's own context, but the deploy script is cautious to warn of potential data modification should you be using any conflicting names
 
 ### An example install:
-```sudo bash deploy -uip 8080```
+```sudo bash deploy -uip 8080 -c "apt-get install"```
 
 ##Starting the server:
 ###Debugging/development:
 ```bash run <-s> <-p #>```
 
 * Script Arguments:
-    * ```-s``` (silent) routes all logging to /dev/null
-    * ```-p <int>``` (port) overrides the default port
+    * ```-s``` (_S_ilent) routes all logging to /dev/null
+    * ```-p <int>``` (_P_ort) overrides the default port
 
 ###Prod:
 ```bash runprod```

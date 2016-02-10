@@ -11,6 +11,14 @@ declare APPDB="${APPNAME}"
 declare RUNFILE="run";
 declare PROD_RUNFILE="runprod"
 
+function enforce_root {
+    if [ "$(whoami)" != "root" ];
+    then
+        echo "Please re-run this script as root (eg: 'sudo bash deploy')";
+        exit;
+    fi
+}
+
 function user_exists {
     if [ -n "$(getent passwd $1)" ];
     then
@@ -106,9 +114,34 @@ function uninstall {
     fi
 }
 
+# Takes one optional argument, $INSTALL_COMMAND
+# If set, $INSTALL_COMMAND specifies the package manager install command to use when installing packages (default "apt-get install")
+function install_system_packages {
+    declare PACKAGE_INSTALL_CMD="apt-get install";
+
+    if [ "$1" -ne "" ];
+    then
+        PACKAGE_INSTALL_CMD=$1;
+    fi
+
+    echo "##########Installing apt dependencies##########"
+    echo "############################################################"
+    eval "${PACKAGE_INSTALL_CMD} nodejs"
+    eval "${PACKAGE_INSTALL_CMD} npm"
+    eval "${PACKAGE_INSTALL_CMD} postgresql"
+    eval "${PACKAGE_INSTALL_CMD} screen"
+}
+
+function install_app_packages {
+    echo "##########Installing node libraries##########"
+    echo "############################################################"
+    npm install
+    npm install -g forever
+}
+
 # Takes one optional argument, $PORT
 # If set, $PORT specifies the preferred port to run the nodejs HTTP server on (default 4000)
-function install {
+function configure_app {
     #File names
     declare APPEXE="server.js"; #The point of entry for the app
     #Port config
@@ -121,7 +154,7 @@ function install {
     declare DB_FILE="db_stuff/basic_database.dump";
 
     if [ "$1" -ne 0 ];
-    then 
+    then
         PORT=$1;
     fi
 
@@ -137,17 +170,6 @@ function install {
         echo "A database named \"${APPDB}\" already exists, the install script will not work!";
         exit;
     fi
-
-    echo "##########Installing apt dependencies##########"
-    echo "############################################################"
-    apt-get install nodejs
-    apt-get install postgresql postgresql-contrib
-    apt-get install screen
-
-    echo "##########Installing node libraries##########"
-    echo "############################################################"
-    npm install
-    npm install -g forever
 
     echo "##########Creating the App's User Context (${APPUSER})##########"
     echo "############################################################"
@@ -194,21 +216,25 @@ function install {
 }
 
 #Script command-line options
-declare RUN_UNINSTALL=false;
+declare PACKAGE_INSTALL_CMD_ARG="";
 declare RUN_INSTALL=false;
 declare -i PORT_ARG=0;
+declare RUN_UNINSTALL=false;
 declare DISABLE_UNINSTALL_WARNINGS=false;
 
-while getopts 'uip:zh' option
+while getopts 'c:ip:uzh' option
 do
     case $option in
-        u ) RUN_UNINSTALL=true; ;;
+        c ) PACKAGE_INSTALL_CMD_ARG=${OPTARG}; ;;
         i ) RUN_INSTALL=true; ;;
         p ) PORT_ARG=${OPTARG}; ;;
+        u ) RUN_UNINSTALL=true; ;;
         z ) DISABLE_UNINSTALL_WARNINGS=true; ;;
         h ) echo "Help (-h): See readme.md for script arguments and other info."; exit; ;;
     esac
 done
+
+enforce_root;
 
 if $RUN_UNINSTALL
 then
@@ -217,5 +243,7 @@ fi
 
 if $RUN_INSTALL
 then
-    install $PORT_ARG; 
+    install_system_packages $PACKAGE_INSTALL_CMD_ARG;
+    install_app_packages;
+    configure_app $PORT_ARG; 
 fi
