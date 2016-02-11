@@ -22,7 +22,7 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
         * ```-z``` (_Z_oom) skip any warnings about deleting users, dropping database data, and/or modifying database data
         	* These warnings are safe to ignore within the app's own context, but the deploy script is cautious to warn of potential data modification should you be using any conflicting names
 
-### An example install:
+### An Example Install:
 (This is an end-to-end scenario, complete with cloning this repo into a new folder named nouncaptcha)
 ```
 curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash - && \
