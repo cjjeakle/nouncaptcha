@@ -190,7 +190,7 @@ function configure_app {
     #Overwrite anything in ${PROD_RUNFILE}, or create it.
     declare PWD=$(pwd);
     echo "#!/bin/bash" > ${PROD_RUNFILE}
-    echo "screen -dmS ${APPNAME} bash -c \"echo '${PASSWORD}' | su ${APPUSER} -S; export NODE_ENV=production; bash ${PWD}/${RUNFILE} -s;\"" >> ${PROD_RUNFILE};
+    echo "screen -dmS ${APPNAME} bash -c \"echo '${PASSWORD}' | su ${APPUSER} -S; export NODE_ENV=production; cd ${PWD} && bash ${RUNFILE} -s;\"" >> ${PROD_RUNFILE};
 }
 
 #Script command-line options
