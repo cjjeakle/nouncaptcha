@@ -12,17 +12,25 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 ###Scripted Deployment:
 * Clone this repo
 * ```sudo apt-get update```
-* ```sudo bash deploy <-u> <-i <-p #> <-c "">>```
+* ```curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -``` (strongly suggested if using Ubuntu)
+* ```sudo apt-get --yes install nodejs postgresql screen```
+* ```sudo bash deploy <-u> <-i <-p #>>```
     * Script Arugments:
         * ```-u``` (_U_ninstall)
         * ```-i``` (_I_nstall)
             * ```-p <int>``` (_P_ort) sets the port the server will run on (default 4000)
-            * ```-c <str>``` (install _C_ommand) the command needed to install software from the system package manager (default "apt-get --yes install")
         * ```-z``` (_Z_oom) skip any warnings about deleting users, dropping database data, and/or modifying database data
         	* These warnings are safe to ignore within the app's own context, but the deploy script is cautious to warn of potential data modification should you be using any conflicting names
 
-### An example install:
-```sudo bash deploy -uip 8080 -c "apt-get -y install"```
+### An example fresh install (complete with cloning this repo into a new folder named nouncaptcha):
+```
+curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash - && \
+sudo apt-get update && \
+sudo apt-get --yes install git nodejs postgresql screen && \
+git clone https://github.com/cjjeakle/nouncaptcha.git && \
+cd nouncaptcha && \
+sudo bash deploy -uip 8080
+```
 
 ##Starting the server:
 ###Debugging/development:

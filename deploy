@@ -114,24 +114,6 @@ function uninstall {
     fi
 }
 
-# Takes one optional argument, $INSTALL_COMMAND
-# If set, $INSTALL_COMMAND specifies the package manager install command to use when installing packages (default "apt-get install")
-function install_system_packages {
-    declare PACKAGE_INSTALL_CMD="apt-get --yes install";
-
-    if [ "$1" -ne "" ];
-    then
-        PACKAGE_INSTALL_CMD=$1;
-    fi
-
-    echo "##########Installing apt dependencies##########"
-    echo "############################################################"
-    eval "${PACKAGE_INSTALL_CMD} nodejs"
-    eval "${PACKAGE_INSTALL_CMD} npm"
-    eval "${PACKAGE_INSTALL_CMD} postgresql"
-    eval "${PACKAGE_INSTALL_CMD} screen"
-}
-
 function install_app_packages {
     echo "##########Installing node libraries##########"
     echo "############################################################"
@@ -191,21 +173,17 @@ function configure_app {
     echo "#!/bin/bash
     export ${PORT_VARNAME}=${PORT};
     export ${DB_URL_VARNAME}=\"${DB_URL}\";
-    declare SILENT_MODE=false;
+    declare FOREVER_ARGS=\"-w\";
     while getopts 'p:sh' option
     do
         case \$option in
             p ) export ${PORT_VARNAME}=\${OPTARG}; ;;
-            s ) SILENT_MODE=true; ;;
+            s ) FOREVER_ARGS=\"\${FOREVER_ARGS} -s\"; ;;
             h ) echo \"Help (-h): See readme.md for script arguments and other info.\"; exit; ;;
         esac
     done
-    if \$SILENT_MODE
-    then
-        forever -w ${APPEXE} > /dev/null
-    else
-        forever -w ${APPEXE}
-    fi" > ${RUNFILE}
+    eval \"forever \${FOREVER_ARGS} ${APPEXE}\"
+    " > ${RUNFILE}
 
     echo "##########Creating the app's production runfile (${PROD_RUNFILE})##########"
     echo "############################################################"
@@ -216,16 +194,14 @@ function configure_app {
 }
 
 #Script command-line options
-declare PACKAGE_INSTALL_CMD_ARG="";
 declare RUN_INSTALL=false;
 declare -i PORT_ARG=0;
 declare RUN_UNINSTALL=false;
 declare DISABLE_UNINSTALL_WARNINGS=false;
 
-while getopts 'c:ip:uzh' option
+while getopts 'ip:uzh' option
 do
     case $option in
-        c ) PACKAGE_INSTALL_CMD_ARG=${OPTARG}; ;;
         i ) RUN_INSTALL=true; ;;
         p ) PORT_ARG=${OPTARG}; ;;
         u ) RUN_UNINSTALL=true; ;;
@@ -243,7 +219,6 @@ fi
 
 if $RUN_INSTALL
 then
-    install_system_packages $PACKAGE_INSTALL_CMD_ARG;
     install_app_packages;
     configure_app $PORT_ARG; 
 fi
