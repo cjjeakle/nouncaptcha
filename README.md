@@ -12,7 +12,7 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 ###Scripted Deployment:
 * Clone this repo
 * ```sudo apt-get update```
-* ```curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -``` (strongly suggested if using Ubuntu)
+* ```curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -``` (really only necessary if using Ubuntu)
 * ```sudo apt-get --yes install nodejs postgresql screen```
 * ```sudo bash deploy <-u> <-i <-p #>>```
     * Script Arugments:
