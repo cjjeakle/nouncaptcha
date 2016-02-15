@@ -33,6 +33,10 @@ cd nouncaptcha && \
 sudo bash deploy -uip 8080
 ```
 
+### Debugging:
+* `psql` could not connect to server
+    * Try running `sudo /etc/init.d/postgresql restart` and attempting the deploy script again.
+
 ##Starting the server:
 ###Debugging/development:
 ```bash run <-s> <-p #>```
