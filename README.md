@@ -35,7 +35,7 @@ sudo bash deploy -uip 8080
 
 ### Debugging Deployment Issues:
 * `psql` could not connect to server
-    * Try running `sudo /etc/init.d/postgresql restart` and attempting the deploy script again.
+    * Try running `sudo /etc/init.d/postgresql restart` and attempt the deploy script again.
 
 ##Starting the server:
 ###Debugging/Development:
