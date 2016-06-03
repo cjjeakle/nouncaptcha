@@ -64,6 +64,19 @@ This is because the command ```node``` has been replaced by ```nodejs``` in apt.
 This can be resolved by running ```sudo apt-get install nodejs-legacy``` before running ```npm install```.
 
 ## License:
+### Third party code:
+`/cap_handlers.js`contains an array shuffle snippet from http://dzone.com/, which is attributed back to Jonas Raoni Soares Silva's http://jsfromhell.com. This code is denoted and attributed in comments, and is used under http://jsfromhell.com's use with attribution requirement.
+
+There is no explicit license, but http://jsfromhell.com/ states:
+> Copyright<br/>
+> We authorize the copy and modification of all the codes on the site, <strong>since the original author credits are kept</strong>.
+
+Details:
+* Snippet author: Jonas Raoni Soares Silva
+* Attribution link: http://jsfromhell.com/array/shuffle
+* Link to exact snippet used: http://dzone.com/snippets/array-shuffle-javascript
+
+### License for all other code:
 The MIT License (MIT)
 
 Copyright (c) 2014-2016 Chris Jeakle
