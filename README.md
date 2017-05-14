@@ -1,15 +1,15 @@
 nouncaptcha
 ===========
 
-##About:
+## About:
 An Image-Based CAPTCHA Backed by Information from an ESP Game Implementation
 
 View the live site: www.nouncaptcha.com
 
 Check out my undergraduate honors thesis on this project: http://deepblue.lib.umich.edu/handle/2027.42/107736
 
-##To Get Set Up:
-###Scripted Deployment:
+## To Get Set Up:
+### Scripted Deployment:
 * Clone this repo
 * ```sudo apt-get update```
 * ```curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -``` (really only necessary if using Debian/Ubuntu)
@@ -37,15 +37,15 @@ sudo bash deploy -uip 8080
 * `psql` could not connect to server
     * Run `sudo /etc/init.d/postgresql restart` and attempt the deploy script again.
 
-##Starting the server:
-###Debugging/Development:
+## Starting the server:
+### Debugging/Development:
 ```bash run <-s> <-p #>```
 
 * Script Arguments:
     * ```-s``` (_S_ilent) all logging is suppressed
     * ```-p <int>``` (_P_ort) overrides the default port
 
-###Prod:
+### Prod:
 ```bash runprod```
 
 * Script behavior:
@@ -58,7 +58,7 @@ sudo bash deploy -uip 8080
 * Accessing the screen session:
     * ```screen -r nouncaptcha```
 
-##Notes:
+## Notes:
 If installing an old version of this project (such as one of the tagged versions), ```aws-api``` and ```pg-native``` will probably fail to install. 
 This is because the command ```node``` has been replaced by ```nodejs``` in apt. 
 This can be resolved by running ```sudo apt-get install nodejs-legacy``` before running ```npm install```.
