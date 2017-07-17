@@ -22,12 +22,12 @@
   },
   "homepage": "http://www.nouncaptcha.com",
   "dependencies": {
-    "express": "~3.4.8",
-    "jade": "~1.0.0",
-    "socket.io": "~0.9.17",
-    "connect": "~2.14.5",
-    "node-uuid": "~1.4.2",
-    "request": "~2.34.0",
-    "pg": "~4.1.1"
+    "express": "~3",
+    "jade": "~1",
+    "socket.io": "~0.9",
+    "connect": "~2",
+    "node-uuid": "~1",
+    "request": "~2",
+    "pg": "~6"
   }
 }
