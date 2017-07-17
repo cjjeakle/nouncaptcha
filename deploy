@@ -117,7 +117,7 @@ function uninstall {
 function install_app_packages {
     echo "##########Installing node libraries##########"
     echo "############################################################"
-    su - $SUDO_USER -c "npm install"
+    su $SUDO_USER -c "npm install"
     npm install -g forever
 }
 
