@@ -1,6 +1,5 @@
 {
   "name": "nouncaptcha",
-  "version": "0.1.0",
   "description": "An alternative CAPTCHA that has a user identify the nouns in an image",
   "main": "server.js",
   "scripts": {
@@ -30,8 +29,5 @@
     "node-uuid": "~1.4.2",
     "request": "~2.34.0",
     "pg": "~4.1.1"
-  },
-  "engines": {
-    "node": "0.10.x"
   }
 }
