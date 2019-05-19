@@ -11,23 +11,27 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 ## To Get Set Up:
 ### Scripted Deployment:
 * Clone this repo
-* ```sudo apt-get update```
-* ```curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -``` (really only necessary if using Debian/Ubuntu)
-* ```sudo apt-get --yes install nodejs postgresql screen```
-* ```sudo bash deploy <-u> <-i <-p #>>```
+* `sudo apt update`
+* `curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -` (really only necessary if using Debian/Ubuntu)
+* `sudo apt --yes install nodejs postgresql screen`
+* Configure Postgres to auto start via:
+    * `sudo systemctl enable postgresql`
+    * or
+    * `sudo update-rc.d postgresql enable`
+* `sudo bash deploy <-u> <-i <-p #>>`
     * Script Arugments:
-        * ```-u``` (_U_ninstall)
-        * ```-i``` (_I_nstall)
-            * ```-p <int>``` (_P_ort) sets the port the server will run on (default 4000)
-        * ```-z``` (_Z_oom) skip any warnings about deleting users, dropping database data, and/or modifying database data
+        * `-u` (_U_ninstall)
+        * `-i` (_I_nstall)
+            * `-p <int>` (_P_ort) sets the port the server will run on (default 4000)
+        * `-z` (_Z_oom) skip any warnings about deleting users, dropping database data, and/or modifying database data
         	* These warnings are safe to ignore within the app's own context, but the deploy script is cautious to warn of potential data modification should you be using any conflicting names
 
 ### An Example Install:
 (This is an end-to-end scenario, complete with cloning this repo into a new folder named nouncaptcha)
-```
+```bash
 curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash - && \
-sudo apt-get update && \
-sudo apt-get --yes install git nodejs postgresql screen && \
+sudo apt update && \
+sudo apt --yes install git nodejs postgresql screen && \
 git clone https://github.com/cjjeakle/nouncaptcha.git && \
 cd nouncaptcha && \
 sudo bash deploy -uip 8080
@@ -39,14 +43,14 @@ sudo bash deploy -uip 8080
 
 ## Starting the server:
 ### Debugging/Development:
-```bash run <-s> <-p #>```
+`bash run <-s> <-p #>`
 
 * Script Arguments:
-    * ```-s``` (_S_ilent) all logging is suppressed
-    * ```-p <int>``` (_P_ort) overrides the default port
+    * `-s` (_S_ilent) all logging is suppressed
+    * `-p <int>` (_P_ort) overrides the default port
 
 ### Prod:
-```bash runprod```
+`bash runprod`
 
 * Script behavior:
     * Starts a screen named 'nouncaptcha'
@@ -56,12 +60,12 @@ sudo bash deploy -uip 8080
     * The -s parameter is passed in to the run script, so there is no logging
 
 * Accessing the screen session:
-    * ```screen -r nouncaptcha```
+    * `screen -r nouncaptcha`
 
 ## Notes:
-If installing an old version of this project (such as one of the tagged versions), ```aws-api``` and ```pg-native``` will probably fail to install. 
-This is because the command ```node``` has been replaced by ```nodejs``` in apt. 
-This can be resolved by running ```sudo apt-get install nodejs-legacy``` before running ```npm install```.
+If installing an old version of this project (such as one of the tagged versions), `aws-api` and `pg-native` will probably fail to install. 
+This is because the command `node` has been replaced by `nodejs` in apt. 
+This can be resolved by running `sudo apt install nodejs-legacy` before running `npm install`.
 
 ## License:
 ### Third party code:
