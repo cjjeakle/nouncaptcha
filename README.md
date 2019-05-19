@@ -12,12 +12,11 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 ### Scripted Deployment:
 * Clone this repo
 * `sudo apt update`
-* `curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -` (really only necessary if using Debian/Ubuntu)
-* `sudo apt --yes install nodejs postgresql screen`
+* `sudo apt --yes install nodejs npm postgresql screen`
 * Configure Postgres to auto start via:
-    * `sudo systemctl enable postgresql`
+    * `sudo systemctl enable postgresql` (more modern, suggested)
     * or
-    * `sudo update-rc.d postgresql enable`
+    * `sudo update-rc.d postgresql enable` (legacy)
 * `sudo bash deploy <-u> <-i <-p #>>`
     * Script Arugments:
         * `-u` (_U_ninstall)
@@ -29,9 +28,8 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 ### An Example Install:
 (This is an end-to-end scenario, complete with cloning this repo into a new folder named nouncaptcha)
 ```bash
-curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash - && \
 sudo apt update && \
-sudo apt --yes install git nodejs postgresql screen && \
+sudo apt --yes install git nodejs npm postgresql screen && \
 git clone https://github.com/cjjeakle/nouncaptcha.git && \
 cd nouncaptcha && \
 sudo bash deploy -uip 8080
@@ -39,7 +37,11 @@ sudo bash deploy -uip 8080
 
 ### Debugging Deployment Issues:
 * `psql` could not connect to server
-    * Run `sudo /etc/init.d/postgresql restart` and attempt the deploy script again.
+    1. Start the Postgres server via:
+        * `sudo systemctl start postgresql` (more modern, suggested)
+        * or
+        * `sudo /etc/init.d/postgresql restart` (legacy)
+    1. Attempt the deploy script again
 
 ## Starting the server:
 ### Debugging/Development:
