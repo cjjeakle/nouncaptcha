@@ -157,6 +157,7 @@ function configure_app {
     echo "############################################################"
     useradd ${APPUSER}
     echo ${APPUSER}:${PASSWORD} | chpasswd
+    su - ${APPUSER} -c ""
 
     echo "##########Configuring Postgres##########"
     echo "############################################################"
@@ -182,15 +183,17 @@ function configure_app {
             h ) echo \"Help (-h): See readme.md for script arguments and other info.\"; exit; ;;
         esac
     done
-    eval \"forever \${FOREVER_ARGS} ${APPEXE}\"
+    eval \"./node_modules/forever/bin/forever \${FOREVER_ARGS} ${APPEXE}\"
     " > ${RUNFILE}
+    chown $SUDO_USER ${RUNFILE}
 
     echo "##########Creating the app's production runfile (${PROD_RUNFILE})##########"
     echo "############################################################"
     #Overwrite anything in ${PROD_RUNFILE}, or create it.
     declare PWD=$(pwd);
     echo "#!/bin/bash" > ${PROD_RUNFILE}
-    echo "screen -dmS ${APPNAME} bash -c \"echo '${PASSWORD}' | su ${APPUSER} -S; export NODE_ENV=production; cd ${PWD} && bash ${RUNFILE} -s;\"" >> ${PROD_RUNFILE};
+    echo "screen -dmS ${APPNAME} bash -c \"sudo su ${APPUSER} -c 'export NODE_ENV=production; cd ${PWD} && bash ${RUNFILE} -s;'\"" >> ${PROD_RUNFILE};
+    chown $SUDO_USER ${PROD_RUNFILE}
 }
 
 #Script command-line options
