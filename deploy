@@ -41,7 +41,7 @@ function db_exists {
 function display_uninstall_warnings {
     if user_exists $APPUSER;
     then
-        echo "The user named \"${APPUSER}\" will be deleted! (type 'continue' to continue, any other input will exit)"
+        echo "The user named \"${APPUSER}\" (and their home dir) will be deleted! (type 'continue' to continue, any other input will exit)"
         read input
         if [ "${input}" != "continue" ];
         then
@@ -68,11 +68,11 @@ function uninstall {
         display_uninstall_warnings
     fi
 
-    echo "##########Deleting the App's User (${APPUSER})##########"
+    echo "####Deleting the App's User (${APPUSER}) and their home directory####"
     echo "############################################################"
     if [ -n "$(getent passwd $APPUSER)" ]
     then
-        userdel ${APPUSER}
+        userdel -r ${APPUSER}
     else
         echo "The app's user could not be found"
     fi
