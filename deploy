@@ -157,6 +157,7 @@ function configure_app {
     echo "############################################################"
     useradd ${APPUSER}
     echo ${APPUSER}:${PASSWORD} | chpasswd
+    mkhomedir_helper ${APPUSER}
     su - ${APPUSER} -c ""
 
     echo "##########Configuring Postgres##########"
