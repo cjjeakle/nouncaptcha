@@ -13,6 +13,8 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 * Clone this repo
 * `sudo apt update`
 * `sudo apt --yes install nodejs npm postgresql screen`
+* Ensure NPM is up-to-date
+    * `npm install -g npm`
 * Configure Postgres to auto start via:
     * `sudo systemctl enable postgresql` (more modern, suggested)
     * or
@@ -30,6 +32,7 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 ```bash
 sudo apt update && \
 sudo apt --yes install git nodejs npm postgresql screen && \
+sudo npm install -g npm && \
 git clone https://github.com/cjjeakle/nouncaptcha.git && \
 cd nouncaptcha && \
 sudo bash deploy -uip 8080
@@ -63,6 +66,56 @@ sudo bash deploy -uip 8080
 
 * Accessing the screen session:
     * `screen -r nouncaptcha`
+
+### Autostart nouncaptcha with the system:
+* Run this in the root of the nouncapthca folder after installing
+```
+chmod u+x runprod && \
+prodScriptPath=`readlink -f runprod`&& \
+sudo bash -c "echo '
+[Unit]
+Description=nouncaptcha application server
+After=postgresql.service
+
+[Service]
+Type=forking
+ExecStart=${prodScriptPath}
+
+[Install]
+WantedBy=multi-user.target
+' >  /etc/systemd/system/nouncaptcha.service" && \
+sudo systemctl start nouncaptcha && \
+sudo systemctl enable nouncaptcha
+```
+
+### Using an NGINX reverse proxy (with HTTPS)
+* Install NGINX:
+    ```
+    sudo apt install nginx
+    sudo systemctl stop nginx
+    ```
+* Update /etc/nginx/sites-available/default:
+    ```
+    server {
+        server_name nouncaptcha.com www.nouncaptcha.com;
+        location / {
+            # Socket.io compatibility stuff
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $host;
+
+            proxy_pass http://localhost:8001;
+        }
+    }
+    ```
+* Start NGINX with the new config:
+    ```
+    sudo systemctl enable nginx
+    sudo systemctl start nginx
+    ```
+* Set up [letsencrypt certbot](https://www.nginx.com/blog/using-free-ssltls-certificates-from-lets-encrypt-with-nginx/) (for TLS)
 
 ## Notes:
 If installing an old version of this project (such as one of the tagged versions), `aws-api` and `pg-native` will probably fail to install. 
