@@ -50,14 +50,14 @@ return function(data) {
 	data.choices.forEach(function(choice) {
 		if(!socket.cap_answers[choice]) {
 			mistake_count++;
-			mark_contentious(socket.cap_image.img_id, choice);
+			mark_contentious(socket.cap_image.img_id, choice, socket);
 		}
 	});
 	data.not_chosen.forEach(function(choice) {
 		if(socket.cap_answers[choice]) {
 			mistake_count++;
 		} else {
-			not_contentious(socket.cap_image.img_id, choice);
+			not_contentious(socket.cap_image.img_id, choice, socket);
 		}
 	});
 	socket.cap_score += 1 - (mistake_count * mistake_weight);
@@ -115,8 +115,8 @@ function send_prompt(socket) {
 
 		client.query(query, socket.cap_images, function(err, data) {
 			if (err || !data.rows.length) {
-				return console.error('error running query (cap image)', err);
 				res.send(500, 'connection error.');
+				return console.error('error running query (cap image)', err);
 			}
 
 			var img_id = data.rows[0].img_id;
@@ -133,8 +133,8 @@ function send_prompt(socket) {
 
 			client.query(query, [img_id], function(err, data2) {
 				if (err) {
-					return console.error('error running query (cap valid tag)', err);
 					res.send(500, 'connection error.');
+					return console.error('error running query (cap valid tag)', err);
 				}
 
 				var nouns_needed = max_options - data2.rowCount;
@@ -159,8 +159,8 @@ function send_prompt(socket) {
 				client.query(query, [img_id, nouns_needed], function(err, data3) {
 					done();
 					if (err) {
-						return console.error('error running query (cap invalid tag)', err);
 						res.send(500, 'connection error.');
+						return console.error('error running query (cap invalid tag)', err);
 					}
 
 					data3.rows.forEach(function(row) {
@@ -188,7 +188,7 @@ function send_prompt(socket) {
 	});
 }
 
-function mark_contentious(img_id, noun) {
+function mark_contentious(img_id, noun, socket) {
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			socket.emit('connection error');
@@ -202,8 +202,8 @@ function mark_contentious(img_id, noun) {
 
 		client.query(query, [img_id, noun], function(err, data) {
 			if (err) {
-				return console.error('error running query (mark contentious)', err);
 				socket.emit('connection error');
+				return console.error('error running query (mark contentious)', err);
 			}
 			query = 'UPDATE contentious_tags'
 				+ ' SET count = count + 1'
@@ -213,15 +213,15 @@ function mark_contentious(img_id, noun) {
 			client.query(query, [img_id, noun], function(err, data) {
 				done();
 				if (err) {
-					return console.error('error running query (mark contentious)', err);
 					socket.emit('connection error');
+					return console.error('error running query (mark contentious)', err);
 				}
 			});
 		});
 	});
 }
 
-function not_contentious(img_id, noun) {
+function not_contentious(img_id, noun, socket) {
 	pg.connect(PG_URL, function(err, client, done) {
 		if (err) {
 			socket.emit('connection error');
