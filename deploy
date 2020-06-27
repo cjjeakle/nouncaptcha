@@ -162,7 +162,7 @@ function configure_app {
 
     echo "##########Configuring Postgres##########"
     echo "############################################################"
-    sudo -u postgres createuser ${APPUSER} --connection-limit=1 --no-createdb --no-createrole --no-superuser
+    sudo -u postgres createuser ${APPUSER} --no-createdb --no-createrole --no-superuser
     sudo -u postgres createdb $APPDB
     echo "ALTER USER ${APPUSER} WITH PASSWORD '${PASSWORD}'" | sudo -u postgres psql $APPDB
     echo "REVOKE CONNECT ON DATABASE ${APPDB} FROM PUBLIC; GRANT CONNECT ON DATABASE ${APPDB} TO ${APPUSER};" | sudo -u postgres psql $APPDB
