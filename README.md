@@ -63,7 +63,6 @@ sudo bash deploy -uip 8001
     * Assumes the role of a non-root user named 'nouncaptcha'
     * Sets NODE_ENV=production
     * Runs the server under the port configured at install
-    * The -s parameter is passed in to the run script, so there is no logging
 
 * Accessing the screen session:
     * `screen -r nouncaptcha`

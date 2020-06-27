@@ -193,7 +193,7 @@ function configure_app {
     #Overwrite anything in ${PROD_RUNFILE}, or create it.
     declare PWD=$(pwd);
     echo "#!/bin/bash" > ${PROD_RUNFILE}
-    echo "screen -dmS ${APPNAME} bash -c \"sudo su ${APPUSER} -c 'export NODE_ENV=production; cd ${PWD} && bash ${RUNFILE} -s;'\"" >> ${PROD_RUNFILE};
+    echo "screen -dmS ${APPNAME} bash -c \"sudo su ${APPUSER} -c 'export NODE_ENV=production; cd ${PWD} && bash ${RUNFILE};'\"" >> ${PROD_RUNFILE};
     chown $SUDO_USER ${PROD_RUNFILE}
 }
 
