@@ -11,6 +11,7 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 ## To Get Set Up:
 ### Scripted Deployment:
 * Clone this repo
+    * If hosting: it is a good idea to clone this repo under `/srv`, since this will run as a web service
 * `sudo apt update`
 * `sudo apt --yes install nodejs npm postgresql screen`
 * Ensure NPM is up-to-date
@@ -25,7 +26,7 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
         * `-i` (_I_nstall)
             * `-p <int>` (_P_ort) sets the port the server will run on (default 4000)
         * `-z` (_Z_oom) skip any warnings about deleting users, dropping database data, and/or modifying database data
-        	* These warnings are safe to ignore within the app's own context, but the deploy script is cautious to warn of potential data modification should you be using any conflicting names
+            * These warnings are safe to ignore within the app's own context, but the deploy script is cautious to warn of potential data modification should you be using any conflicting names
 
 ### An Example Install:
 (This is an end-to-end scenario, complete with cloning this repo into a new folder named nouncaptcha)
@@ -35,7 +36,7 @@ sudo apt --yes install git nodejs npm postgresql screen && \
 sudo npm install -g npm && \
 git clone https://github.com/cjjeakle/nouncaptcha.git && \
 cd nouncaptcha && \
-sudo bash deploy -uip 8080
+sudo bash deploy -uip 8001
 ```
 
 ### Debugging Deployment Issues:
@@ -68,33 +69,33 @@ sudo bash deploy -uip 8080
     * `screen -r nouncaptcha`
 
 ### Autostart nouncaptcha with the system:
-* Run this in the root of the nouncapthca folder after installing
-```
-chmod u+x runprod && \
-prodScriptPath=`readlink -f runprod`&& \
-sudo bash -c "echo '
-[Unit]
-Description=nouncaptcha application server
-After=postgresql.service
+* Make runprod executable
+    * `chmod u+x runprod`
+* Create a file: `/etc/systemd/system/nouncaptcha.service`
+    ```
+    [Unit]
+    Description=nouncaptcha application server
+    After=postgresql.service
 
-[Service]
-Type=forking
-ExecStart=${prodScriptPath}
+    [Service]
+    Type=forking
+    ExecStart=/srv/nouncaptcha/runprod
 
-[Install]
-WantedBy=multi-user.target
-' >  /etc/systemd/system/nouncaptcha.service" && \
-sudo systemctl start nouncaptcha && \
-sudo systemctl enable nouncaptcha
-```
+    [Install]
+    WantedBy=multi-user.target
+    ```
+* Start the nouncaptcha service:
+    ```
+    sudo systemctl enable nouncaptcha &&
+    sudo systemctl start nouncaptcha
+    ```
 
 ### Using an NGINX reverse proxy (with HTTPS)
 * Install NGINX:
     ```
     sudo apt install nginx
-    sudo systemctl stop nginx
     ```
-* Update /etc/nginx/sites-available/default:
+* Create a file `/etc/nginx/conf.d/nouncaptcha.conf`:
     ```
     server {
         server_name nouncaptcha.com www.nouncaptcha.com;
@@ -110,6 +111,7 @@ sudo systemctl enable nouncaptcha
         }
     }
     ```
+    * Note that the above file assumes prod will run on port `8001`
 * Start NGINX with the new config:
     ```
     sudo systemctl enable nginx
@@ -138,7 +140,7 @@ Details:
 ### License for all other code:
 The MIT License (MIT)
 
-Copyright (c) 2014-2016 Chris Jeakle
+Copyright (c) 2014 Chris Jeakle
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
