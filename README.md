@@ -13,7 +13,7 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 * Clone this repo
     * If hosting: it is a good idea to clone this repo under `/srv`, since this will run as a web service
 * `sudo apt update`
-* `sudo apt --yes install nodejs npm postgresql screen`
+* `sudo apt --yes install nodejs npm postgresql`
 * Ensure NPM is up-to-date
     * `npm install -g npm`
 * Configure Postgres to auto start via:
@@ -32,7 +32,7 @@ Check out my undergraduate honors thesis on this project: http://deepblue.lib.um
 (This is an end-to-end scenario, complete with cloning this repo into a new folder named nouncaptcha)
 ```bash
 sudo apt update && \
-sudo apt --yes install git nodejs npm postgresql screen && \
+sudo apt --yes install git nodejs npm postgresql && \
 sudo npm install -g npm && \
 git clone https://github.com/cjjeakle/nouncaptcha.git && \
 cd nouncaptcha && \
@@ -55,18 +55,6 @@ sudo bash deploy -uip 8001
     * `-s` (_S_ilent) all logging is suppressed
     * `-p <int>` (_P_ort) overrides the default port
 
-### Prod:
-`bash runprod`
-
-* Script behavior:
-    * Starts a screen named 'nouncaptcha'
-    * Assumes the role of a non-root user named 'nouncaptcha'
-    * Sets NODE_ENV=production
-    * Runs the server under the port configured at install
-
-* Accessing the screen session:
-    * `screen -r nouncaptcha`
-
 ### Autostart nouncaptcha with the system:
 * Make runprod executable
     * `chmod u+x runprod`
@@ -82,7 +70,7 @@ sudo bash deploy -uip 8001
     User=nouncaptcha
     Group=nouncaptcha
     WorkingDirectory=/srv/nouncaptcha/
-    ExecStart=/bin/bash /srv/nouncaptcha/runprod
+    ExecStart=/bin/bash -c "export NODE_ENV=production; /bin/bash /srv/nouncaptcha/run" 
 
     [Install]
     WantedBy=multi-user.target

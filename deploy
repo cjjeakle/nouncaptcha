@@ -9,7 +9,6 @@ declare APPNAME="nouncaptcha";
 declare APPUSER="${APPNAME}"
 declare APPDB="${APPNAME}"
 declare RUNFILE="run";
-declare PROD_RUNFILE="runprod"
 
 function enforce_root {
     if [ "$(whoami)" != "root" ];
@@ -103,15 +102,6 @@ function uninstall {
     else
         echo "No runfile found, nothing removed"
     fi
-
-    echo "##########Removing prod runfile (${PROD_RUNFILE})##########"
-    echo "############################################################"
-    if [ -f ${PROD_RUNFILE} ];
-    then
-        rm -f ${PROD_RUNFILE}
-    else
-        echo "No prod runfile found, nothing removed"
-    fi
 }
 
 function install_app_packages {
@@ -186,14 +176,6 @@ function configure_app {
     eval \"./node_modules/forever/bin/forever \${FOREVER_ARGS} ${APPEXE}\"
     " > ${RUNFILE}
     chown $SUDO_USER ${RUNFILE}
-
-    echo "##########Creating the app's production runfile (${PROD_RUNFILE})##########"
-    echo "############################################################"
-    #Overwrite anything in ${PROD_RUNFILE}, or create it.
-    declare PWD=$(pwd);
-    echo "#!/bin/bash" > ${PROD_RUNFILE}
-    echo "screen -dmS ${APPNAME} bash -c \"sudo su ${APPUSER} -c 'export NODE_ENV=production; cd ${PWD} && bash ${RUNFILE};'\"" >> ${PROD_RUNFILE};
-    chown $SUDO_USER ${PROD_RUNFILE}
 }
 
 #Script command-line options
