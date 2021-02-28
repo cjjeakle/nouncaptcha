@@ -73,12 +73,16 @@ sudo bash deploy -uip 8001
 * Create a file: `/etc/systemd/system/nouncaptcha.service`
     ```
     [Unit]
-    Description=nouncaptcha application server
+    Description=nouncaptcha web server
     After=postgresql.service
 
     [Service]
-    Type=forking
-    ExecStart=/srv/nouncaptcha/runprod
+    Type=simple
+    Restart=always
+    User=nouncaptcha
+    Group=nouncaptcha
+    WorkingDirectory=/srv/nouncaptcha/
+    ExecStart=/bin/bash /srv/nouncaptcha/runprod
 
     [Install]
     WantedBy=multi-user.target
