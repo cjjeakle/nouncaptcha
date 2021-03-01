@@ -49,10 +49,9 @@ sudo bash deploy -uip 8001
 
 ## Starting the server:
 ### Debugging/Development:
-`bash run <-s> <-p #>`
+`bash run <-p #>`
 
 * Script Arguments:
-    * `-s` (_S_ilent) all logging is suppressed
     * `-p <int>` (_P_ort) overrides the default port
 
 ### Autostart nouncaptcha with the system:
