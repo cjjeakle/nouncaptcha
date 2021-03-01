@@ -108,7 +108,6 @@ function install_app_packages {
     echo "##########Installing node libraries##########"
     echo "############################################################"
     su $SUDO_USER -c "npm install"
-    npm install -g forever
 }
 
 # Takes one optional argument, $PORT
@@ -165,16 +164,14 @@ function configure_app {
     echo "#!/bin/bash
     export ${PORT_VARNAME}=${PORT};
     export ${DB_URL_VARNAME}=\"${DB_URL}\";
-    declare FOREVER_ARGS=\"-w\";
-    while getopts 'p:sh' option
+    while getopts 'p:h' option
     do
         case \$option in
             p ) export ${PORT_VARNAME}=\${OPTARG}; ;;
-            s ) FOREVER_ARGS=\"\${FOREVER_ARGS} -s\"; ;;
             h ) echo \"Help (-h): See readme.md for script arguments and other info.\"; exit; ;;
         esac
     done
-    /bin/bash -c \"cd ${PWD} && ./node_modules/forever/bin/forever \${FOREVER_ARGS} ${APPEXE}\"
+    /bin/bash -c \"cd ${PWD} && nodejs ${APPEXE}\"
     " > ${RUNFILE}
     chown $SUDO_USER ${RUNFILE}
 }
