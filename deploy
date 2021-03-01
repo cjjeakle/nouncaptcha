@@ -161,6 +161,7 @@ function configure_app {
     echo "##########Creating the app's runfile (${RUNFILE})##########"
     echo "############################################################"
     #Overwrite anything in ${RUNFILE}, or create it.
+    PWD=$(cd `dirname $0` && pwd)
     echo "#!/bin/bash
     export ${PORT_VARNAME}=${PORT};
     export ${DB_URL_VARNAME}=\"${DB_URL}\";
@@ -173,7 +174,7 @@ function configure_app {
             h ) echo \"Help (-h): See readme.md for script arguments and other info.\"; exit; ;;
         esac
     done
-    eval \"./node_modules/forever/bin/forever \${FOREVER_ARGS} ${APPEXE}\"
+    /bin/bash -c \"cd ${PWD} && ./node_modules/forever/bin/forever \${FOREVER_ARGS} ${APPEXE}\"
     " > ${RUNFILE}
     chown $SUDO_USER ${RUNFILE}
 }
