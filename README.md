@@ -55,8 +55,6 @@ sudo bash deploy -uip 8001
     * `-p <int>` (_P_ort) overrides the default port
 
 ### Autostart nouncaptcha with the system:
-* Make runprod executable
-    * `chmod u+x runprod`
 * Create a file: `/etc/systemd/system/nouncaptcha.service`
     ```
     [Unit]
