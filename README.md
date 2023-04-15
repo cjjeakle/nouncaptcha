@@ -88,6 +88,11 @@ sudo bash deploy -uip 8001
     server {
         server_name nouncaptcha.com www.nouncaptcha.com;
         location / {
+            # Limit available HTTP methods to minimize attack surface
+            limit_except GET HEAD POST {
+                deny all;
+            }
+
             # Socket.io compatibility stuff
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
@@ -96,6 +101,18 @@ sudo bash deploy -uip 8001
             proxy_set_header Host $host;
 
             proxy_pass http://localhost:8001;
+
+            # Add security headers, allows script-src (CSS) from stackpath.bootstrapcdn.com
+            add_header X-Content-Type-Options nosniff;
+            add_header X-Frame-Options SAMEORIGIN;
+            add_header X-XSS-Protection "1; mode=block";
+            add_header Referrer-Policy "strict-origin-when-cross-origin";
+            add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+            add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://stackpath.bootstrapcdn.com; font-src 'self'; connect-src 'self'; object-src 'none'; frame-ancestors 'none';";
+
+            # Enable clickjacking protection for modern browsers
+            add_header X-Content-Security-Policy "frame-ancestors 'self'";
+            add_header X-WebKit-CSP "frame-ancestors 'self'";
         }
     }
     ```
