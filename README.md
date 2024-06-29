@@ -87,6 +87,8 @@ sudo bash deploy -uip 8001
     ```
     server {
         server_name nouncaptcha.com www.nouncaptcha.com;
+        listen 80;
+        listen [::]:80;
         location / {
             # Limit available HTTP methods to minimize attack surface
             limit_except GET HEAD POST {
