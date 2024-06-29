@@ -110,7 +110,7 @@ sudo bash deploy -uip 8001
             add_header X-XSS-Protection "1; mode=block";
             add_header Referrer-Policy "strict-origin-when-cross-origin";
             add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-            add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self'; connect-src 'self'; object-src 'none'; frame-ancestors 'none';";
+            add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' cdnjs.cloudflare.com; connect-src 'self'; object-src 'none'; frame-ancestors 'none';";
 
             # Enable clickjacking protection for modern browsers
             add_header X-Content-Security-Policy "frame-ancestors 'self'";
